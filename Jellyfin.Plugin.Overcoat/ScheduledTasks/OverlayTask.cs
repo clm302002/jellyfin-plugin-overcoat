@@ -12,14 +12,11 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.Overcoat.ScheduledTasks;
 
 /// <summary>
-/// The in-process equivalent of the old script's <c>main()</c> run loop. Enumerates configured
-/// libraries, resolves each show's TMDB status, renders the status banner with
-/// <see cref="OverlayRenderer"/>, and saves the poster back **in-process** via
-/// <see cref="IProviderManager.SaveImage(BaseItem, Stream, string, ImageType, int?, CancellationToken)"/>
-/// — no callback HTTP server.
-///
-/// Scope: TV libraries + status banners, with the skip cache, originals vault, and self-heal in
-/// place (via <see cref="ProcessingState"/>). Badges + the movie pipeline arrive in a later phase.
+/// Overcoat's main run loop (the in-process port of the Python <c>main()</c>). Per enabled library
+/// it resolves each item's TMDB id, draws the status banner (TV only) and the qualifying badges
+/// (watch-history / TMDB-trending / IMDB Top 250), and saves the poster in-process — always from the
+/// vaulted clean original, with the skip cache + self-heal in <see cref="ProcessingState"/>.
+/// Movies are badges-only (no status banner), mirroring the reference.
 /// </summary>
 public class OverlayTask : IScheduledTask
 {
@@ -27,17 +24,23 @@ public class OverlayTask : IScheduledTask
     private readonly ILibraryManager _libraryManager;
     private readonly IProviderManager _providerManager;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IUserManager _userManager;
+    private readonly IUserDataManager _userDataManager;
 
     public OverlayTask(
         ILogger<OverlayTask> logger,
         ILibraryManager libraryManager,
         IProviderManager providerManager,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        IUserManager userManager,
+        IUserDataManager userDataManager)
     {
         _logger = logger;
         _libraryManager = libraryManager;
         _providerManager = providerManager;
         _httpClientFactory = httpClientFactory;
+        _userManager = userManager;
+        _userDataManager = userDataManager;
     }
 
     /// <inheritdoc />
@@ -71,20 +74,16 @@ public class OverlayTask : IScheduledTask
         var http = _httpClientFactory.CreateClient(NamedClient.Default);
         var tmdb = new TmdbService(http, config.TmdbApiKey, _logger);
         using var renderer = new OverlayRenderer();
+        var badges = new BadgeCompositor();
         var state = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger);
 
         var ignore = new HashSet<string>(config.IgnoreTitles, StringComparer.OrdinalIgnoreCase);
         var limit = new HashSet<string>(config.LimitToTitles, StringComparer.OrdinalIgnoreCase);
 
-        // Build the TV work-list across all enabled, status-overlay TV libraries.
-        var work = new List<BaseItem>();
-        foreach (var lib in config.Libraries)
+        // Resolve the enabled libraries to process (TV or movie).
+        var plans = new List<(LibraryConfig Lib, Guid ParentId, string Type)>();
+        foreach (var lib in config.Libraries.Where(l => l.Enabled))
         {
-            if (!lib.Enabled)
-            {
-                continue;
-            }
-
             var vf = _libraryManager.GetVirtualFolders()
                 .FirstOrDefault(v => string.Equals(v.Name, lib.Name, StringComparison.OrdinalIgnoreCase));
             if (vf is null)
@@ -94,43 +93,57 @@ public class OverlayTask : IScheduledTask
             }
 
             var type = ResolveType(lib.Type, vf.CollectionType?.ToString());
-            if (type != "tv")
+            if (type is not ("tv" or "movie"))
             {
-                _logger.LogInformation(
-                    "Overcoat: library '{Name}' is type '{Type}'; movie/badge handling lands in a later phase.",
-                    lib.Name,
-                    type);
+                _logger.LogInformation("Overcoat: library '{Name}' has unsupported type '{Type}'; skipping.", lib.Name, type);
                 continue;
             }
 
-            if (!lib.StatusOverlays)
-            {
-                _logger.LogInformation("Overcoat: status banners disabled for '{Name}'; nothing to do yet (badges later).", lib.Name);
-                continue;
-            }
+            plans.Add((lib, Guid.Parse(vf.ItemId), type));
+        }
 
+        // Fetch the badge data sets once, only those some enabled library actually needs.
+        var b = config.BadgesEnabled;
+        bool NeedTv(Func<LibraryConfig, bool> f) => b && plans.Any(p => p.Type == "tv" && f(p.Lib));
+        bool NeedMovie(Func<LibraryConfig, bool> f) => b && plans.Any(p => p.Type == "movie" && f(p.Lib));
+        var watch = new WatchHistory(_libraryManager, _userManager, _userDataManager, _logger);
+
+        var trendingTv = NeedTv(l => l.TrendingBadge) ? await tmdb.GetTrendingIdsAsync("tv", config.TrendingTimeWindow, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
+        var top250Tv = NeedTv(l => l.ImdbTop250Badge) ? await tmdb.GetListIdsAsync(config.ImdbTop250TvListId, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
+        var watchedSeries = NeedTv(l => l.WatchHistoryBadge) ? watch.RecentlyWatchedSeriesIds(config.WatchHistoryDays, config.WatchHistoryAllUsers, config.WatchHistoryUserId) : new HashSet<Guid>();
+        var trendingMovie = NeedMovie(l => l.TrendingBadge) ? await tmdb.GetTrendingIdsAsync("movie", config.TrendingTimeWindow, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
+        var top250Movie = NeedMovie(l => l.ImdbTop250Badge) ? await tmdb.GetListIdsAsync(config.ImdbTop250MovieListId, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
+        var watchedMovies = NeedMovie(l => l.WatchHistoryBadge) ? watch.RecentlyWatchedMovieIds(config.WatchHistoryDays, config.WatchHistoryAllUsers, config.WatchHistoryUserId) : new HashSet<Guid>();
+
+        // Build the work list (item + its library config + type).
+        var work = new List<(BaseItem Item, LibraryConfig Lib, string Type)>();
+        foreach (var plan in plans)
+        {
+            var kind = plan.Type == "tv" ? BaseItemKind.Series : BaseItemKind.Movie;
             var items = _libraryManager.GetItemList(new InternalItemsQuery
             {
-                ParentId = Guid.Parse(vf.ItemId),
-                IncludeItemTypes = new[] { BaseItemKind.Series },
+                ParentId = plan.ParentId,
+                IncludeItemTypes = new[] { kind },
                 Recursive = true,
             });
-
-            work.AddRange(items);
+            foreach (var item in items)
+            {
+                work.Add((item, plan.Lib, plan.Type));
+            }
         }
 
         if (work.Count == 0)
         {
-            _logger.LogInformation("Overcoat: no TV items to process.");
+            _logger.LogInformation("Overcoat: no items to process.");
             progress.Report(100);
             return;
         }
 
-        _logger.LogInformation("Overcoat: processing {Count} TV item(s){DryRun}.", work.Count, config.DryRun ? " (dry run)" : string.Empty);
+        _logger.LogInformation("Overcoat: processing {Count} item(s){DryRun}.", work.Count, config.DryRun ? " (dry run)" : string.Empty);
 
         int done = 0;
         int updated = 0;
-        foreach (var item in work)
+        foreach (var (item, lib, type) in work)
         {
             cancellationToken.ThrowIfCancellationRequested();
             try
@@ -141,7 +154,40 @@ public class OverlayTask : IScheduledTask
                     continue;
                 }
 
-                if (await ProcessShowAsync(item, tmdb, renderer, state, config, cancellationToken).ConfigureAwait(false))
+                var isTv = type == "tv";
+                var tmdbId = isTv
+                    ? await ResolveTvTmdbIdAsync(item, tmdb, config, cancellationToken).ConfigureAwait(false)
+                    : await ResolveMovieTmdbIdAsync(item, tmdb, cancellationToken).ConfigureAwait(false);
+                if (tmdbId is null)
+                {
+                    _logger.LogDebug("Overcoat: no TMDB id for '{Name}'; skipping.", item.Name);
+                    continue;
+                }
+
+                // Which badges does this item qualify for, under its library's selection?
+                var badgeSet = new HashSet<string>(StringComparer.Ordinal);
+                if (config.BadgesEnabled)
+                {
+                    var watched = isTv ? watchedSeries : watchedMovies;
+                    var trending = isTv ? trendingTv : trendingMovie;
+                    var top250 = isTv ? top250Tv : top250Movie;
+                    if (lib.WatchHistoryBadge && watched.Contains(item.Id))
+                    {
+                        badgeSet.Add(BadgeCompositor.WatchHistory);
+                    }
+
+                    if (lib.TrendingBadge && trending.Contains(tmdbId.Value))
+                    {
+                        badgeSet.Add(BadgeCompositor.TmdbTrending);
+                    }
+
+                    if (lib.ImdbTop250Badge && top250.Contains(tmdbId.Value))
+                    {
+                        badgeSet.Add(BadgeCompositor.ImdbTop250);
+                    }
+                }
+
+                if (await ProcessItemAsync(item, lib, type, tmdbId.Value, badgeSet, tmdb, renderer, badges, state, config, cancellationToken).ConfigureAwait(false))
                 {
                     updated++;
                 }
@@ -171,63 +217,61 @@ public class OverlayTask : IScheduledTask
         };
     }
 
-    private async Task<bool> ProcessShowAsync(
+    private async Task<bool> ProcessItemAsync(
         BaseItem item,
+        LibraryConfig lib,
+        string type,
+        int tmdbId,
+        ISet<string> badgeSet,
         TmdbService tmdb,
         OverlayRenderer renderer,
+        BadgeCompositor badges,
         ProcessingState state,
         PluginConfiguration config,
         CancellationToken ct)
     {
-        var tmdbId = await ResolveTmdbIdAsync(item, tmdb, config, ct).ConfigureAwait(false);
-        if (tmdbId is null)
+        // Status banner: TV only, and only when the library has status overlays enabled.
+        string? text = null;
+        var statusKey = type == "tv" ? "tv" : "movie";
+        if (type == "tv" && lib.StatusOverlays)
         {
-            _logger.LogDebug("Overcoat: no TMDB id for '{Name}'; skipping.", item.Name);
-            return false;
+            var info = await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false);
+            if (info is not null)
+            {
+                statusKey = info.Status ?? "tv";
+                text = StatusOverlayResolver.Resolve(info);
+            }
         }
 
-        var info = await tmdb.GetTvStatusAsync(tmdbId.Value, ct).ConfigureAwait(false);
-        if (info is null)
+        // Nothing to draw → nothing to do.
+        if (text is null && badgeSet.Count == 0)
         {
-            return false;
-        }
-
-        var text = StatusOverlayResolver.Resolve(info);
-        if (text is null)
-        {
-            _logger.LogDebug("Overcoat: no overlay match for '{Name}' (status {Status}).", item.Name, info.Status);
             return false;
         }
 
         var id = item.Id.ToString("N");
         var currentSig = ProcessingState.Signature(item);
 
-        // Self-heal: if the poster changed outside Overcoat, drop our cached clean original so the
-        // overlay re-baselines on the new art.
         if (state.ExternallyChanged(id, currentSig))
         {
             _logger.LogInformation("Overcoat: '{Name}' poster changed externally — re-baselining.", item.Name);
             state.InvalidateOriginal(id);
         }
 
-        // Skip cache (badge set is empty until the badge pipeline lands).
-        var badgeSet = Array.Empty<string>();
-        if (!state.NeedsProcessing(id, info.Status, badgeSet, text, currentSig, config.CacheEnabled))
+        if (!state.NeedsProcessing(id, statusKey, badgeSet, text, currentSig, config.CacheEnabled))
         {
             _logger.LogDebug("Overcoat: '{Name}' unchanged — skipping.", item.Name);
             return false;
         }
 
-        // Overlay the CLEAN original — from the vault if we have it, else the item's current poster
-        // (Jellyfin file → TMDB fallback), which then becomes the vaulted baseline. Starting from the
-        // clean original is what keeps repeated runs from stacking banners.
+        // Always overlay the clean original (vault → current poster → TMDB), never the live poster.
         var original = await state.ReadOriginalAsync(id, ct).ConfigureAwait(false);
         if (original is null)
         {
-            original = await AcquireSourcePosterAsync(item, info, tmdb, ct).ConfigureAwait(false);
+            original = await AcquireSourcePosterAsync(item, type, tmdbId, tmdb, ct).ConfigureAwait(false);
             if (original is null)
             {
-                _logger.LogDebug("Overcoat: '{Name}' has no poster (Jellyfin or TMDB); skipping.", item.Name);
+                _logger.LogDebug("Overcoat: '{Name}' has no usable poster; skipping.", item.Name);
                 return false;
             }
 
@@ -241,39 +285,33 @@ public class OverlayTask : IScheduledTask
             return false;
         }
 
-        renderer.DrawStatusBanner(bmp, text);
+        if (text is not null)
+        {
+            renderer.DrawStatusBanner(bmp, text);
+        }
+
+        badges.Apply(renderer, bmp, badgeSet, config.BadgeStackOffset);
         var png = OverlayRenderer.EncodePng(bmp);
 
         if (config.DryRun)
         {
-            _logger.LogInformation("Overcoat: [dry run] would set '{Name}' → '{Text}'.", item.Name, text);
+            _logger.LogInformation("Overcoat: [dry run] '{Name}' → banner='{Text}' badges=[{Badges}].", item.Name, text ?? "-", string.Join(",", badgeSet));
             return true;
         }
 
         using var ms = new MemoryStream(png);
-        await _providerManager
-            .SaveImage(item, ms, "image/png", ImageType.Primary, null, ct)
-            .ConfigureAwait(false);
-
-        // SaveImage updates the item's image info in memory; from a standalone scheduled task we
-        // must persist it so Jellyfin's DB (and the served image tag) points at the new poster.
+        await _providerManager.SaveImage(item, ms, "image/png", ImageType.Primary, null, ct).ConfigureAwait(false);
         await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, ct).ConfigureAwait(false);
 
-        // Record the signature of the poster we just produced (re-read after the save) so a later
-        // external change is detectable and unchanged items skip next run.
         var produced = _libraryManager.GetItemById(item.Id) ?? item;
-        state.MarkProcessed(id, item.Name ?? string.Empty, info.Status, text, badgeSet, ProcessingState.Signature(produced));
+        state.MarkProcessed(id, item.Name ?? string.Empty, statusKey, text, badgeSet, ProcessingState.Signature(produced));
 
-        _logger.LogInformation("Overcoat: '{Name}' → '{Text}'.", item.Name, text);
+        _logger.LogInformation("Overcoat: '{Name}' → banner='{Text}' badges=[{Badges}].", item.Name, text ?? "-", string.Join(",", badgeSet));
         return true;
     }
 
-    /// <summary>Clean source poster for an item: the Jellyfin file if present, else the TMDB poster.</summary>
-    private async Task<byte[]?> AcquireSourcePosterAsync(
-        BaseItem item,
-        TmdbService.TvStatusInfo info,
-        TmdbService tmdb,
-        CancellationToken ct)
+    /// <summary>Clean source poster: the Jellyfin file if present; for TV, else the TMDB poster (movies have no fallback).</summary>
+    private async Task<byte[]?> AcquireSourcePosterAsync(BaseItem item, string type, int tmdbId, TmdbService tmdb, CancellationToken ct)
     {
         if (item.HasImage(ImageType.Primary, 0))
         {
@@ -284,26 +322,29 @@ public class OverlayTask : IScheduledTask
             }
         }
 
-        if (info.PosterPath is { Length: > 0 } posterPath
-            && await tmdb.DownloadPosterAsync(posterPath, ct).ConfigureAwait(false) is { } fetched)
+        if (type == "tv")
         {
-            _logger.LogInformation("Overcoat: '{Name}' had no usable Jellyfin poster; using TMDB poster.", item.Name);
-            return fetched;
+            var info = await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false);
+            if (info?.PosterPath is { Length: > 0 } posterPath
+                && await tmdb.DownloadPosterAsync(posterPath, ct).ConfigureAwait(false) is { } fetched)
+            {
+                _logger.LogInformation("Overcoat: '{Name}' had no usable Jellyfin poster; using TMDB poster.", item.Name);
+                return fetched;
+            }
         }
 
         return null;
     }
 
-    /// <summary>TMDB id resolution: overrides → ProviderIds.Tmdb → Imdb/Tvdb via /find → title search.</summary>
-    private async Task<int?> ResolveTmdbIdAsync(BaseItem item, TmdbService tmdb, PluginConfiguration config, CancellationToken ct)
+    /// <summary>TV TMDB id: overrides → ProviderIds.Tmdb → Imdb/Tvdb via /find → title search.</summary>
+    private async Task<int?> ResolveTvTmdbIdAsync(BaseItem item, TmdbService tmdb, PluginConfiguration config, CancellationToken ct)
     {
         var name = item.Name ?? string.Empty;
         var year = item.ProductionYear;
 
         foreach (var ov in config.TmdbOverrides)
         {
-            if (string.Equals(ov.Name, name, StringComparison.OrdinalIgnoreCase)
-                && (ov.Year == 0 || ov.Year == year))
+            if (string.Equals(ov.Name, name, StringComparison.OrdinalIgnoreCase) && (ov.Year == 0 || ov.Year == year))
             {
                 return ov.TmdbId;
             }
@@ -333,6 +374,22 @@ public class OverlayTask : IScheduledTask
         }
 
         return await tmdb.SearchShowAsync(name, year, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>Movie TMDB id: ProviderIds.Tmdb → Imdb via /find. No title-search fallback (mirrors the reference).</summary>
+    private async Task<int?> ResolveMovieTmdbIdAsync(BaseItem item, TmdbService tmdb, CancellationToken ct)
+    {
+        if (TryGetProvider(item, "Tmdb", out var raw) && int.TryParse(raw, out var direct))
+        {
+            return direct;
+        }
+
+        if (TryGetProvider(item, "Imdb", out var imdb) && !string.IsNullOrEmpty(imdb))
+        {
+            return await tmdb.FindByExternalIdAsync(imdb!, "imdb_id", movie: true, ct).ConfigureAwait(false);
+        }
+
+        return null;
     }
 
     private static bool TryGetProvider(BaseItem item, string key, out string? value)

@@ -178,6 +178,93 @@ public sealed class TmdbService
         }
     }
 
+    /// <summary>Trending TMDB ids. <paramref name="mediaType"/> is "tv" or "movie"; window "day"/"week".</summary>
+    public async Task<HashSet<int>> GetTrendingIdsAsync(string mediaType, string window, CancellationToken ct)
+    {
+        var ids = new HashSet<int>();
+        try
+        {
+            var w = window == "day" ? "day" : "week";
+            var url = $"{Base}/trending/{mediaType}/{w}?api_key={_apiKey}";
+            using var doc = await GetJsonAsync(url, ct).ConfigureAwait(false);
+            if (doc is not null && doc.RootElement.TryGetProperty("results", out var results))
+            {
+                foreach (var r in results.EnumerateArray())
+                {
+                    if (r.TryGetProperty("id", out var idEl) && idEl.TryGetInt32(out var id))
+                    {
+                        ids.Add(id);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "TMDB trending {Type}/{Window} failed", mediaType, window);
+        }
+
+        return ids;
+    }
+
+    /// <summary>All TMDB ids in a TMDB list (paginated). Used for the IMDB Top 250 lists.</summary>
+    public async Task<HashSet<int>> GetListIdsAsync(string listId, CancellationToken ct)
+    {
+        var ids = new HashSet<int>();
+        if (string.IsNullOrWhiteSpace(listId))
+        {
+            return ids;
+        }
+
+        try
+        {
+            var page = 1;
+            while (true)
+            {
+                var url = $"{Base}/list/{listId}?api_key={_apiKey}&language=en-US&page={page}";
+                int count = 0;
+                int totalPages = 1;
+                using (var doc = await GetJsonAsync(url, ct).ConfigureAwait(false))
+                {
+                    if (doc is null)
+                    {
+                        break;
+                    }
+
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array)
+                    {
+                        count = items.GetArrayLength();
+                        foreach (var it in items.EnumerateArray())
+                        {
+                            if (it.TryGetProperty("id", out var idEl) && idEl.TryGetInt32(out var id))
+                            {
+                                ids.Add(id);
+                            }
+                        }
+                    }
+
+                    if (root.TryGetProperty("total_pages", out var tp) && tp.TryGetInt32(out var t))
+                    {
+                        totalPages = t;
+                    }
+                }
+
+                if (count == 0 || page >= totalPages)
+                {
+                    break;
+                }
+
+                page++;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "TMDB list {ListId} failed", listId);
+        }
+
+        return ids;
+    }
+
     private static bool TryGetDate(JsonElement obj, string prop, out DateTime date)
     {
         date = default;
