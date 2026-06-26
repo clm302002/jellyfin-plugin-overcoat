@@ -19,11 +19,14 @@ import os, json, zipfile, hashlib, datetime, sys
 
 GUID = "604f4e22-a0a1-490d-b383-d60336318eaa"
 NAME = "Overcoat"
-OVERVIEW = "Status overlays & badges for Jellyfin posters."
+OWNER = "Nanomed"
+OVERVIEW = "Overlays status banners and badges onto your Jellyfin posters."
 DESCRIPTION = (
-    "In-process Jellyfin plugin that overlays TV status banners "
-    "(NEW/AIRING/RETURNING/ENDED/CANCELED) onto posters, rendered with SkiaSharp and saved via "
-    "Jellyfin's image API. Badges and the movie pipeline are in progress."
+    "Overcoat decorates your Jellyfin posters with useful info at a glance — status banners like "
+    "NEW, AIRING, RETURNING, ENDED and CANCELED on your TV shows, plus badges for trending titles, "
+    "IMDb Top 250 picks, and the shows and movies you've actually been watching (using Jellyfin's "
+    "built-in activity). Set it up once, choose your libraries, and Overcoat keeps your posters "
+    "updated automatically."
 )
 
 def main():
@@ -43,7 +46,7 @@ def main():
     # meta.json goes INSIDE the zip; Jellyfin reads it after extracting.
     meta = {
         "category": "Metadata", "guid": GUID, "name": NAME, "overview": OVERVIEW,
-        "description": DESCRIPTION, "owner": "clm302002", "targetAbi": "10.11.0.0",
+        "description": DESCRIPTION, "owner": OWNER, "targetAbi": "10.11.0.0",
         "timestamp": ts, "version": ver, "status": "Active", "autoUpdate": False, "assemblies": [],
     }
     meta_path = os.path.join(out, "meta.json")
@@ -60,7 +63,7 @@ def main():
 
     manifest = [{
         "guid": GUID, "name": NAME, "description": DESCRIPTION, "overview": OVERVIEW,
-        "owner": "clm302002", "category": "Metadata",
+        "owner": OWNER, "category": "Metadata",
         "imageUrl": f"https://raw.githubusercontent.com/{repo}/main/assets/overcoat-hero.png",
         "versions": [{
             "version": ver, "changelog": changelog, "targetAbi": "10.11.0.0",
