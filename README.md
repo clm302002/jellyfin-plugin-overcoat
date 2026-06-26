@@ -52,7 +52,7 @@ Everything is rendered into the poster artwork and saved through Jellyfin, so it
 
 <div align="center">
 
-<img src="screenshots/library-showcase.png" width="700" alt="Overcoat overlays shown inside a Jellyfin library" />
+<img src="assets/library-showcase.png" width="700" alt="Overcoat overlays shown inside a Jellyfin library" />
 
 </div>
 
@@ -178,11 +178,11 @@ Planned work includes:
 
 <div align="center">
 
-<img src="screenshots/status-banners.png" width="700" alt="Status banner examples" />
+<img src="assets/status-banners.png" width="700" alt="Status banner examples" />
 
 <br /><br />
 
-<img src="screenshots/badge-examples.png" width="700" alt="Badge examples" />
+<img src="assets/badge-examples.png" width="700" alt="Badge examples" />
 
 </div>
 

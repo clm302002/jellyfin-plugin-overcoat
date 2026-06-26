@@ -38,9 +38,17 @@
   <ItemGroup>
     <!-- Dashboard config page is served from the embedded HTML resource. -->
     <EmbeddedResource Include="Configuration\configPage.html" />
-    <!-- Font + badge art baked into the assembly (no on-disk asset paths to configure). -->
+    <!-- Font baked into the assembly. -->
     <EmbeddedResource Include="Resources\Fonts\*.ttf" />
-    <EmbeddedResource Include="Resources\Badges\*.png" />
+    <!--
+      Badge art lives in the repo-root ./badges folder (so it's easy to find, recolor, or add new
+      ones). Every PNG there is embedded as the default set under a stable resource name
+      (Jellyfin.Plugin.Overcoat.Resources.Badges.<file>), so adding a PNG needs no code change.
+      Runtime-selectable user badges (read from a server folder) come with the badge settings.
+    -->
+    <EmbeddedResource Include="..\badges\*.png">
+      <LogicalName>Jellyfin.Plugin.Overcoat.Resources.Badges.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

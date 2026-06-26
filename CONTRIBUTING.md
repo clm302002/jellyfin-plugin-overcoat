@@ -28,12 +28,30 @@ Jellyfin.Plugin.Overcoat/
 ├── ScheduledTasks/OverlayTask.cs   # the run loop (enumerate → resolve → render → save in-process)
 └── Services/
     ├── OverlayRenderer.cs          # SkiaSharp rendering (status pill + badges)
+    ├── BadgeCompositor.cs          # composites the side/corner badges onto the poster
+    ├── ProcessingState.cs          # skip cache + originals vault + self-heal
+    ├── WatchHistory.cs             # recent play activity (watch-history badge)
     ├── StatusOverlayResolver.cs    # TMDB status + air dates → banner text
     └── TmdbService.cs              # TMDB v3 over HttpClient
+badges/                             # badge art (see below) — embedded as the default set
+assets/                             # README images (hero + screenshots)
 tools/                              # throwaway dev harnesses (not shipped)
 ├── ParityTest/                     # renders sample overlays to compare output
 └── TmdbTest/                       # live-checks TMDB resolution + the status resolver
 ```
+
+## Badge art (`badges/`)
+
+All badge images live in the repo-root **`badges/`** folder — this is the place to recolor existing
+badges or add new ones. Every PNG there is automatically embedded as a **default** badge (under
+`Jellyfin.Plugin.Overcoat.Resources.Badges.<file>`), so adding art needs no code change, just a rebuild.
+
+- The side ribbons use a **cropped** image (just the ribbon graphic, e.g. `JellyfinLeftCropped.png`,
+  `TMDBLeftCropped.png`) so they stack flush and can be positioned freely. The full-canvas originals
+  (`JellyfinLeft.png`, `TMDBLeft.png`) are kept for reference.
+- `IMDB.png` is a full-poster-canvas corner overlay.
+- **Planned:** runtime-selectable badges — Overcoat will read a badges folder on the server and let you
+  pick which image each badge uses from the settings page, so swapping art won't require a rebuild.
 
 ## Design philosophy
 
