@@ -6,6 +6,10 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.3.0] — 2026-06-26
+
 ### Added
 - **Status banner styles** (new **Banners** settings tab): choose the banner **style** — `Solid`
   (the classic filled pill), `Glass` (a frosted, translucent panel that blurs the poster and shows
