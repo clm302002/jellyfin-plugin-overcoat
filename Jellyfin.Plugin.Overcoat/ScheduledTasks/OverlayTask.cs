@@ -18,8 +18,8 @@ namespace Jellyfin.Plugin.Overcoat.ScheduledTasks;
 /// <see cref="IProviderManager.SaveImage(BaseItem, Stream, string, ImageType, int?, CancellationToken)"/>
 /// — no callback HTTP server.
 ///
-/// Scope (Phase 4 MVP): TV libraries + status banners only. Badges, the movie pipeline, the skip
-/// cache and self-heal arrive in later phases; the structure leaves obvious seams for them.
+/// Scope: TV libraries + status banners, with the skip cache, originals vault, and self-heal in
+/// place (via <see cref="ProcessingState"/>). Badges + the movie pipeline arrive in a later phase.
 /// </summary>
 public class OverlayTask : IScheduledTask
 {
@@ -71,6 +71,7 @@ public class OverlayTask : IScheduledTask
         var http = _httpClientFactory.CreateClient(NamedClient.Default);
         var tmdb = new TmdbService(http, config.TmdbApiKey, _logger);
         using var renderer = new OverlayRenderer();
+        var state = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger);
 
         var ignore = new HashSet<string>(config.IgnoreTitles, StringComparer.OrdinalIgnoreCase);
         var limit = new HashSet<string>(config.LimitToTitles, StringComparer.OrdinalIgnoreCase);
@@ -140,7 +141,7 @@ public class OverlayTask : IScheduledTask
                     continue;
                 }
 
-                if (await ProcessShowAsync(item, tmdb, renderer, config, cancellationToken).ConfigureAwait(false))
+                if (await ProcessShowAsync(item, tmdb, renderer, state, config, cancellationToken).ConfigureAwait(false))
                 {
                     updated++;
                 }
@@ -156,6 +157,7 @@ public class OverlayTask : IScheduledTask
             }
         }
 
+        state.Flush();
         _logger.LogInformation("Overcoat: done. {Updated}/{Count} poster(s) updated.", updated, work.Count);
     }
 
@@ -173,6 +175,7 @@ public class OverlayTask : IScheduledTask
         BaseItem item,
         TmdbService tmdb,
         OverlayRenderer renderer,
+        ProcessingState state,
         PluginConfiguration config,
         CancellationToken ct)
     {
@@ -196,34 +199,42 @@ public class OverlayTask : IScheduledTask
             return false;
         }
 
-        // Prefer the existing Jellyfin poster; fall back to TMDB when the item has none — or when
-        // its registered image file is missing (e.g. deleted externally, leaving a dangling DB
-        // entry). Mirrors process_show Step 4. With no source at all, there's nothing to overlay.
-        byte[]? posterBytes = null;
-        if (item.HasImage(ImageType.Primary, 0))
+        var id = item.Id.ToString("N");
+        var currentSig = ProcessingState.Signature(item);
+
+        // Self-heal: if the poster changed outside Overcoat, drop our cached clean original so the
+        // overlay re-baselines on the new art.
+        if (state.ExternallyChanged(id, currentSig))
         {
-            var sourcePath = item.GetImagePath(ImageType.Primary, 0);
-            if (File.Exists(sourcePath))
-            {
-                posterBytes = await File.ReadAllBytesAsync(sourcePath, ct).ConfigureAwait(false);
-            }
+            _logger.LogInformation("Overcoat: '{Name}' poster changed externally — re-baselining.", item.Name);
+            state.InvalidateOriginal(id);
         }
 
-        if (posterBytes is null
-            && info.PosterPath is { Length: > 0 } posterPath
-            && await tmdb.DownloadPosterAsync(posterPath, ct).ConfigureAwait(false) is { } fetched)
+        // Skip cache (badge set is empty until the badge pipeline lands).
+        var badgeSet = Array.Empty<string>();
+        if (!state.NeedsProcessing(id, info.Status, badgeSet, text, currentSig, config.CacheEnabled))
         {
-            _logger.LogInformation("Overcoat: '{Name}' had no usable Jellyfin poster; using TMDB poster.", item.Name);
-            posterBytes = fetched;
-        }
-
-        if (posterBytes is null)
-        {
-            _logger.LogDebug("Overcoat: '{Name}' has no poster (Jellyfin or TMDB); skipping.", item.Name);
+            _logger.LogDebug("Overcoat: '{Name}' unchanged — skipping.", item.Name);
             return false;
         }
 
-        using var bmp = OverlayRenderer.Decode(posterBytes);
+        // Overlay the CLEAN original — from the vault if we have it, else the item's current poster
+        // (Jellyfin file → TMDB fallback), which then becomes the vaulted baseline. Starting from the
+        // clean original is what keeps repeated runs from stacking banners.
+        var original = await state.ReadOriginalAsync(id, ct).ConfigureAwait(false);
+        if (original is null)
+        {
+            original = await AcquireSourcePosterAsync(item, info, tmdb, ct).ConfigureAwait(false);
+            if (original is null)
+            {
+                _logger.LogDebug("Overcoat: '{Name}' has no poster (Jellyfin or TMDB); skipping.", item.Name);
+                return false;
+            }
+
+            await state.SaveOriginalAsync(id, original, ct).ConfigureAwait(false);
+        }
+
+        using var bmp = OverlayRenderer.Decode(original);
         if (bmp is null)
         {
             _logger.LogWarning("Overcoat: could not decode poster for '{Name}'.", item.Name);
@@ -248,8 +259,39 @@ public class OverlayTask : IScheduledTask
         // must persist it so Jellyfin's DB (and the served image tag) points at the new poster.
         await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, ct).ConfigureAwait(false);
 
+        // Record the signature of the poster we just produced (re-read after the save) so a later
+        // external change is detectable and unchanged items skip next run.
+        var produced = _libraryManager.GetItemById(item.Id) ?? item;
+        state.MarkProcessed(id, item.Name ?? string.Empty, info.Status, text, badgeSet, ProcessingState.Signature(produced));
+
         _logger.LogInformation("Overcoat: '{Name}' → '{Text}'.", item.Name, text);
         return true;
+    }
+
+    /// <summary>Clean source poster for an item: the Jellyfin file if present, else the TMDB poster.</summary>
+    private async Task<byte[]?> AcquireSourcePosterAsync(
+        BaseItem item,
+        TmdbService.TvStatusInfo info,
+        TmdbService tmdb,
+        CancellationToken ct)
+    {
+        if (item.HasImage(ImageType.Primary, 0))
+        {
+            var sourcePath = item.GetImagePath(ImageType.Primary, 0);
+            if (File.Exists(sourcePath))
+            {
+                return await File.ReadAllBytesAsync(sourcePath, ct).ConfigureAwait(false);
+            }
+        }
+
+        if (info.PosterPath is { Length: > 0 } posterPath
+            && await tmdb.DownloadPosterAsync(posterPath, ct).ConfigureAwait(false) is { } fetched)
+        {
+            _logger.LogInformation("Overcoat: '{Name}' had no usable Jellyfin poster; using TMDB poster.", item.Name);
+            return fetched;
+        }
+
+        return null;
     }
 
     /// <summary>TMDB id resolution: overrides → ProviderIds.Tmdb → Imdb/Tvdb via /find → title search.</summary>

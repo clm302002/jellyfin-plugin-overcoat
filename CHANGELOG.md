@@ -6,7 +6,13 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+- **Skip cache + originals vault + self-heal** (`ProcessingState`): the clean original poster is
+  vaulted once and overlays always render from it (so repeated runs never stack banners); unchanged
+  items are skipped; and a poster changed outside Overcoat is detected (via the primary image's
+  modified time) and re-baselined on the new art.
+- **"Restore Original Posters (Overcoat)"** scheduled task — re-applies the vaulted clean posters to
+  undo Overcoat's overlays.
 
 ## [0.1.0] — 2026-06-26
 
