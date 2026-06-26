@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Throwaway harness to validate OverlayRenderer output against the Python reference.
+    NOT shipped. References SkiaSharp WITH native assets (the plugin itself excludes them
+    because the Jellyfin server provides them at runtime). RootNamespace is forced to the
+    plugin namespace so the linked renderer's embedded-resource lookups resolve.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Jellyfin.Plugin.Overcoat</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="2.88.8" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reuse the real renderer source. -->
+    <Compile Include="..\..\Jellyfin.Plugin.Overcoat\Services\OverlayRenderer.cs" />
+    <!-- Embed the same assets under the exact logical names the renderer looks up. -->
+    <EmbeddedResource Include="..\..\Jellyfin.Plugin.Overcoat\Resources\Fonts\Juventus-Fans-Bold.ttf">
+      <LogicalName>Jellyfin.Plugin.Overcoat.Resources.Fonts.Juventus-Fans-Bold.ttf</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,49 @@
+name: Release plugin
+
+# Builds the plugin, packages it as a versioned Jellyfin plugin .zip with jprm, and
+# publishes it as a GitHub release asset. The repository manifest JSON (manifest.json on
+# the gh-pages branch / release) is what users add to Jellyfin: Dashboard -> Plugins ->
+# Repositories -> add the raw manifest URL, then install from the catalog.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore & build (Release)
+        run: dotnet publish Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release -o publish
+
+      - name: Install jprm
+        run: pip install jprm
+
+      - name: Package plugin
+        id: package
+        run: |
+          mkdir -p artifacts
+          ZIP=$(jprm plugin build . --output ./artifacts --version "${GITHUB_REF_NAME#v}")
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+
+      - name: Update repository manifest
+        run: |
+          # Regenerate manifest.json so the published .zip is discoverable by Jellyfin.
+          jprm repo add ./manifest.json "${{ steps.package.outputs.zip }}" || \
+            jprm repo init ./manifest.json && jprm repo add ./manifest.json "${{ steps.package.outputs.zip }}"
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/*.zip
+            manifest.json

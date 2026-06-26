@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Jellyfin 10.11.x runs on .NET 9. The plugin must match the server runtime. -->
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>Jellyfin.Plugin.Overcoat</RootNamespace>
+    <AssemblyName>Jellyfin.Plugin.Overcoat</AssemblyName>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <!-- Bumped by CI from the git tag; keep in sync with build.yaml / meta.json. -->
+    <Version>0.1.0.0</Version>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Jellyfin server assemblies. PrivateAssets=all so they are NOT shipped inside the
+      plugin .zip — the server provides them at runtime. Keep this pinned to the server
+      version family the plugin targets (10.11.x).
+    -->
+    <PackageReference Include="Jellyfin.Controller" Version="10.11.11">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
+    <!--
+      Image rendering. Jellyfin already ships SkiaSharp + its Linux native assets (its own
+      image encoder uses Skia), so the native libraries are present on the server at runtime.
+      Reference the managed package only and exclude runtime/native assets to avoid shipping a
+      conflicting copy. Keep the major version aligned with the server's bundled SkiaSharp.
+    -->
+    <PackageReference Include="SkiaSharp" Version="2.88.8">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Dashboard config page is served from the embedded HTML resource. -->
+    <EmbeddedResource Include="Configuration\configPage.html" />
+    <!-- Font + badge art baked into the assembly (no on-disk asset paths to configure). -->
+    <EmbeddedResource Include="Resources\Fonts\*.ttf" />
+    <EmbeddedResource Include="Resources\Badges\*.png" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,21 @@
+# .NET build output
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Packaging output
+artifacts/
+*.zip
+manifest.json
+
+# IDE
+.idea/
+*.DotSettings.user
+
+# Private working notes / roadmap — stays local, never pushed
+private/
+
+# Local staging bundle + backups (built artifacts, not source)
+dist/

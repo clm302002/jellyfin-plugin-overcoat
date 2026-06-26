@@ -1,0 +1,20 @@
+# jprm (Jellyfin Plugin Repository Manager) build descriptor.
+# Used by the release workflow to package the compiled .dll into a versioned plugin .zip
+# and to generate / update the repository manifest JSON that users add to Jellyfin.
+name: "Overcoat"
+guid: "604f4e22-a0a1-490d-b383-d60336318eaa"
+version: "0.1.0.0"
+targetAbi: "10.11.0.0"
+framework: "net9.0"
+owner: "clm302002"
+overview: "Status overlays and watch/trending/IMDB Top 250 badges for TV & movie posters."
+description: >
+  In-process Jellyfin plugin that applies status overlays
+  (NEW / AIRING / RETURNING / ENDED / CANCELED) to TV-show posters and watch-history,
+  TMDB-trending and IMDB Top 250 badges to TV and movie posters. Successor to the
+  external Kometa-Jellyfin (jellymeta) Python script — no callback server, no cron,
+  configured from the dashboard and run as a scheduled task.
+category: "Metadata"
+artifacts:
+  - "Jellyfin.Plugin.Overcoat.dll"
+changelog: "Initial scaffold."
