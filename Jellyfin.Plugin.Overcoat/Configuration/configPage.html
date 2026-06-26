@@ -291,12 +291,17 @@
                 });
             }
 
+            // Always SAVE the current form first, then start the task — so what you typed is what runs.
             function runTask(key, label) {
-                ApiClient.getScheduledTasks().then(function (tasks) {
+                Dashboard.showLoadingMsg();
+                persist().then(function () {
+                    return ApiClient.getScheduledTasks();
+                }).then(function (tasks) {
+                    Dashboard.hideLoadingMsg();
                     var t = (tasks || []).find(function (x) { return x.Key === key; });
                     if (!t) { Dashboard.alert('Overcoat: task not found (' + key + '). Restart Jellyfin if you just installed.'); return; }
                     ApiClient.startScheduledTask(t.Id).then(function () {
-                        Dashboard.alert('Overcoat: "' + label + '" started. Watch progress in Dashboard → Scheduled Tasks.');
+                        Dashboard.alert('Overcoat: settings saved and "' + label + '" started. Watch progress in Dashboard → Scheduled Tasks.');
                     });
                 });
             }
@@ -324,29 +329,36 @@
                 });
             }
 
+            function applyForm(config) {
+                config.TmdbApiKey = page.querySelector('#TmdbApiKey').value;
+                config.BadgesEnabled = page.querySelector('#BadgesEnabled').checked;
+                config.CacheEnabled = page.querySelector('#CacheEnabled').checked;
+                config.BackupOriginals = page.querySelector('#BackupOriginals').checked;
+                config.CleanupOrphans = page.querySelector('#CleanupOrphans').checked;
+                config.DryRun = page.querySelector('#DryRun').checked;
+                config.TrendingTimeWindow = page.querySelector('#TrendingTimeWindow').value;
+                config.WatchHistoryDays = parseInt(page.querySelector('#WatchHistoryDays').value, 10) || 20;
+                config.WatchHistoryAllUsers = page.querySelector('#WatchHistoryAllUsers').checked;
+                config.ImdbTop250TvListId = page.querySelector('#ImdbTop250TvListId').value;
+                config.ImdbTop250MovieListId = page.querySelector('#ImdbTop250MovieListId').value;
+                config.Libraries = collectLibraries();
+                config.LimitToTitles = linesToList(page.querySelector('#LimitToTitles').value);
+                config.IgnoreTitles = linesToList(page.querySelector('#IgnoreTitles').value);
+                config.TmdbOverrides = parseOverrides(page.querySelector('#TmdbOverrides').value);
+                return config;
+            }
+
+            // Persist the current form to the plugin config; resolves when saved.
+            function persist() {
+                return ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                    return ApiClient.updatePluginConfiguration(pluginId, applyForm(config));
+                });
+            }
+
             function save(e) {
                 e.preventDefault();
                 Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-                    config.TmdbApiKey = page.querySelector('#TmdbApiKey').value;
-                    config.BadgesEnabled = page.querySelector('#BadgesEnabled').checked;
-                    config.CacheEnabled = page.querySelector('#CacheEnabled').checked;
-                    config.BackupOriginals = page.querySelector('#BackupOriginals').checked;
-                    config.CleanupOrphans = page.querySelector('#CleanupOrphans').checked;
-                    config.DryRun = page.querySelector('#DryRun').checked;
-                    config.TrendingTimeWindow = page.querySelector('#TrendingTimeWindow').value;
-                    config.WatchHistoryDays = parseInt(page.querySelector('#WatchHistoryDays').value, 10) || 20;
-                    config.WatchHistoryAllUsers = page.querySelector('#WatchHistoryAllUsers').checked;
-                    config.ImdbTop250TvListId = page.querySelector('#ImdbTop250TvListId').value;
-                    config.ImdbTop250MovieListId = page.querySelector('#ImdbTop250MovieListId').value;
-                    config.Libraries = collectLibraries();
-                    config.LimitToTitles = linesToList(page.querySelector('#LimitToTitles').value);
-                    config.IgnoreTitles = linesToList(page.querySelector('#IgnoreTitles').value);
-                    config.TmdbOverrides = parseOverrides(page.querySelector('#TmdbOverrides').value);
-                    ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
-                        Dashboard.processPluginConfigurationUpdateResult(result);
-                    });
-                });
+                persist().then(function (result) { Dashboard.processPluginConfigurationUpdateResult(result); });
                 return false;
             }
 
