@@ -3,35 +3,36 @@
 <head>
     <meta charset="utf-8" />
     <title>Overcoat</title>
-    <style>
-        .ovcTabs { display: flex; flex-wrap: wrap; gap: .5em; margin: 1.2em 0; }
-        .ovcTab {
-            border-radius: 2em; padding: .5em 1.3em; cursor: pointer;
-            border: 1px solid rgba(255,255,255,.25); background: transparent; color: inherit;
-            font-size: 1em; transition: background .15s, color .15s;
-        }
-        .ovcTab.ovcActive { background: #00a4dc; border-color: #00a4dc; color: #fff; }
-        .ovcPanel { display: none; }
-        .ovcPanel.ovcActive { display: block; }
-        .ovcLib { border: 1px solid rgba(255,255,255,.18); border-radius: .6em; padding: .8em 1em; margin-bottom: .8em; }
-        .ovcLib h4 { margin: 0 0 .5em; }
-        .ovcLibOpts { display: flex; flex-wrap: wrap; gap: 1.5em; }
-        .ovcLibOpts .checkboxContainer { margin: 0; }
-        .ovcMuted { opacity: .7; font-size: .9em; }
-        .ovcRowButtons { display: flex; flex-wrap: wrap; gap: 1em; margin: 1em 0; }
-        .ovcWarn {
-            border: 2px solid #e0413e; background: rgba(224,65,62,.12);
-            border-radius: .6em; padding: .8em 1.1em; margin: 1em 0;
-        }
-        .ovcWarn .ovcWarnTitle { color: #ff5b57; font-weight: 700; letter-spacing: .03em; }
-        .ovcWarn p { margin: .5em 0 0; }
-    </style>
 </head>
 <body>
 <div id="OvercoatConfigPage"
      data-role="page"
      class="page type-interior pluginConfigurationPage"
      data-require="emby-input,emby-button,emby-select,emby-checkbox,emby-textarea">
+    <style>
+        /* Inside the page div so Jellyfin keeps it (it strips the document <head>). */
+        #OvercoatConfigPage .ovcTabs { display: flex; flex-wrap: wrap; gap: .5em; margin: 1.2em 0; }
+        #OvercoatConfigPage .ovcTab {
+            border-radius: 2em; padding: .5em 1.3em; cursor: pointer;
+            border: 1px solid rgba(255,255,255,.25); background: transparent; color: inherit;
+            font-size: 1em; transition: background .15s, color .15s;
+        }
+        #OvercoatConfigPage .ovcTab.ovcActive { background: #00a4dc; border-color: #00a4dc; color: #fff; }
+        #OvercoatConfigPage .ovcPanel { display: none; }
+        #OvercoatConfigPage .ovcPanel.ovcActive { display: block; }
+        #OvercoatConfigPage .ovcLib { border: 1px solid rgba(255,255,255,.18); border-radius: .6em; padding: .8em 1em; margin-bottom: .8em; }
+        #OvercoatConfigPage .ovcLib h4 { margin: 0 0 .5em; }
+        #OvercoatConfigPage .ovcLibOpts { display: flex; flex-wrap: wrap; gap: 1.5em; }
+        #OvercoatConfigPage .ovcLibOpts .checkboxContainer { margin: 0; }
+        #OvercoatConfigPage .ovcMuted { opacity: .7; font-size: .9em; }
+        #OvercoatConfigPage .ovcRowButtons { display: flex; flex-wrap: wrap; gap: 1em; margin: 1em 0; }
+        #OvercoatConfigPage .ovcWarn {
+            border: 2px solid #e0413e; background: rgba(224,65,62,.12);
+            border-radius: .6em; padding: .8em 1.1em; margin: 1em 0;
+        }
+        #OvercoatConfigPage .ovcWarn .ovcWarnTitle { color: #ff5b57; font-weight: 700; letter-spacing: .03em; }
+        #OvercoatConfigPage .ovcWarn p { margin: .5em 0 0; }
+    </style>
     <div data-role="content">
         <div class="content-primary">
             <form id="OvercoatConfigForm">
@@ -178,16 +179,22 @@
             var page; // set on viewshow
 
             // ---- tab switching ----
+            function showTab(name) {
+                page.querySelectorAll('.ovcTab').forEach(function (t) {
+                    t.classList.toggle('ovcActive', t.getAttribute('data-tab') === name);
+                });
+                page.querySelectorAll('.ovcPanel').forEach(function (p) {
+                    var on = p.getAttribute('data-panel') === name;
+                    p.classList.toggle('ovcActive', on);
+                    // Set inline display too, so tabs work even if the stylesheet doesn't load.
+                    p.style.display = on ? 'block' : 'none';
+                });
+            }
             function wireTabs() {
                 page.querySelectorAll('.ovcTab').forEach(function (tab) {
-                    tab.addEventListener('click', function () {
-                        var name = tab.getAttribute('data-tab');
-                        page.querySelectorAll('.ovcTab').forEach(function (t) { t.classList.toggle('ovcActive', t === tab); });
-                        page.querySelectorAll('.ovcPanel').forEach(function (p) {
-                            p.classList.toggle('ovcActive', p.getAttribute('data-panel') === name);
-                        });
-                    });
+                    tab.addEventListener('click', function () { showTab(tab.getAttribute('data-tab')); });
                 });
+                showTab('general');
             }
 
             // ---- libraries ----
