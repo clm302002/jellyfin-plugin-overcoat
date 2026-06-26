@@ -88,12 +88,14 @@ The current focus is TV status overlays, with badges and movie overlays being ac
 | Area                    | Status      |
 | ----------------------- | ----------- |
 | TV status banners       | Working     |
+| Banner customization    | Working     |
+| Live banner preview     | Working     |
 | TMDB Trending badge     | Working     |
 | Watch-history badge      | Working     |
 | IMDb Top 250 badge      | Working     |
 | Movie overlays (badges) | Working     |
 | Settings page           | Working     |
-| Settings customization  | In progress |
+| Badge customization     | In progress |
 
 ---
 
@@ -104,7 +106,10 @@ The current focus is TV status overlays, with badges and movie overlays being ac
 * Uses Jellyfin scheduled tasks
 * Per-library configuration
 * Poster overlays rendered with SkiaSharp
-* Status banners for TV series
+* Status banners for TV series, with **solid / frosted-glass / neon** styles
+* Banner **shape** (pill / square / drop), **position**, **full-width band**, alignment, drop shadow,
+  font, text size, per-status colours, custom labels, and show/hide per status
+* A **live preview** in the settings page — dial in the look without running anything
 * Badge support for trending/ranked/watch-history metadata
 * No cron jobs
 * No separate upload server
@@ -164,14 +169,14 @@ Copy the built `Jellyfin.Plugin.Overcoat.dll` into a folder under Jellyfin's `pl
 
 Planned work includes:
 
-* Finish movie overlay support
-* Add badge stacking and positioning options
-* Improve the settings page
+* Badge customization — styles, positioning, and selectable/custom badge art
 * Add more badge sources
 * Add better poster backup/restore behavior
 * Add multi-poster selection
-* Add preview tools before applying overlays
-* Package the first public plugin repository release
+* Finish movie overlay support
+
+Recently shipped: a full banner customization studio (styles, shape, colours, fonts, per-status
+labels) with a live preview, and the first public repository release.
 
 ---
 
