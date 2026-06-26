@@ -19,7 +19,7 @@ import os, json, zipfile, hashlib, datetime, sys
 
 GUID = "604f4e22-a0a1-490d-b383-d60336318eaa"
 NAME = "Overcoat"
-OWNER = "Nanomed"
+OWNER = "clm302002"
 OVERVIEW = "Overlays status banners and badges onto your Jellyfin posters."
 DESCRIPTION = (
     "Overcoat decorates your Jellyfin posters with useful info at a glance — status banners like "
