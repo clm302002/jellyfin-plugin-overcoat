@@ -6,12 +6,16 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.1.0] — 2026-06-26
+
+First public release — installable from the repository.
+
 ### Added
 - Project renamed to **Overcoat**; open-sourced with README, contributing guide, and issue/PR templates.
-
-## [0.1.0] — MVP
-
-### Added
+- Reproducible release pipeline (`scripts/package_release.py` + tag-triggered GitHub Action) that
+  publishes the plugin `.zip` + repository `manifest.json` as release assets.
 - Native Jellyfin plugin scaffold (net9.0, Jellyfin 10.11.x), dashboard settings page, and a
   "Apply Overcoat Overlays" scheduled task.
 - SkiaSharp poster renderer ported faithfully from the Python reference (status pill geometry,

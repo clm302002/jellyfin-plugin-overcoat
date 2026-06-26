@@ -141,8 +141,8 @@ Then:
 3. Open **Plugins → Overcoat**, add your TMDB API key, and choose which libraries to process.
 4. Run the scheduled task: **Dashboard → Scheduled Tasks → Apply Overcoat Overlays**.
 
-> ⚠️ The repository URL becomes active once the first release is published (`v0.1.0`). Until then,
-> use **Build from source** below.
+> ✅ Live now — `v0.1.0` is published, so the repository URL above works. (Prefer building it
+> yourself? See **Build from source** below.)
 
 ---
 
