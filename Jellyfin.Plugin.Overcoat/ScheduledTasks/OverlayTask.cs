@@ -241,12 +241,14 @@ public class OverlayTask : IScheduledTask
         PluginConfiguration config,
         CancellationToken ct)
     {
-        // Status banner: TV only, and only when the library has status overlays enabled.
+        // Status banner (TV only, when the library has status overlays on). Fetch the TMDB status
+        // once and reuse it for the poster fallback below — avoids a second /tv/{id} call.
         string? text = null;
         var statusKey = type == "tv" ? "tv" : "movie";
+        TmdbService.TvStatusInfo? info = null;
         if (type == "tv" && lib.StatusOverlays)
         {
-            var info = await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false);
+            info = await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false);
             if (info is not null)
             {
                 statusKey = info.Status ?? "tv";
@@ -254,16 +256,47 @@ public class OverlayTask : IScheduledTask
             }
         }
 
-        // Nothing to draw → nothing to do.
+        var id = item.Id.ToString("N");
+        var currentSig = ProcessingState.Signature(item);
+        var changedExternally = state.ExternallyChanged(id, currentSig);
+
+        // Item now qualifies for nothing. If we previously overlaid it (clean original vaulted),
+        // restore that original so unticking everything reverts the poster — unless the art was
+        // changed outside Overcoat, in which case leave their art and just stop tracking it.
         if (text is null && badgeSet.Count == 0)
         {
+            if (state.HasOriginal(id) && !changedExternally)
+            {
+                if (config.DryRun)
+                {
+                    file.Info((item.Name ?? "?") + " → [dry run] would restore clean original (no overlays)");
+                    return false;
+                }
+
+                var clean = await state.ReadOriginalAsync(id, ct).ConfigureAwait(false);
+                if (clean is not null)
+                {
+                    using var msClean = new MemoryStream(clean);
+                    await _providerManager.SaveImage(item, msClean, "image/png", ImageType.Primary, null, ct).ConfigureAwait(false);
+                    await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, ct).ConfigureAwait(false);
+                }
+
+                state.Remove(id);
+                _logger.LogInformation("Overcoat: '{Name}' has no overlays now — restored clean original.", item.Name);
+                file.Info((item.Name ?? "?") + " → no overlays now; restored clean original");
+                return true;
+            }
+
+            // Never overlaid by us, or the art was changed externally — nothing to revert; drop stale tracking.
+            if (changedExternally)
+            {
+                state.Remove(id);
+            }
+
             return false;
         }
 
-        var id = item.Id.ToString("N");
-        var currentSig = ProcessingState.Signature(item);
-
-        if (state.ExternallyChanged(id, currentSig))
+        if (changedExternally)
         {
             _logger.LogInformation("Overcoat: '{Name}' poster changed externally — re-baselining.", item.Name);
             file.Info((item.Name ?? "?") + " — poster changed externally, re-baselining");
@@ -272,7 +305,7 @@ public class OverlayTask : IScheduledTask
 
         if (!state.NeedsProcessing(id, statusKey, badgeSet, text, currentSig, config.CacheEnabled))
         {
-            _logger.LogDebug("Overcoat: '{Name}' unchanged — skipping.", item.Name);
+            _logger.LogDebug("Overcoat: '{Name}' unchanged — skipping.", item.Name ?? "?");
             return false;
         }
 
@@ -280,10 +313,10 @@ public class OverlayTask : IScheduledTask
         var original = await state.ReadOriginalAsync(id, ct).ConfigureAwait(false);
         if (original is null)
         {
-            original = await AcquireSourcePosterAsync(item, type, tmdbId, tmdb, ct).ConfigureAwait(false);
+            original = await AcquireSourcePosterAsync(item, type, tmdbId, info, tmdb, ct).ConfigureAwait(false);
             if (original is null)
             {
-                _logger.LogDebug("Overcoat: '{Name}' has no usable poster; skipping.", item.Name);
+                _logger.LogDebug("Overcoat: '{Name}' has no usable poster; skipping.", item.Name ?? "?");
                 return false;
             }
 
@@ -325,7 +358,7 @@ public class OverlayTask : IScheduledTask
     }
 
     /// <summary>Clean source poster: the Jellyfin file if present; for TV, else the TMDB poster (movies have no fallback).</summary>
-    private async Task<byte[]?> AcquireSourcePosterAsync(BaseItem item, string type, int tmdbId, TmdbService tmdb, CancellationToken ct)
+    private async Task<byte[]?> AcquireSourcePosterAsync(BaseItem item, string type, int tmdbId, TmdbService.TvStatusInfo? info, TmdbService tmdb, CancellationToken ct)
     {
         if (item.HasImage(ImageType.Primary, 0))
         {
@@ -338,7 +371,7 @@ public class OverlayTask : IScheduledTask
 
         if (type == "tv")
         {
-            var info = await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false);
+            info ??= await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false);
             if (info?.PosterPath is { Length: > 0 } posterPath
                 && await tmdb.DownloadPosterAsync(posterPath, ct).ConfigureAwait(false) is { } fetched)
             {

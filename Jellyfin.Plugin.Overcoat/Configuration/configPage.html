@@ -234,8 +234,19 @@
                 row.className = 'ovcLib';
                 row.setAttribute('data-name', name);
                 row.setAttribute('data-type', type);
-                row.innerHTML =
-                    '<h4>' + name + ' <span class="ovcMuted">(' + type + ')</span></h4>' +
+                // Library names come from the Jellyfin API — render the title with textContent so a
+                // name containing &, <, or quotes can't break the markup or inject HTML.
+                var h4 = document.createElement('h4');
+                h4.textContent = name + ' ';
+                var typeSpan = document.createElement('span');
+                typeSpan.className = 'ovcMuted';
+                typeSpan.textContent = '(' + type + ')';
+                h4.appendChild(typeSpan);
+                row.appendChild(h4);
+
+                // The rest is static markup (no untrusted data) — safe as HTML.
+                var body = document.createElement('div');
+                body.innerHTML =
                     '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcEnabled" /><span>Process this library</span></label>' +
                     '<div class="ovcLibOpts">' +
                       (isTv ? '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcStatus" /><span>Status banners</span></label>' : '') +
@@ -243,6 +254,7 @@
                       '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTrend" /><span>Trending badge</span></label>' +
                       '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTop250" /><span>IMDB Top 250 badge</span></label>' +
                     '</div>';
+                while (body.firstChild) { row.appendChild(body.firstChild); }
                 row.querySelector('.ovcEnabled').checked = !!saved.Enabled;
                 if (isTv) row.querySelector('.ovcStatus').checked = saved.StatusOverlays !== false;
                 row.querySelector('.ovcWatch').checked = saved.WatchHistoryBadge !== false;

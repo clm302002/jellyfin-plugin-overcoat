@@ -142,7 +142,7 @@ Then:
 3. Open **Plugins → Overcoat**, add your TMDB API key, and choose which libraries to process.
 4. Run the scheduled task: **Dashboard → Scheduled Tasks → Apply Overcoat Overlays**.
 
-> ✅ Live now — `v0.1.0` is published, so the repository URL above works. (Prefer building it
+> ✅ Live now — `v0.2.0` is published, so the repository URL above works. (Prefer building it
 > yourself? See **Build from source** below.)
 
 ---
@@ -156,7 +156,7 @@ dotnet build Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release
 ```
 
 Copy the built `Jellyfin.Plugin.Overcoat.dll` into a folder under Jellyfin's `plugins/` directory
-(e.g. `plugins/Overcoat_0.1.0.0/`), restart Jellyfin, then configure it under **Plugins → Overcoat**.
+(e.g. `plugins/Overcoat_0.2.0.0/`), restart Jellyfin, then configure it under **Plugins → Overcoat**.
 
 ---
 

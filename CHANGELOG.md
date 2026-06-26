@@ -6,7 +6,19 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Fixed
+- **Revert on drop-to-zero**: when an item no longer qualifies for any banner or badge (e.g. you
+  untick all of a library's overlays), Overcoat now restores its vaulted clean original poster
+  instead of leaving the stale overlay in place. If the poster was changed outside Overcoat in the
+  meantime, your art is left untouched and Overcoat simply stops tracking the item.
+- **Config page**: library names from the Jellyfin API are now rendered safely (a name containing
+  `&`, `<`, or quotes no longer breaks the Libraries tab layout).
+
+### Changed
+- Status lookup for a TV item now hits TMDB once per run instead of twice (banner + poster fallback
+  reuse the same result).
+- Removed the unused `BadgeStackOffset` configuration field (dead since badges switched to
+  flush-by-height stacking); will return when configurable badge spacing lands.
 
 ## [0.2.0] — 2026-06-26
 

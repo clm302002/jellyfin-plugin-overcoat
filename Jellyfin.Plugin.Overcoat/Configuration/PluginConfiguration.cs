@@ -58,9 +58,6 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets the TMDB list id used for the IMDB Top 250 TV badge.</summary>
     public string ImdbTop250TvListId { get; set; } = "8647022";
 
-    /// <summary>Gets or sets the vertical spacing (px, at 1500px poster height) between stacked badges.</summary>
-    public int BadgeStackOffset { get; set; } = 260;
-
     // --- Selection (was jellyfin.libraries / ignore_shows / tmdb_overrides) ---
 
     /// <summary>Gets or sets the per-library overlay/badge selection.</summary>

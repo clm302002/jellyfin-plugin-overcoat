@@ -17,6 +17,8 @@ manifest.json
 # Private working notes / roadmap / Claude operating manual — stays local, never pushed
 private/
 CLAUDE.md
+# Security/bug audit log — kept local so open findings can be listed freely
+audit.md
 
 # Local staging bundle + backups (built artifacts, not source)
 dist/
