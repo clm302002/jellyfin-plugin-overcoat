@@ -6,6 +6,10 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.5.0] — 2026-06-26
+
 ### Added
 - **AIRING = "new episode today"** — the AIRING banner now appears automatically on the day a new
   episode is out (no date, no settings). Between episodes a show is RETURNING with its next date.
