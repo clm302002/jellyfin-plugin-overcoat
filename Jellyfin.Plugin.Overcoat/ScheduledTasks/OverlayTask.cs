@@ -1,6 +1,7 @@
 using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.Overcoat.Configuration;
 using Jellyfin.Plugin.Overcoat.Services;
+using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -26,6 +27,7 @@ public class OverlayTask : IScheduledTask
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IUserManager _userManager;
     private readonly IUserDataManager _userDataManager;
+    private readonly IApplicationPaths _appPaths;
 
     public OverlayTask(
         ILogger<OverlayTask> logger,
@@ -33,7 +35,8 @@ public class OverlayTask : IScheduledTask
         IProviderManager providerManager,
         IHttpClientFactory httpClientFactory,
         IUserManager userManager,
-        IUserDataManager userDataManager)
+        IUserDataManager userDataManager,
+        IApplicationPaths appPaths)
     {
         _logger = logger;
         _libraryManager = libraryManager;
@@ -41,6 +44,7 @@ public class OverlayTask : IScheduledTask
         _httpClientFactory = httpClientFactory;
         _userManager = userManager;
         _userDataManager = userDataManager;
+        _appPaths = appPaths;
     }
 
     /// <inheritdoc />
@@ -76,6 +80,7 @@ public class OverlayTask : IScheduledTask
         using var renderer = new OverlayRenderer();
         var badges = new BadgeCompositor();
         var state = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger);
+        using var file = new FileLog(_appPaths.LogDirectoryPath);
 
         var ignore = new HashSet<string>(config.IgnoreTitles, StringComparer.OrdinalIgnoreCase);
         var limit = new HashSet<string>(config.LimitToTitles, StringComparer.OrdinalIgnoreCase);
@@ -140,6 +145,9 @@ public class OverlayTask : IScheduledTask
         }
 
         _logger.LogInformation("Overcoat: processing {Count} item(s){DryRun}.", work.Count, config.DryRun ? " (dry run)" : string.Empty);
+        file.Info($"Run started — {work.Count} item(s){(config.DryRun ? " (dry run)" : string.Empty)}.");
+        file.Info($"Data sets — trendingTv={trendingTv.Count}, top250Tv={top250Tv.Count}, watchedSeries={watchedSeries.Count}, " +
+                  $"trendingMovie={trendingMovie.Count}, top250Movie={top250Movie.Count}, watchedMovies={watchedMovies.Count}.");
 
         int done = 0;
         int updated = 0;
@@ -187,7 +195,7 @@ public class OverlayTask : IScheduledTask
                     }
                 }
 
-                if (await ProcessItemAsync(item, lib, type, tmdbId.Value, badgeSet, tmdb, renderer, badges, state, config, cancellationToken).ConfigureAwait(false))
+                if (await ProcessItemAsync(item, lib, type, tmdbId.Value, badgeSet, tmdb, renderer, badges, state, file, config, cancellationToken).ConfigureAwait(false))
                 {
                     updated++;
                 }
@@ -195,6 +203,7 @@ public class OverlayTask : IScheduledTask
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Overcoat: failed processing '{Name}'.", item.Name);
+                file.Error((item.Name ?? "?") + " — " + ex.Message);
             }
             finally
             {
@@ -205,6 +214,7 @@ public class OverlayTask : IScheduledTask
 
         state.Flush();
         _logger.LogInformation("Overcoat: done. {Updated}/{Count} poster(s) updated.", updated, work.Count);
+        file.Info($"Done — {updated}/{work.Count} poster(s) updated.");
     }
 
     /// <inheritdoc />
@@ -227,6 +237,7 @@ public class OverlayTask : IScheduledTask
         OverlayRenderer renderer,
         BadgeCompositor badges,
         ProcessingState state,
+        FileLog file,
         PluginConfiguration config,
         CancellationToken ct)
     {
@@ -255,6 +266,7 @@ public class OverlayTask : IScheduledTask
         if (state.ExternallyChanged(id, currentSig))
         {
             _logger.LogInformation("Overcoat: '{Name}' poster changed externally — re-baselining.", item.Name);
+            file.Info((item.Name ?? "?") + " — poster changed externally, re-baselining");
             state.InvalidateOriginal(id);
         }
 
@@ -296,6 +308,7 @@ public class OverlayTask : IScheduledTask
         if (config.DryRun)
         {
             _logger.LogInformation("Overcoat: [dry run] '{Name}' → banner='{Text}' badges=[{Badges}].", item.Name, text ?? "-", string.Join(",", badgeSet));
+            file.Info($"[dry run] {item.Name} → banner='{text ?? "-"}' badges=[{string.Join(",", badgeSet)}]");
             return true;
         }
 
@@ -307,6 +320,7 @@ public class OverlayTask : IScheduledTask
         state.MarkProcessed(id, item.Name ?? string.Empty, statusKey, text, badgeSet, ProcessingState.Signature(produced));
 
         _logger.LogInformation("Overcoat: '{Name}' → banner='{Text}' badges=[{Badges}].", item.Name, text ?? "-", string.Join(",", badgeSet));
+        file.Info($"{item.Name} → banner='{text ?? "-"}' badges=[{string.Join(",", badgeSet)}]");
         return true;
     }
 

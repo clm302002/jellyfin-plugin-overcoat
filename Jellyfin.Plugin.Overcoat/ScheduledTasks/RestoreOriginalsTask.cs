@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.Overcoat.Services;
+using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
@@ -17,15 +18,18 @@ public class RestoreOriginalsTask : IScheduledTask
     private readonly ILogger<RestoreOriginalsTask> _logger;
     private readonly ILibraryManager _libraryManager;
     private readonly IProviderManager _providerManager;
+    private readonly IApplicationPaths _appPaths;
 
     public RestoreOriginalsTask(
         ILogger<RestoreOriginalsTask> logger,
         ILibraryManager libraryManager,
-        IProviderManager providerManager)
+        IProviderManager providerManager,
+        IApplicationPaths appPaths)
     {
         _logger = logger;
         _libraryManager = libraryManager;
         _providerManager = providerManager;
+        _appPaths = appPaths;
     }
 
     /// <inheritdoc />
@@ -44,13 +48,17 @@ public class RestoreOriginalsTask : IScheduledTask
     public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
     {
         var state = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger);
+        using var file = new FileLog(_appPaths.LogDirectoryPath);
         var ids = state.VaultedIds().ToList();
         if (ids.Count == 0)
         {
             _logger.LogInformation("Overcoat: nothing to restore.");
+            file.Info("Restore — nothing to restore.");
             progress.Report(100);
             return;
         }
+
+        file.Info($"Restore started — {ids.Count} vaulted poster(s).");
 
         int done = 0;
         int restored = 0;
@@ -70,6 +78,7 @@ public class RestoreOriginalsTask : IScheduledTask
                     await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
                     restored++;
                     _logger.LogInformation("Overcoat: restored '{Name}'.", item.Name);
+                    file.Info("Restored " + item.Name);
                 }
 
                 // Clear the cache entry + vaulted original whether or not the item still exists.
@@ -78,6 +87,7 @@ public class RestoreOriginalsTask : IScheduledTask
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Overcoat: failed restoring item {Id}.", id);
+                file.Error("Restore failed for " + id + " — " + ex.Message);
             }
             finally
             {
@@ -88,6 +98,7 @@ public class RestoreOriginalsTask : IScheduledTask
 
         state.Flush();
         _logger.LogInformation("Overcoat: restore done. {Restored}/{Count} poster(s) restored.", restored, ids.Count);
+        file.Info($"Restore done — {restored}/{ids.Count} poster(s) restored.");
     }
 
     /// <inheritdoc />

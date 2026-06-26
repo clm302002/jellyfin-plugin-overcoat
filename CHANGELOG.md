@@ -7,6 +7,9 @@ All notable changes to Overcoat are documented here. Format follows
 ## [Unreleased]
 
 ### Added
+- **Own log file**: each run writes `Overcoat_<date>.log` into Jellyfin's log directory, so it shows
+  as its own entry under Dashboard → Logs (run start, data-set counts, per-item results, restores,
+  warnings, errors) — separate from the noisy main server log.
 - **Settings page (v1)**: redesigned, tabbed dashboard page (General / API &amp; Lists / Libraries /
   Maintenance) with card-style sections, full-width inputs, and a short description under every
   control. Libraries are **auto-detected** from Jellyfin and laid out in a **responsive grid**
