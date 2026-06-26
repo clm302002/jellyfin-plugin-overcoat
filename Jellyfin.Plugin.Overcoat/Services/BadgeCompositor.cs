@@ -21,8 +21,8 @@ public sealed class BadgeCompositor
         public static BadgeLayout Default => new(false, "top", 100, 1);
     }
 
-    // "top" anchor starts here (fraction of poster height) — below where a top banner sits.
-    private const float TopAnchorFraction = 0.34f;
+    // "top" anchor starts here (fraction of poster height) — near the very top edge.
+    private const float TopAnchorFraction = 0.06f;
 
     // Side ribbons in stack order (top → down) — cropped art, positioned/stacked dynamically.
     private static readonly (string Key, string Resource)[] Ribbons =
@@ -69,6 +69,10 @@ public sealed class BadgeCompositor
                 startY = 0;
             }
 
+            // NOTE: right-side placement is just an x-shift to the right edge — the art is NOT mirrored.
+            // The current ribbons are flat on the left and rounded on the right, so on the right side
+            // the rounding ends up on the wrong (inner) edge. Proper right-side support needs mirrored
+            // ribbon art (or a horizontal flip that doesn't reverse the logo). Tracked in the roadmap.
             var cursorY = startY;
             for (int i = 0; i < present.Count; i++)
             {

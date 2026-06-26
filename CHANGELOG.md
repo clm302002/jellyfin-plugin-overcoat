@@ -14,6 +14,14 @@ All notable changes to Overcoat are documented here. Format follows
   endpoint. (The IMDb Top 250 corner ribbon is baked art and isn't affected by these placement
   options.) Changing badge layout re-renders badged posters on the next run.
 
+### Changed
+- Badge "Top" anchor now sits near the very top edge (was too low / mid-ish); default vertical anchor
+  is now **Middle** so badges don't collide with a top banner out of the box.
+
+### Known issues
+- Right-side badge placement isn't mirrored yet — the current ribbon art is flat-left/rounded-right,
+  so it looks off on the right. Left side is the good one until mirrored art lands.
+
 ## [0.3.0] — 2026-06-26
 
 ### Added

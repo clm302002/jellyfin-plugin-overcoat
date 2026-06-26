@@ -235,7 +235,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public string BadgeSide { get; set; } = "left";
 
     /// <summary>Gets or sets the vertical anchor of the badge stack: "top", "middle", or "bottom".</summary>
-    public string BadgeVertical { get; set; } = "top";
+    public string BadgeVertical { get; set; } = "middle";
 
     /// <summary>Gets or sets the badge size as a percentage of the calibrated size (50–200).</summary>
     public int BadgeScale { get; set; } = 100;
