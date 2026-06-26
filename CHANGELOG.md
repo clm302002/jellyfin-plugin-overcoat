@@ -7,10 +7,12 @@ All notable changes to Overcoat are documented here. Format follows
 ## [Unreleased]
 
 ### Added
-- **Settings page (v1)**: redesigned, tabbed dashboard page (General / Libraries / Maintenance).
-  Libraries are **auto-detected** from Jellyfin with a per-library checkbox and per-badge/overlay
-  toggles (no more typing names). Maintenance tab adds **Run now** and **Restore originals** buttons
-  and a single-show (limit-to-titles) field.
+- **Settings page (v1)**: redesigned, tabbed dashboard page (General / API &amp; Lists / Libraries /
+  Maintenance) with card-style sections, full-width inputs, and a short description under every
+  control. Libraries are **auto-detected** from Jellyfin and laid out in a **responsive grid**
+  (multiple columns on wide screens, single column on mobile), each with a per-library checkbox and
+  per-badge/overlay toggles (no more typing names). API key + Top 250 list ids live on their own tab.
+  Maintenance tab adds **Run now** and **Restore originals** buttons and a single-show field.
 - **Badges**: watch-history (Jellyfin play activity), TMDB-trending, and IMDB Top 250 — applied to
   TV and movie posters, gated by per-library toggles and the global badge switch. Watch-history is
   resolved in-process from recent play data; trending/Top 250 from TMDB. The side ribbons use
