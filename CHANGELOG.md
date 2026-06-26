@@ -6,6 +6,13 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+### Added
+- **Status banner styles** (new **Banners** settings tab): choose the banner **style** — `Solid`
+  (the classic filled pill) or `Glass` (a frosted, translucent chip that blurs the poster behind a
+  colour tint) — its **shape** (`Pill` / `Square` / `Drop`, where Drop sits flush against the edge
+  with only the inner corners rounded), its **position** (`Top` / `Bottom`), and a **text-size**
+  multiplier. Changing any of these re-renders existing banners on the next run.
+
 ### Fixed
 - **Revert on drop-to-zero**: when an item no longer qualifies for any banner or badge (e.g. you
   untick all of a library's overlays), Overcoat now restores its vaulted clean original poster

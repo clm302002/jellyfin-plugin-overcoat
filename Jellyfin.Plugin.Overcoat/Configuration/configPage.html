@@ -62,6 +62,7 @@
 
                 <div class="ovcTabs">
                     <button type="button" class="ovcTab ovcActive" data-tab="general">General</button>
+                    <button type="button" class="ovcTab" data-tab="banners">Banners</button>
                     <button type="button" class="ovcTab" data-tab="apikeys">API &amp; Lists</button>
                     <button type="button" class="ovcTab" data-tab="libraries">Libraries</button>
                     <button type="button" class="ovcTab" data-tab="maintenance">Maintenance</button>
@@ -122,6 +123,47 @@
                         <div class="ovcCheck">
                             <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="DryRun" /><span>Dry run</span></label>
                             <div class="fieldDescription">Test mode — works out what it would do but doesn't change any posters.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===================== BANNERS ===================== -->
+                <div class="ovcPanel" data-panel="banners">
+                    <div class="ovcCard">
+                        <h3>Status banner look</h3>
+                        <p class="fieldDescription">
+                            Controls the NEW / AIRING / RETURNING / ENDED / CANCELED banner drawn on TV posters.
+                            Colours are picked per status automatically.
+                        </p>
+                        <div class="selectContainer">
+                            <label class="selectLabel" for="BannerStyle">Style</label>
+                            <select is="emby-select" id="BannerStyle">
+                                <option value="solid">Solid (filled)</option>
+                                <option value="glass">Glass (frosted)</option>
+                            </select>
+                            <div class="fieldDescription">Solid is the classic filled pill. Glass frosts the poster behind a translucent tint.</div>
+                        </div>
+                        <div class="selectContainer" style="margin-top:1em;">
+                            <label class="selectLabel" for="BannerShape">Shape</label>
+                            <select is="emby-select" id="BannerShape">
+                                <option value="pill">Pill (fully rounded)</option>
+                                <option value="square">Square</option>
+                                <option value="drop">Drop (flush to the edge)</option>
+                            </select>
+                            <div class="fieldDescription">"Drop" sits flush against the chosen edge with only the inner corners rounded — like a tab.</div>
+                        </div>
+                        <div class="selectContainer" style="margin-top:1em;">
+                            <label class="selectLabel" for="BannerPosition">Position</label>
+                            <select is="emby-select" id="BannerPosition">
+                                <option value="top">Top</option>
+                                <option value="bottom">Bottom</option>
+                            </select>
+                            <div class="fieldDescription">Which edge of the poster the banner sits against.</div>
+                        </div>
+                        <div class="inputContainer" style="margin-top:1em;">
+                            <label class="inputLabel inputLabelUnfocused" for="BannerFontScale">Text size</label>
+                            <input is="emby-input" type="number" id="BannerFontScale" min="0.5" max="2" step="0.05" />
+                            <div class="fieldDescription">Multiplier on the calibrated size. 1.0 = default, 1.2 = 20% bigger, 0.8 = smaller.</div>
                         </div>
                     </div>
                 </div>
@@ -366,6 +408,10 @@
                     page.querySelector('#BackupOriginals').checked = config.BackupOriginals !== false;
                     page.querySelector('#CleanupOrphans').checked = !!config.CleanupOrphans;
                     page.querySelector('#DryRun').checked = !!config.DryRun;
+                    page.querySelector('#BannerStyle').value = config.BannerStyle || 'solid';
+                    page.querySelector('#BannerShape').value = config.BannerShape || 'pill';
+                    page.querySelector('#BannerPosition').value = config.BannerPosition || 'top';
+                    page.querySelector('#BannerFontScale').value = config.BannerFontScale || 1.0;
                     page.querySelector('#TrendingTimeWindow').value = config.TrendingTimeWindow || 'week';
                     page.querySelector('#WatchHistoryDays').value = config.WatchHistoryDays || 20;
                     page.querySelector('#WatchHistoryAllUsers').checked = config.WatchHistoryAllUsers !== false;
@@ -391,6 +437,10 @@
                 config.BackupOriginals = page.querySelector('#BackupOriginals').checked;
                 config.CleanupOrphans = page.querySelector('#CleanupOrphans').checked;
                 config.DryRun = page.querySelector('#DryRun').checked;
+                config.BannerStyle = page.querySelector('#BannerStyle').value;
+                config.BannerShape = page.querySelector('#BannerShape').value;
+                config.BannerPosition = page.querySelector('#BannerPosition').value;
+                config.BannerFontScale = parseFloat(page.querySelector('#BannerFontScale').value) || 1.0;
                 config.TrendingTimeWindow = page.querySelector('#TrendingTimeWindow').value;
                 config.WatchHistoryDays = parseInt(page.querySelector('#WatchHistoryDays').value, 10) || 20;
                 config.WatchHistoryAllUsers = page.querySelector('#WatchHistoryAllUsers').checked;

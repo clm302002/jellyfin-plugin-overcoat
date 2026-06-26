@@ -35,6 +35,20 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets a value indicating whether the task computes overlays but skips saving (diagnostics).</summary>
     public bool DryRun { get; set; }
 
+    // --- Status banner appearance ---
+
+    /// <summary>Gets or sets the banner fill treatment: "solid" (filled pill) or "glass" (frosted translucent chip).</summary>
+    public string BannerStyle { get; set; } = "solid";
+
+    /// <summary>Gets or sets the banner shape: "pill" (fully rounded), "square", or "drop" (flush to the edge, rounded inner corners).</summary>
+    public string BannerShape { get; set; } = "pill";
+
+    /// <summary>Gets or sets where the banner sits: "top" or "bottom".</summary>
+    public string BannerPosition { get; set; } = "top";
+
+    /// <summary>Gets or sets a multiplier on the computed banner font size (1.0 = calibrated default).</summary>
+    public double BannerFontScale { get; set; } = 1.0;
+
     // --- Badge globals (was badges:) ---
 
     /// <summary>Gets or sets the master kill-switch for all badges.</summary>

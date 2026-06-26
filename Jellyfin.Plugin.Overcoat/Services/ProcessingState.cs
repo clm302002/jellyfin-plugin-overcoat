@@ -28,6 +28,10 @@ public sealed class ProcessingState
         public string? OverlayText { get; set; }
         public List<string> BadgeSet { get; set; } = new();
         public long PrimarySignature { get; set; }
+
+        /// <summary>Banner appearance fingerprint (style/shape/position/size) — empty for items with no banner.</summary>
+        public string AppearanceKey { get; set; } = string.Empty;
+
         public string LastProcessed { get; set; } = string.Empty;
     }
 
@@ -73,6 +77,7 @@ public sealed class ProcessingState
         IEnumerable<string> badgeSet,
         string? overlayText,
         long currentSignature,
+        string appearanceKey,
         bool cacheEnabled)
     {
         if (!cacheEnabled)
@@ -93,6 +98,11 @@ public sealed class ProcessingState
             }
 
             if (OverlayCategory(e.OverlayText) != OverlayCategory(overlayText))
+            {
+                return true;
+            }
+
+            if (!string.Equals(e.AppearanceKey, appearanceKey, StringComparison.Ordinal))
             {
                 return true;
             }
@@ -118,7 +128,8 @@ public sealed class ProcessingState
         string? status,
         string? overlayText,
         IEnumerable<string> badgeSet,
-        long signature)
+        long signature,
+        string appearanceKey)
     {
         var entry = new Entry
         {
@@ -127,6 +138,7 @@ public sealed class ProcessingState
             OverlayText = overlayText,
             BadgeSet = (badgeSet ?? Enumerable.Empty<string>()).OrderBy(x => x, StringComparer.Ordinal).ToList(),
             PrimarySignature = signature,
+            AppearanceKey = appearanceKey,
             LastProcessed = DateTime.UtcNow.ToString("o"),
         };
         lock (_gate)

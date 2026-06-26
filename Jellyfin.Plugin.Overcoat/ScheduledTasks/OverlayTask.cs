@@ -303,7 +303,14 @@ public class OverlayTask : IScheduledTask
             state.InvalidateOriginal(id);
         }
 
-        if (!state.NeedsProcessing(id, statusKey, badgeSet, text, currentSig, config.CacheEnabled))
+        // Fingerprint the banner appearance so changing the style/shape/position/size in settings
+        // forces every banner'd item to re-render. Empty for items with no banner (badge-only/movies),
+        // so an appearance tweak never needlessly reprocesses them.
+        var appearanceKey = text is null
+            ? string.Empty
+            : $"{config.BannerStyle}|{config.BannerShape}|{config.BannerPosition}|{(int)Math.Round(config.BannerFontScale * 1000)}";
+
+        if (!state.NeedsProcessing(id, statusKey, badgeSet, text, currentSig, appearanceKey, config.CacheEnabled))
         {
             _logger.LogDebug("Overcoat: '{Name}' unchanged — skipping.", item.Name ?? "?");
             return false;
@@ -332,7 +339,13 @@ public class OverlayTask : IScheduledTask
 
         if (text is not null)
         {
-            renderer.DrawStatusBanner(bmp, text);
+            renderer.DrawStatusBanner(bmp, text, new OverlayRenderer.BannerOptions
+            {
+                Style = config.BannerStyle,
+                Shape = config.BannerShape,
+                Position = config.BannerPosition,
+                FontScale = config.BannerFontScale,
+            });
         }
 
         badges.Apply(renderer, bmp, badgeSet);
@@ -350,7 +363,7 @@ public class OverlayTask : IScheduledTask
         await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, ct).ConfigureAwait(false);
 
         var produced = _libraryManager.GetItemById(item.Id) ?? item;
-        state.MarkProcessed(id, item.Name ?? string.Empty, statusKey, text, badgeSet, ProcessingState.Signature(produced));
+        state.MarkProcessed(id, item.Name ?? string.Empty, statusKey, text, badgeSet, ProcessingState.Signature(produced), appearanceKey);
 
         _logger.LogInformation("Overcoat: '{Name}' → banner='{Text}' badges=[{Badges}].", item.Name, text ?? "-", string.Join(",", badgeSet));
         file.Info($"{item.Name} → banner='{text ?? "-"}' badges=[{string.Join(",", badgeSet)}]");

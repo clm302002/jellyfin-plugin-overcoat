@@ -93,35 +93,58 @@ public sealed class OverlayRenderer : IDisposable
         return BannerColors["DEFAULT"];
     }
 
+    /// <summary>Appearance options for the status banner (shape / fill style / position / size).</summary>
+    public sealed class BannerOptions
+    {
+        /// <summary>Fill treatment: "solid" (filled pill, the calibrated default) or "glass" (frosted translucent chip).</summary>
+        public string Style { get; set; } = "solid";
+
+        /// <summary>Shape: "pill" (fully rounded), "square", or "drop" (flush to the edge, rounded inner corners).</summary>
+        public string Shape { get; set; } = "pill";
+
+        /// <summary>Edge the banner sits against: "top" or "bottom".</summary>
+        public string Position { get; set; } = "top";
+
+        /// <summary>Multiplier on the computed font size (1.0 = calibrated default).</summary>
+        public double FontScale { get; set; } = 1.0;
+
+        /// <summary>Optional explicit pill colour (hex); otherwise derived from the status text.</summary>
+        public string? ColorOverride { get; set; }
+
+        /// <summary>Vertical inset from the edge for pill/square shapes (fraction of poster height).</summary>
+        public double OffsetFraction { get; set; } = DefaultOffsetFraction;
+    }
+
     /// <summary>
-    /// Draws the Jellyfin-style status pill (centered near the top). Mutates <paramref name="poster"/>.
-    /// Port of <c>create_corner_banner</c> with position "top-left" (which the script centers).
+    /// Draws the status banner (centered horizontally) using the default solid pill, near the top.
+    /// Back-compat overload; mirrors the original <c>create_corner_banner</c> behaviour.
     /// </summary>
-    /// <param name="poster">The poster bitmap (drawn on in place).</param>
-    /// <param name="text">Status text, e.g. "AIRING" (upper-cased + letter-spaced internally).</param>
-    /// <param name="hexColorOverride">Optional explicit pill colour; otherwise derived from text.</param>
-    /// <param name="positionOffsetFraction">Optional vertical offset fraction (default 0.015).</param>
     public void DrawStatusBanner(
         SKBitmap poster,
         string text,
         string? hexColorOverride = null,
         double? positionOffsetFraction = null)
+        => DrawStatusBanner(poster, text, new BannerOptions
+        {
+            ColorOverride = hexColorOverride,
+            OffsetFraction = positionOffsetFraction ?? DefaultOffsetFraction,
+        });
+
+    /// <summary>
+    /// Draws the status banner with the supplied appearance options. Mutates <paramref name="poster"/>.
+    /// "solid" keeps the calibrated filled pill; "glass" frosts the poster behind a translucent tint.
+    /// </summary>
+    public void DrawStatusBanner(SKBitmap poster, string text, BannerOptions options)
     {
         int posterWidth = poster.Width;
         int posterHeight = poster.Height;
 
-        float dynamicFontSize = (int)(posterHeight * FontHeightFraction * SizeMultiplier);
+        float fontScale = options.FontScale <= 0 ? 1f : (float)options.FontScale;
+        float dynamicFontSize = (int)(posterHeight * FontHeightFraction * SizeMultiplier * fontScale);
 
         var spaced = string.Join(" ", text.ToUpperInvariant().ToCharArray());
-        var pillHex = hexColorOverride ?? GetBannerColor(text);
+        var pillHex = options.ColorOverride ?? GetBannerColor(text);
         var (r, g, b) = HexToRgb(pillHex);
-
-        using var pillPaint = new SKPaint
-        {
-            IsAntialias = true,
-            Style = SKPaintStyle.Fill,
-            Color = new SKColor(r, g, b, PillAlpha),
-        };
 
         using var textPaint = new SKPaint
         {
@@ -140,28 +163,94 @@ public sealed class OverlayRenderer : IDisposable
 
         int paddingX = (int)(dynamicFontSize * 0.5f);
         int paddingY = (int)(dynamicFontSize * 0.25f);
-
         float bannerWidth = textWidth + (paddingX * 2);
         float bannerHeight = textHeight + (paddingY * 2);
 
-        double offsetFraction = positionOffsetFraction ?? DefaultOffsetFraction;
-        float offsetY = (int)(posterHeight * offsetFraction);
+        bool atBottom = string.Equals(options.Position, "bottom", StringComparison.OrdinalIgnoreCase);
+        bool drop = string.Equals(options.Shape, "drop", StringComparison.OrdinalIgnoreCase);
+        bool square = string.Equals(options.Shape, "square", StringComparison.OrdinalIgnoreCase);
+        bool glass = string.Equals(options.Style, "glass", StringComparison.OrdinalIgnoreCase);
 
-        // "top-left" in the script centers horizontally.
+        float offsetY = (int)(posterHeight * options.OffsetFraction);
         float bannerX = (posterWidth - bannerWidth) / 2f;
-        float bannerY = offsetY;
+        float bannerY = drop
+            ? (atBottom ? posterHeight - bannerHeight : 0f)                 // flush to the edge
+            : (atBottom ? posterHeight - bannerHeight - offsetY : offsetY); // inset pill/square
 
-        // Pen position: x = banner left + left padding; baseline placed so ink top sits at
-        // bannerY + paddingY (inkBounds.Top is negative, so subtracting it moves down).
+        var rect = new SKRect(bannerX, bannerY, bannerX + bannerWidth, bannerY + bannerHeight);
+
+        // Per-corner radii (UL, UR, LR, LL).
+        SKPoint[] radii;
+        if (drop)
+        {
+            float rr = bannerHeight * 0.30f;
+            radii = atBottom
+                ? new[] { new SKPoint(rr, rr), new SKPoint(rr, rr), new SKPoint(0, 0), new SKPoint(0, 0) } // round the top corners
+                : new[] { new SKPoint(0, 0), new SKPoint(0, 0), new SKPoint(rr, rr), new SKPoint(rr, rr) }; // round the bottom corners
+        }
+        else
+        {
+            float cr = square ? 0f : (int)(bannerHeight * CornerRadiusFraction);
+            var p = new SKPoint(cr, cr);
+            radii = new[] { p, p, p, p };
+        }
+
+        using var rrect = new SKRoundRect();
+        rrect.SetRectRadii(rect, radii);
+
         float penX = bannerX + paddingX;
         float baselineY = bannerY + paddingY - inkBounds.Top;
 
-        float cornerRadius = (int)(bannerHeight * CornerRadiusFraction);
-
-        var pillRect = new SKRect(bannerX, bannerY, bannerX + bannerWidth, bannerY + bannerHeight);
+        // For glass, snapshot the untouched poster first so the backdrop blur isn't sampling the chip.
+        using var snapBmp = glass ? poster.Copy() : null;
+        using var backdrop = snapBmp is null ? null : SKImage.FromBitmap(snapBmp);
 
         using var canvas = new SKCanvas(poster);
-        canvas.DrawRoundRect(pillRect, cornerRadius, cornerRadius, pillPaint);
+
+        if (glass && backdrop is not null)
+        {
+            // Frosted backdrop: blurred copy of the poster, clipped to the chip.
+            canvas.Save();
+            canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, true);
+            float sigma = Math.Max(2f, dynamicFontSize * 0.30f);
+            using (var blur = SKImageFilter.CreateBlur(sigma, sigma))
+            using (var blurPaint = new SKPaint { ImageFilter = blur, IsAntialias = true })
+            {
+                canvas.DrawImage(backdrop, 0, 0, blurPaint);
+            }
+
+            canvas.Restore();
+
+            // Translucent colour tint over the frost.
+            using (var tint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill, Color = new SKColor(r, g, b, 130) })
+            {
+                canvas.DrawRoundRect(rrect, tint);
+            }
+
+            // Subtle light border for the glass edge.
+            float bw = Math.Max(1f, dynamicFontSize * 0.05f);
+            var inset = rect;
+            inset.Inflate(-bw / 2f, -bw / 2f);
+            using (var innerR = new SKRoundRect())
+            using (var border = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = bw, Color = new SKColor(255, 255, 255, 90) })
+            {
+                innerR.SetRectRadii(inset, radii);
+                canvas.DrawRoundRect(innerR, border);
+            }
+
+            // Drop shadow on the text so it stays legible over a bright frosted patch.
+            float sh = Math.Max(1f, bw * 0.5f);
+            using (var shadow = new SKPaint { IsAntialias = true, SubpixelText = true, Typeface = _typeface, TextSize = dynamicFontSize, Color = new SKColor(0, 0, 0, 130) })
+            {
+                canvas.DrawText(spaced, penX + sh, baselineY + sh, shadow);
+            }
+        }
+        else
+        {
+            using var pillPaint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill, Color = new SKColor(r, g, b, PillAlpha) };
+            canvas.DrawRoundRect(rrect, pillPaint);
+        }
+
         canvas.DrawText(spaced, penX, baselineY, textPaint);
         canvas.Flush();
     }
