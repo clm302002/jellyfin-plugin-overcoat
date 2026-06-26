@@ -6,6 +6,10 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.5.1] — 2026-06-26
+
 ### Changed
 - **AIRING shows the next episode again** with a chosen **format** (Date `6/28` / Day of week `Tue` /
   Countdown `3d`) — always, with no "within N days" window (that window only applies to RETURNING).
