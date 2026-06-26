@@ -65,6 +65,14 @@
         #OvercoatConfigPage .ovcColors input[type="color"] {
             width: 46px; height: 34px; border: none; border-radius: .4em; background: transparent; cursor: pointer; padding: 0;
         }
+        #OvercoatConfigPage .ovcSubGroup {
+            margin-top: 1em; padding: .8em 1em; border-radius: .5em;
+            border: 1px solid rgba(0,164,220,.35); background: rgba(0,164,220,.06);
+        }
+        #OvercoatConfigPage .ovcStatusRows { display: flex; flex-direction: column; gap: .5em; margin: .5em 0; }
+        #OvercoatConfigPage .ovcStatusRow { display: flex; align-items: center; gap: .8em; }
+        #OvercoatConfigPage .ovcStatusRow .checkboxContainer { margin: 0; min-width: 130px; }
+        #OvercoatConfigPage .ovcStatusRow input[type="text"] { flex: 1; }
         #OvercoatConfigPage .ovcMuted { opacity: .7; font-size: .9em; }
         #OvercoatConfigPage .ovcRowButtons { display: flex; flex-wrap: wrap; gap: 1em; margin: .4em 0 1em; }
     </style>
@@ -164,6 +172,23 @@
                                 </select>
                                 <div class="fieldDescription">Solid fills the pill with the status colour. Glass frosts the poster and colours the text. Neon is a dark pill with a coloured glow.</div>
                             </div>
+
+                            <!-- Glass-only options (revealed when Style = Glass). -->
+                            <div id="GlassOptions" class="ovcSubGroup">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused">Frost tint</label>
+                                    <div class="ovcColors"><label><input type="color" id="GlassTint" /><span>Tint</span></label></div>
+                                </div>
+                                <div class="inputContainer" style="margin-top:.4em;">
+                                    <label class="inputLabel inputLabelUnfocused" for="GlassTintStrength">Tint strength (%)</label>
+                                    <input is="emby-input" type="number" id="GlassTintStrength" min="0" max="100" step="1" />
+                                </div>
+                                <div class="inputContainer" style="margin-top:.6em;">
+                                    <label class="inputLabel inputLabelUnfocused" for="GlassBlur">Frost blur (%)</label>
+                                    <input is="emby-input" type="number" id="GlassBlur" min="0" max="100" step="1" />
+                                </div>
+                            </div>
+
                             <div class="selectContainer" style="margin-top:1em;">
                                 <label class="selectLabel" for="BannerShape">Shape</label>
                                 <select is="emby-select" id="BannerShape">
@@ -181,6 +206,19 @@
                                 </select>
                                 <div class="fieldDescription">Which edge of the poster the banner sits against.</div>
                             </div>
+                            <div class="selectContainer" style="margin-top:1em;">
+                                <label class="selectLabel" for="BannerAlign">Alignment</label>
+                                <select is="emby-select" id="BannerAlign">
+                                    <option value="left">Left</option>
+                                    <option value="center">Center</option>
+                                    <option value="right">Right</option>
+                                </select>
+                                <div class="fieldDescription">Horizontal placement. With Full-width on, this positions the text within the band.</div>
+                            </div>
+                            <div class="ovcCheck" style="margin-top:1em;">
+                                <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerFullWidth" /><span>Full-width band</span></label>
+                                <div class="fieldDescription">Stretch the banner edge-to-edge across the poster (a ribbon).</div>
+                            </div>
                             <div class="inputContainer" style="margin-top:1em;">
                                 <label class="inputLabel inputLabelUnfocused" for="BannerFontScale">Text size</label>
                                 <input is="emby-input" type="number" id="BannerFontScale" min="0.5" max="2" step="0.05" />
@@ -190,6 +228,15 @@
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerIcons" /><span>Show status icons</span></label>
                                 <div class="fieldDescription">Draw the ★ / ⟳ / ✓ icon beside the banner text. Off = text only.</div>
                             </div>
+                            <div class="ovcCheck" style="margin-top:1em;">
+                                <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerShadow" /><span>Drop shadow</span></label>
+                                <div class="fieldDescription">Soft shadow under the banner so it lifts off the poster.</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="BannerShadowStrength">Shadow strength (%)</label>
+                                <input is="emby-input" type="number" id="BannerShadowStrength" min="0" max="100" step="1" />
+                            </div>
+
                             <div style="margin-top:1em;">
                                 <label class="inputLabel inputLabelUnfocused">Status colours</label>
                                 <div class="ovcColors">
@@ -200,6 +247,18 @@
                                     <label><input type="color" id="ColorCanceled" /><span>Canceled</span></label>
                                 </div>
                                 <div class="fieldDescription">Tap a swatch to recolour that status. Switch the preview to that status to see it.</div>
+                            </div>
+
+                            <div style="margin-top:1.2em;">
+                                <label class="inputLabel inputLabelUnfocused">Per-status: show &amp; label</label>
+                                <div class="ovcStatusRows">
+                                    <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowNew" /><span>New</span></label><input is="emby-input" type="text" id="LabelNew" /></div>
+                                    <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowAiring" /><span>Airing</span></label><input is="emby-input" type="text" id="LabelAiring" /></div>
+                                    <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowReturning" /><span>Returning</span></label><input is="emby-input" type="text" id="LabelReturning" /></div>
+                                    <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowEnded" /><span>Ended</span></label><input is="emby-input" type="text" id="LabelEnded" /></div>
+                                    <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowCanceled" /><span>Canceled</span></label><input is="emby-input" type="text" id="LabelCanceled" /></div>
+                                </div>
+                                <div class="fieldDescription">Untick to skip a status entirely; edit the text to rename it (e.g. RETURNING → RETURNS).</div>
                             </div>
                         </div>
 
@@ -316,6 +375,7 @@
             var previewStatus = 'RETURNING';
             var STATUS_TEXT = { NEW: 'NEW', AIRING: 'AIRING', RETURNING: 'RETURNING 6/26', ENDED: 'ENDED', CANCELED: 'CANCELED' };
             var STATUS_COLOR = { NEW: 'ColorNew', AIRING: 'ColorAiring', RETURNING: 'ColorReturning', ENDED: 'ColorEnded', CANCELED: 'ColorCanceled' };
+            var STATUS_LABEL = { NEW: 'LabelNew', AIRING: 'LabelAiring', RETURNING: 'LabelReturning', ENDED: 'LabelEnded', CANCELED: 'LabelCanceled' };
 
             function showTab(name) {
                 page.querySelectorAll('.ovcTab').forEach(function (t) {
@@ -329,17 +389,37 @@
                 if (name === 'banners') { refreshBannerPreview(); }
             }
 
-            // Build the preview image URL from the current banner controls (server renders it).
+            // Glass options only matter when Style = Glass — reveal them then (progressive disclosure).
+            function updateGlassVisibility() {
+                var isGlass = page.querySelector('#BannerStyle').value === 'glass';
+                page.querySelector('#GlassOptions').style.display = isGlass ? 'block' : 'none';
+            }
+
+            function val(id) { return page.querySelector('#' + id).value; }
+
+            // Build the preview image URL from the current banner controls (server renders it). The
+            // preview shows the custom label text for the selected status, with the canonical identity
+            // passed as iconKey so the icon/colour stay correct even after a rename.
             function bannerPreviewUrl() {
-                var colorEl = page.querySelector('#' + STATUS_COLOR[previewStatus]);
+                var st = previewStatus;
+                var label = val(STATUS_LABEL[st]) || st;
+                var text = (st === 'RETURNING') ? (label + ' 6/26') : label;
                 var qs = [
-                    'style=' + encodeURIComponent(page.querySelector('#BannerStyle').value),
-                    'shape=' + encodeURIComponent(page.querySelector('#BannerShape').value),
-                    'position=' + encodeURIComponent(page.querySelector('#BannerPosition').value),
-                    'fontScale=' + encodeURIComponent(page.querySelector('#BannerFontScale').value || '1'),
-                    'status=' + encodeURIComponent(STATUS_TEXT[previewStatus] || 'RETURNING 6/26'),
+                    'style=' + encodeURIComponent(val('BannerStyle')),
+                    'shape=' + encodeURIComponent(val('BannerShape')),
+                    'position=' + encodeURIComponent(val('BannerPosition')),
+                    'align=' + encodeURIComponent(val('BannerAlign')),
+                    'fullWidth=' + (page.querySelector('#BannerFullWidth').checked ? 'true' : 'false'),
+                    'fontScale=' + encodeURIComponent(val('BannerFontScale') || '1'),
+                    'status=' + encodeURIComponent(text),
+                    'iconKey=' + encodeURIComponent(st),
                     'icons=' + (page.querySelector('#BannerIcons').checked ? 'true' : 'false'),
-                    'color=' + encodeURIComponent(colorEl ? colorEl.value : ''),
+                    'color=' + encodeURIComponent(val(STATUS_COLOR[st]) || ''),
+                    'shadow=' + (page.querySelector('#BannerShadow').checked ? 'true' : 'false'),
+                    'shadowStrength=' + encodeURIComponent(val('BannerShadowStrength') || '60'),
+                    'glassTint=' + encodeURIComponent(val('GlassTint') || ''),
+                    'glassTintStrength=' + encodeURIComponent(val('GlassTintStrength') || '49'),
+                    'glassBlur=' + encodeURIComponent(val('GlassBlur') || '50'),
                     'api_key=' + encodeURIComponent(ApiClient.accessToken()),
                     '_=' + new Date().getTime()
                 ].join('&');
@@ -495,6 +575,24 @@
                     page.querySelector('#ColorReturning').value = config.ColorReturning || '#A020F0';
                     page.querySelector('#ColorEnded').value = config.ColorEnded || '#424242';
                     page.querySelector('#ColorCanceled').value = config.ColorCanceled || '#D32F2F';
+                    page.querySelector('#BannerAlign').value = config.BannerAlign || 'center';
+                    page.querySelector('#BannerFullWidth').checked = !!config.BannerFullWidth;
+                    page.querySelector('#BannerShadow').checked = !!config.BannerShadow;
+                    page.querySelector('#BannerShadowStrength').value = (config.BannerShadowStrength != null ? config.BannerShadowStrength : 60);
+                    page.querySelector('#GlassTint').value = config.GlassTint || '#0E1018';
+                    page.querySelector('#GlassTintStrength').value = (config.GlassTintStrength != null ? config.GlassTintStrength : 49);
+                    page.querySelector('#GlassBlur').value = (config.GlassBlur != null ? config.GlassBlur : 50);
+                    page.querySelector('#ShowNew').checked = config.ShowNew !== false;
+                    page.querySelector('#ShowAiring').checked = config.ShowAiring !== false;
+                    page.querySelector('#ShowReturning').checked = config.ShowReturning !== false;
+                    page.querySelector('#ShowEnded').checked = config.ShowEnded !== false;
+                    page.querySelector('#ShowCanceled').checked = config.ShowCanceled !== false;
+                    page.querySelector('#LabelNew').value = config.LabelNew || 'NEW';
+                    page.querySelector('#LabelAiring').value = config.LabelAiring || 'AIRING';
+                    page.querySelector('#LabelReturning').value = config.LabelReturning || 'RETURNING';
+                    page.querySelector('#LabelEnded').value = config.LabelEnded || 'ENDED';
+                    page.querySelector('#LabelCanceled').value = config.LabelCanceled || 'CANCELED';
+                    updateGlassVisibility();
                     page.querySelector('#TrendingTimeWindow').value = config.TrendingTimeWindow || 'week';
                     page.querySelector('#WatchHistoryDays').value = config.WatchHistoryDays || 20;
                     page.querySelector('#WatchHistoryAllUsers').checked = config.WatchHistoryAllUsers !== false;
@@ -531,6 +629,26 @@
                 config.ColorReturning = page.querySelector('#ColorReturning').value;
                 config.ColorEnded = page.querySelector('#ColorEnded').value;
                 config.ColorCanceled = page.querySelector('#ColorCanceled').value;
+                config.BannerAlign = page.querySelector('#BannerAlign').value;
+                config.BannerFullWidth = page.querySelector('#BannerFullWidth').checked;
+                config.BannerShadow = page.querySelector('#BannerShadow').checked;
+                config.BannerShadowStrength = parseInt(page.querySelector('#BannerShadowStrength').value, 10);
+                if (isNaN(config.BannerShadowStrength)) { config.BannerShadowStrength = 60; }
+                config.GlassTint = page.querySelector('#GlassTint').value;
+                config.GlassTintStrength = parseInt(page.querySelector('#GlassTintStrength').value, 10);
+                if (isNaN(config.GlassTintStrength)) { config.GlassTintStrength = 49; }
+                config.GlassBlur = parseInt(page.querySelector('#GlassBlur').value, 10);
+                if (isNaN(config.GlassBlur)) { config.GlassBlur = 50; }
+                config.ShowNew = page.querySelector('#ShowNew').checked;
+                config.ShowAiring = page.querySelector('#ShowAiring').checked;
+                config.ShowReturning = page.querySelector('#ShowReturning').checked;
+                config.ShowEnded = page.querySelector('#ShowEnded').checked;
+                config.ShowCanceled = page.querySelector('#ShowCanceled').checked;
+                config.LabelNew = page.querySelector('#LabelNew').value;
+                config.LabelAiring = page.querySelector('#LabelAiring').value;
+                config.LabelReturning = page.querySelector('#LabelReturning').value;
+                config.LabelEnded = page.querySelector('#LabelEnded').value;
+                config.LabelCanceled = page.querySelector('#LabelCanceled').value;
                 config.TrendingTimeWindow = page.querySelector('#TrendingTimeWindow').value;
                 config.WatchHistoryDays = parseInt(page.querySelector('#WatchHistoryDays').value, 10) || 20;
                 config.WatchHistoryAllUsers = page.querySelector('#WatchHistoryAllUsers').checked;
@@ -573,12 +691,16 @@
                     });
                     page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
                     page.querySelector('#WatchHistoryAllUsers').addEventListener('change', updateUserRowVisibility);
-                    ['BannerStyle', 'BannerShape', 'BannerPosition', 'BannerFontScale', 'BannerIcons',
-                     'ColorNew', 'ColorAiring', 'ColorReturning', 'ColorEnded', 'ColorCanceled'].forEach(function (id) {
+                    ['BannerStyle', 'BannerShape', 'BannerPosition', 'BannerAlign', 'BannerFullWidth',
+                     'BannerFontScale', 'BannerIcons', 'BannerShadow', 'BannerShadowStrength',
+                     'GlassTint', 'GlassTintStrength', 'GlassBlur',
+                     'ColorNew', 'ColorAiring', 'ColorReturning', 'ColorEnded', 'ColorCanceled',
+                     'LabelNew', 'LabelAiring', 'LabelReturning', 'LabelEnded', 'LabelCanceled'].forEach(function (id) {
                         var el = page.querySelector('#' + id);
                         el.addEventListener('change', refreshBannerPreview);
                         el.addEventListener('input', refreshBannerPreview);
                     });
+                    page.querySelector('#BannerStyle').addEventListener('change', updateGlassVisibility);
                     page.querySelectorAll('#OvercoatPreviewStatuses .ovcChip').forEach(function (btn) {
                         btn.addEventListener('click', function () {
                             previewStatus = btn.getAttribute('data-status');

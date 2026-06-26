@@ -114,6 +114,30 @@ public sealed class OverlayRenderer : IDisposable
         /// <summary>Whether to draw the per-status icon beside the text.</summary>
         public bool ShowIcons { get; set; } = true;
 
+        /// <summary>Canonical status (NEW/AIRING/RETURNING/ENDED/CANCELED) for icon selection; falls back to parsing the text.</summary>
+        public string IconKey { get; set; } = string.Empty;
+
+        /// <summary>Whether the banner spans the full poster width (a band).</summary>
+        public bool FullWidth { get; set; }
+
+        /// <summary>Horizontal alignment: "left", "center", or "right".</summary>
+        public string Align { get; set; } = "center";
+
+        /// <summary>Whether to draw a drop shadow under the banner.</summary>
+        public bool Shadow { get; set; }
+
+        /// <summary>Drop-shadow strength (0–100 → opacity).</summary>
+        public int ShadowStrength { get; set; } = 60;
+
+        /// <summary>Glass frost tint colour (hex).</summary>
+        public string GlassTint { get; set; } = "#0E1018";
+
+        /// <summary>Glass frost tint strength (0–100 → veil opacity).</summary>
+        public int GlassTintStrength { get; set; } = 49;
+
+        /// <summary>Glass frost blur amount (0–100).</summary>
+        public int GlassBlur { get; set; } = 50;
+
         /// <summary>Vertical inset from the edge for pill/square shapes (fraction of poster height).</summary>
         public double OffsetFraction { get; set; } = DefaultOffsetFraction;
     }
@@ -181,27 +205,44 @@ public sealed class OverlayRenderer : IDisposable
         int paddingX = (int)(dynamicFontSize * 0.5f);
         int paddingY = (int)(dynamicFontSize * 0.25f);
 
-        // Per-status icon drawn to the left of the text.
-        string kw = StatusKeyword(text);
+        // Per-status icon drawn to the left of the text. IconKey (the canonical status) wins so a
+        // custom label can't break icon selection; otherwise fall back to parsing the text.
+        string kw = string.IsNullOrEmpty(options.IconKey) ? StatusKeyword(text) : options.IconKey.ToUpperInvariant();
         bool hasIcon = options.ShowIcons && kw.Length > 0;
         float iconSize = textHeight * 1.08f;
         float iconGap = hasIcon ? dynamicFontSize * 0.34f : 0f;
         float iconAdvance = hasIcon ? iconSize + iconGap : 0f;
+        float contentWidth = iconAdvance + textWidth;
 
-        float bannerWidth = iconAdvance + textWidth + (paddingX * 2);
+        bool fullWidth = options.FullWidth;
+        bool alignLeft = string.Equals(options.Align, "left", StringComparison.OrdinalIgnoreCase);
+        bool alignRight = string.Equals(options.Align, "right", StringComparison.OrdinalIgnoreCase);
+
         float bannerHeight = textHeight + (paddingY * 2);
+        float bannerWidth = fullWidth ? posterWidth : contentWidth + (paddingX * 2);
 
         float offsetY = (int)(posterHeight * options.OffsetFraction);
-        float bannerX = (posterWidth - bannerWidth) / 2f;
+        float sideMargin = (int)(posterWidth * 0.03f);
+        float bannerX = fullWidth
+            ? 0f
+            : (alignLeft ? sideMargin
+                : alignRight ? posterWidth - bannerWidth - sideMargin
+                : (posterWidth - bannerWidth) / 2f);
         float bannerY = drop
             ? (atBottom ? posterHeight - bannerHeight : 0f)                 // flush to the edge
             : (atBottom ? posterHeight - bannerHeight - offsetY : offsetY); // inset pill/square
 
         var rect = new SKRect(bannerX, bannerY, bannerX + bannerWidth, bannerY + bannerHeight);
 
-        // Per-corner radii (UL, UR, LR, LL).
+        // Per-corner radii (UL, UR, LR, LL). A full-width band is square on the sides (flush to the
+        // poster edges); otherwise pill / square / drop as chosen.
         SKPoint[] radii;
-        if (drop)
+        if (fullWidth)
+        {
+            var z = new SKPoint(0, 0);
+            radii = new[] { z, z, z, z };
+        }
+        else if (drop)
         {
             float rr = bannerHeight * 0.30f;
             radii = atBottom
@@ -218,7 +259,14 @@ public sealed class OverlayRenderer : IDisposable
         using var rrect = new SKRoundRect();
         rrect.SetRectRadii(rect, radii);
 
-        float contentLeft = bannerX + paddingX;
+        // Content placement: a full-width band positions the icon+text per alignment; an auto-width
+        // banner hugs its content (paddingX each side).
+        float contentLeft = fullWidth
+            ? (alignLeft ? bannerX + paddingX
+                : alignRight ? bannerX + bannerWidth - paddingX - contentWidth
+                : bannerX + ((bannerWidth - contentWidth) / 2f))
+            : bannerX + paddingX;
+
         float penX = contentLeft + iconAdvance;
         float baselineY = bannerY + paddingY - inkBounds.Top;
         float iconCx = contentLeft + (iconSize / 2f);
@@ -233,20 +281,41 @@ public sealed class OverlayRenderer : IDisposable
 
         using var canvas = new SKCanvas(poster);
 
+        // Drop shadow under the whole banner (drawn first so the fill/frost sits on top).
+        if (options.Shadow)
+        {
+            float so = dynamicFontSize * 0.10f;
+            float ss = Math.Max(2f, dynamicFontSize * 0.18f);
+            byte sa = (byte)(Math.Clamp(options.ShadowStrength, 0, 100) / 100.0 * 190);
+            var shadowRect = new SKRect(rect.Left, rect.Top + so, rect.Right, rect.Bottom + so);
+            using var shadowRR = new SKRoundRect();
+            shadowRR.SetRectRadii(shadowRect, radii);
+            using var shadowPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Fill,
+                Color = new SKColor(0, 0, 0, sa),
+                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, ss),
+            };
+            canvas.DrawRoundRect(shadowRR, shadowPaint);
+        }
+
         if (glass && backdrop is not null)
         {
-            // Frosted backdrop: a strongly-blurred copy of the poster, clipped to the chip.
+            // Frosted backdrop: a blurred copy of the poster, clipped to the chip.
             canvas.Save();
             canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, true);
-            float sigma = Math.Max(3f, dynamicFontSize * 0.55f);
+            float sigma = Math.Max(2f, dynamicFontSize * (0.2f + (0.7f * (Math.Clamp(options.GlassBlur, 0, 100) / 100f))));
             using (var blur = SKImageFilter.CreateBlur(sigma, sigma))
             using (var blurPaint = new SKPaint { ImageFilter = blur, IsAntialias = true })
             {
                 canvas.DrawImage(backdrop, 0, 0, blurPaint);
             }
 
-            // Neutral dark glass veil (constant colour — the status shows through the text, not the fill).
-            using (var veil = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill, Color = new SKColor(14, 16, 24, 125) })
+            // Glass tint veil (configurable colour + strength — the status shows via the text, not the fill).
+            var (tr, tg, tb) = HexToRgb(string.IsNullOrWhiteSpace(options.GlassTint) ? "#0E1018" : options.GlassTint);
+            byte va = (byte)(Math.Clamp(options.GlassTintStrength, 0, 100) / 100.0 * 235);
+            using (var veil = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill, Color = new SKColor(tr, tg, tb, va) })
             {
                 canvas.DrawRect(rect, veil);
             }

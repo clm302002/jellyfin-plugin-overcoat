@@ -31,7 +31,15 @@ public class PreviewController : ControllerBase
         [FromQuery] double fontScale = 1.0,
         [FromQuery] string status = "RETURNING 6/26",
         [FromQuery] bool icons = true,
-        [FromQuery] string? color = null)
+        [FromQuery] string? color = null,
+        [FromQuery] string? iconKey = null,
+        [FromQuery] bool fullWidth = false,
+        [FromQuery] string? align = null,
+        [FromQuery] bool shadow = false,
+        [FromQuery] int shadowStrength = 60,
+        [FromQuery] string? glassTint = null,
+        [FromQuery] int glassTintStrength = 49,
+        [FromQuery] int glassBlur = 50)
     {
         const int w = 600;
         const int h = 900;
@@ -75,7 +83,15 @@ public class PreviewController : ControllerBase
             Position = string.IsNullOrWhiteSpace(position) ? "top" : position,
             FontScale = fontScale <= 0 ? 1.0 : fontScale,
             ShowIcons = icons,
+            IconKey = iconKey ?? string.Empty,
             ColorOverride = string.IsNullOrWhiteSpace(color) ? null : color,
+            FullWidth = fullWidth,
+            Align = string.IsNullOrWhiteSpace(align) ? "center" : align,
+            Shadow = shadow,
+            ShadowStrength = shadowStrength,
+            GlassTint = string.IsNullOrWhiteSpace(glassTint) ? "#0E1018" : glassTint,
+            GlassTintStrength = glassTintStrength,
+            GlassBlur = glassBlur,
         });
 
         return File(OverlayRenderer.EncodePng(bmp), "image/png");

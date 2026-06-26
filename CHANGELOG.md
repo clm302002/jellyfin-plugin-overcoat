@@ -22,6 +22,14 @@ All notable changes to Overcoat are documented here. Format follows
   on the right (rendered server-side via a new authenticated `Overcoat/BannerPreview` endpoint) that
   updates instantly as you change options, plus a **status switcher** (NEW / AIRING / RETURNING /
   ENDED / CANCELED) so you can preview every state without running the task.
+- **Glass frost tint** — a tint colour, strength, and blur for the glass style, revealed on the tab
+  only when Glass is selected.
+- **Full-width band + alignment** — stretch the banner edge-to-edge as a ribbon, and align it (or its
+  text, when full-width) left / center / right.
+- **Drop shadow** — optional soft shadow (with strength) under the banner so it lifts off the poster.
+- **Per-status show/hide + custom labels** — choose which statuses get a banner at all, and rename
+  any of them (e.g. RETURNING → RETURNS). Renaming no longer breaks the icon/colour (status identity
+  is tracked separately from the display label), and the returning date still doesn't churn the cache.
 
 ### Fixed
 - **Revert on drop-to-zero**: when an item no longer qualifies for any banner or badge (e.g. you

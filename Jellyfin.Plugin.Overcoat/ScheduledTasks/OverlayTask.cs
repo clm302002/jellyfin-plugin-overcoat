@@ -243,7 +243,12 @@ public class OverlayTask : IScheduledTask
     {
         // Status banner (TV only, when the library has status overlays on). Fetch the TMDB status
         // once and reuse it for the poster fallback below — avoids a second /tv/{id} call.
+        // `text` is what's rendered (custom label + date); `iconKey` is the canonical identity used
+        // for the icon/colour; `cacheText` is the date-free label used for change detection so the
+        // returning date drifting day-to-day doesn't churn reprocessing.
         string? text = null;
+        string? cacheText = null;
+        string iconKey = string.Empty;
         var statusKey = type == "tv" ? "tv" : "movie";
         TmdbService.TvStatusInfo? info = null;
         if (type == "tv" && lib.StatusOverlays)
@@ -252,7 +257,13 @@ public class OverlayTask : IScheduledTask
             if (info is not null)
             {
                 statusKey = info.Status ?? "tv";
-                text = StatusOverlayResolver.Resolve(info);
+                if (StatusOverlayResolver.ResolveIdentity(info) is { } res && config.IsStatusShown(res.Identity))
+                {
+                    iconKey = res.Identity;
+                    var label = config.LabelForStatus(res.Identity);
+                    cacheText = label;
+                    text = string.IsNullOrEmpty(res.DateSuffix) ? label : $"{label} {res.DateSuffix}";
+                }
             }
         }
 
@@ -303,15 +314,24 @@ public class OverlayTask : IScheduledTask
             state.InvalidateOriginal(id);
         }
 
-        // Fingerprint the banner appearance so changing the style/shape/position/size in settings
-        // forces every banner'd item to re-render. Empty for items with no banner (badge-only/movies),
-        // so an appearance tweak never needlessly reprocesses them.
-        var bannerColor = text is null ? string.Empty : config.ColorForStatus(text);
+        // Fingerprint the banner appearance so changing any banner setting forces every banner'd item
+        // to re-render. Empty for items with no banner (badge-only/movies), so an appearance tweak
+        // never needlessly reprocesses them. (Label changes are caught via cacheText below.)
+        var bannerColor = iconKey.Length == 0 ? string.Empty : config.ColorForIdentity(iconKey);
         var appearanceKey = text is null
             ? string.Empty
-            : $"{config.BannerStyle}|{config.BannerShape}|{config.BannerPosition}|{(int)Math.Round(config.BannerFontScale * 1000)}|{config.BannerIcons}|{bannerColor}";
+            : string.Join("|", new[]
+            {
+                config.BannerStyle, config.BannerShape, config.BannerPosition,
+                ((int)Math.Round(config.BannerFontScale * 1000)).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                config.BannerIcons.ToString(), bannerColor,
+                config.BannerFullWidth.ToString(), config.BannerAlign,
+                config.BannerShadow ? config.BannerShadowStrength.ToString(System.Globalization.CultureInfo.InvariantCulture) : "0",
+                config.GlassTint, config.GlassTintStrength.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                config.GlassBlur.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            });
 
-        if (!state.NeedsProcessing(id, statusKey, badgeSet, text, currentSig, appearanceKey, config.CacheEnabled))
+        if (!state.NeedsProcessing(id, statusKey, badgeSet, cacheText, currentSig, appearanceKey, config.CacheEnabled))
         {
             _logger.LogDebug("Overcoat: '{Name}' unchanged — skipping.", item.Name ?? "?");
             return false;
@@ -347,7 +367,15 @@ public class OverlayTask : IScheduledTask
                 Position = config.BannerPosition,
                 FontScale = config.BannerFontScale,
                 ShowIcons = config.BannerIcons,
+                IconKey = iconKey,
                 ColorOverride = bannerColor,
+                FullWidth = config.BannerFullWidth,
+                Align = config.BannerAlign,
+                Shadow = config.BannerShadow,
+                ShadowStrength = config.BannerShadowStrength,
+                GlassTint = config.GlassTint,
+                GlassTintStrength = config.GlassTintStrength,
+                GlassBlur = config.GlassBlur,
             });
         }
 
@@ -366,7 +394,7 @@ public class OverlayTask : IScheduledTask
         await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, ct).ConfigureAwait(false);
 
         var produced = _libraryManager.GetItemById(item.Id) ?? item;
-        state.MarkProcessed(id, item.Name ?? string.Empty, statusKey, text, badgeSet, ProcessingState.Signature(produced), appearanceKey);
+        state.MarkProcessed(id, item.Name ?? string.Empty, statusKey, cacheText, badgeSet, ProcessingState.Signature(produced), appearanceKey);
 
         _logger.LogInformation("Overcoat: '{Name}' → banner='{Text}' badges=[{Badges}].", item.Name, text ?? "-", string.Join(",", badgeSet));
         file.Info($"{item.Name} → banner='{text ?? "-"}' badges=[{string.Join(",", badgeSet)}]");

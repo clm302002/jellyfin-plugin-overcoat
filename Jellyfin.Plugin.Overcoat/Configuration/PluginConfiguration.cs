@@ -99,6 +99,100 @@ public class PluginConfiguration : BasePluginConfiguration
         return "#262626";
     }
 
+    // --- Glass-specific appearance ---
+
+    /// <summary>Gets or sets the glass frost tint colour (hex).</summary>
+    public string GlassTint { get; set; } = "#0E1018";
+
+    /// <summary>Gets or sets the glass frost tint strength (0–100 → veil opacity).</summary>
+    public int GlassTintStrength { get; set; } = 49;
+
+    /// <summary>Gets or sets the glass frost blur amount (0–100).</summary>
+    public int GlassBlur { get; set; } = 50;
+
+    // --- Banner layout ---
+
+    /// <summary>Gets or sets a value indicating whether the banner spans the full poster width (a band).</summary>
+    public bool BannerFullWidth { get; set; }
+
+    /// <summary>Gets or sets the horizontal alignment: "left", "center", or "right".</summary>
+    public string BannerAlign { get; set; } = "center";
+
+    /// <summary>Gets or sets a value indicating whether a drop shadow is drawn under the banner.</summary>
+    public bool BannerShadow { get; set; }
+
+    /// <summary>Gets or sets the drop-shadow strength (0–100 → shadow opacity).</summary>
+    public int BannerShadowStrength { get; set; } = 60;
+
+    // --- Per-status visibility + labels ---
+
+    /// <summary>Gets or sets a value indicating whether a NEW banner is drawn.</summary>
+    public bool ShowNew { get; set; } = true;
+
+    /// <summary>Gets or sets a value indicating whether an AIRING banner is drawn.</summary>
+    public bool ShowAiring { get; set; } = true;
+
+    /// <summary>Gets or sets a value indicating whether a RETURNING banner is drawn.</summary>
+    public bool ShowReturning { get; set; } = true;
+
+    /// <summary>Gets or sets a value indicating whether an ENDED banner is drawn.</summary>
+    public bool ShowEnded { get; set; } = true;
+
+    /// <summary>Gets or sets a value indicating whether a CANCELED banner is drawn.</summary>
+    public bool ShowCanceled { get; set; } = true;
+
+    /// <summary>Gets or sets the display label for NEW.</summary>
+    public string LabelNew { get; set; } = "NEW";
+
+    /// <summary>Gets or sets the display label for AIRING.</summary>
+    public string LabelAiring { get; set; } = "AIRING";
+
+    /// <summary>Gets or sets the display label for RETURNING.</summary>
+    public string LabelReturning { get; set; } = "RETURNING";
+
+    /// <summary>Gets or sets the display label for ENDED.</summary>
+    public string LabelEnded { get; set; } = "ENDED";
+
+    /// <summary>Gets or sets the display label for CANCELED.</summary>
+    public string LabelCanceled { get; set; } = "CANCELED";
+
+    /// <summary>Whether a banner should be drawn for the given status identity.</summary>
+    public bool IsStatusShown(string identity) => identity switch
+    {
+        "NEW" => ShowNew,
+        "AIRING" => ShowAiring,
+        "RETURNING" => ShowReturning,
+        "ENDED" => ShowEnded,
+        "CANCELED" => ShowCanceled,
+        _ => true,
+    };
+
+    /// <summary>The display label for a status identity (falls back to the identity if cleared).</summary>
+    public string LabelForStatus(string identity)
+    {
+        var label = identity switch
+        {
+            "NEW" => LabelNew,
+            "AIRING" => LabelAiring,
+            "RETURNING" => LabelReturning,
+            "ENDED" => LabelEnded,
+            "CANCELED" => LabelCanceled,
+            _ => identity,
+        };
+        return string.IsNullOrWhiteSpace(label) ? identity : label.Trim();
+    }
+
+    /// <summary>The configured colour (hex) for a status identity.</summary>
+    public string ColorForIdentity(string identity) => identity switch
+    {
+        "NEW" => ColorNew,
+        "AIRING" => ColorAiring,
+        "RETURNING" => ColorReturning,
+        "ENDED" => ColorEnded,
+        "CANCELED" => ColorCanceled,
+        _ => "#262626",
+    };
+
     // --- Badge globals (was badges:) ---
 
     /// <summary>Gets or sets the master kill-switch for all badges.</summary>
