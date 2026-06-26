@@ -26,12 +26,6 @@
         #OvercoatConfigPage .ovcLibOpts .checkboxContainer { margin: 0; }
         #OvercoatConfigPage .ovcMuted { opacity: .7; font-size: .9em; }
         #OvercoatConfigPage .ovcRowButtons { display: flex; flex-wrap: wrap; gap: 1em; margin: 1em 0; }
-        #OvercoatConfigPage .ovcWarn {
-            border: 2px solid #e0413e; background: rgba(224,65,62,.12);
-            border-radius: .6em; padding: .8em 1.1em; margin: 1em 0;
-        }
-        #OvercoatConfigPage .ovcWarn .ovcWarnTitle { color: #ff5b57; font-weight: 700; letter-spacing: .03em; }
-        #OvercoatConfigPage .ovcWarn p { margin: .5em 0 0; }
     </style>
     <div data-role="content">
         <div class="content-primary">
@@ -43,15 +37,6 @@
                         Status overlays &amp; badges for your Jellyfin posters. Configure below, save, then
                         run the overlay task (Maintenance tab, or Dashboard&nbsp;&rarr;&nbsp;Scheduled&nbsp;Tasks).
                     </p>
-                    <div class="ovcWarn">
-                        <span class="ovcWarnTitle">!!! Before you uninstall Overcoat !!!</span>
-                        <p>
-                            Uninstalling does <strong>not</strong> revert your posters — your library keeps the
-                            overlaid art, and the restore option goes away with the plugin. To get your original
-                            posters back, first open the <strong>Maintenance</strong> tab and click
-                            <strong>Restore original posters</strong>, <em>then</em> uninstall.
-                        </p>
-                    </div>
                 </div>
 
                 <div class="ovcTabs">

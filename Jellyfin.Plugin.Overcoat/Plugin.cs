@@ -32,7 +32,9 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     /// <inheritdoc />
     public override string Description =>
         "Applies status overlays (NEW/AIRING/RETURNING/ENDED/CANCELED) and watch/trending/IMDB Top 250 " +
-        "badges to TV and movie posters, in-process. Successor to the Kometa-Jellyfin (jellymeta) script.";
+        "badges to TV and movie posters, in-process. Successor to the Kometa-Jellyfin (jellymeta) script. " +
+        "!!! BEFORE UNINSTALLING: your posters are NOT reverted automatically. Open Overcoat's Settings " +
+        "→ Maintenance and run \"Restore original posters\" first, then uninstall. !!!";
 
     // Stable, unique id for this plugin. Generated once; never change it.
     public override Guid Id => Guid.Parse("604f4e22-a0a1-490d-b383-d60336318eaa");
