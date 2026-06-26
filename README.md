@@ -39,7 +39,7 @@ It can add:
   `NEW`, `AIRING`, `RETURNING`, `ENDED`, `CANCELED`
 
 * **Side badges**
-  `Jellyfin Trending`, `TVDB Trending`, watch-history badges, and more
+  `TMDB Trending` and watch-history (recently played) badges, and more
 
 * **Corner badges**
   IMDb Top 250, ranking badges, and other compact poster markers
@@ -88,8 +88,8 @@ The current focus is TV status overlays, with badges and movie overlays being ac
 | Area                    | Status      |
 | ----------------------- | ----------- |
 | TV status banners       | Working     |
-| Jellyfin Trending badge | Working     |
-| TVDB Trending badge     | Working     |
+| TMDB Trending badge     | Working     |
+| Watch-history badge      | Working     |
 | IMDb Top 250 badge      | Working     |
 | Movie overlays (badges) | Working     |
 | Settings page           | Working     |

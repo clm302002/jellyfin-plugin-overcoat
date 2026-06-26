@@ -49,6 +49,13 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets the single user (by id) to scope watch history to when <see cref="WatchHistoryAllUsers"/> is false. Empty = first admin.</summary>
     public string WatchHistoryUserId { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Gets or sets the safety cap on how many recent plays per user the watch-history scan walks.
+    /// The scan stops early once it leaves the look-back window, so this only bounds pathological
+    /// histories; raise it if a very heavy watcher's older in-window plays are being missed.
+    /// </summary>
+    public int WatchHistoryMaxScan { get; set; } = 10000;
+
     /// <summary>Gets or sets the TMDB trending window: "day" or "week".</summary>
     public string TrendingTimeWindow { get; set; } = "week";
 

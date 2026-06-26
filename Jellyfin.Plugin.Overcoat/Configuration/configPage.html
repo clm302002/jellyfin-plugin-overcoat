@@ -91,7 +91,17 @@
                         </div>
                         <div class="ovcCheck" style="margin-top:1em;">
                             <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="WatchHistoryAllUsers" /><span>Count all users' plays</span></label>
-                            <div class="fieldDescription">On: a play by any user counts. Off: only your main account's plays count.</div>
+                            <div class="fieldDescription">On: a play by any user counts. Off: only the chosen user's plays count.</div>
+                        </div>
+                        <div class="selectContainer" id="WatchHistoryUserRow">
+                            <label class="selectLabel" for="WatchHistoryUserId">Whose plays count</label>
+                            <select is="emby-select" id="WatchHistoryUserId"></select>
+                            <div class="fieldDescription">Only used when "Count all users' plays" is off. "(First admin)" uses whichever account Jellyfin lists first.</div>
+                        </div>
+                        <div class="inputContainer" style="margin-top:1em;">
+                            <label class="inputLabel inputLabelUnfocused" for="WatchHistoryMaxScan">Watch-history scan cap (per user)</label>
+                            <input is="emby-input" type="number" id="WatchHistoryMaxScan" min="500" step="500" />
+                            <div class="fieldDescription">Safety limit on how many recent plays are scanned per user. The scan already stops at the look-back window, so only raise this if a very heavy watcher's older in-window plays go missing.</div>
                         </div>
                     </div>
 
@@ -296,6 +306,32 @@
                 });
             }
 
+            // Populate the "whose plays count" dropdown from the Jellyfin user list. Names are set via
+            // textContent (option.text), so a user name can't inject markup.
+            function loadUsers(config) {
+                var sel = page.querySelector('#WatchHistoryUserId');
+                return ApiClient.getUsers().then(function (users) {
+                    sel.innerHTML = '';
+                    var first = document.createElement('option');
+                    first.value = '';
+                    first.text = '(First admin)';
+                    sel.appendChild(first);
+                    (users || []).forEach(function (u) {
+                        var opt = document.createElement('option');
+                        opt.value = u.Id;
+                        opt.text = u.Name;
+                        sel.appendChild(opt);
+                    });
+                    sel.value = config.WatchHistoryUserId || '';
+                }, function () { /* ignore — keeps the lone default option */ });
+            }
+
+            // The specific-user picker only matters when "all users" is off.
+            function updateUserRowVisibility() {
+                var all = page.querySelector('#WatchHistoryAllUsers').checked;
+                page.querySelector('#WatchHistoryUserRow').style.display = all ? 'none' : 'block';
+            }
+
             function linesToList(text) {
                 return (text || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
             }
@@ -333,6 +369,7 @@
                     page.querySelector('#TrendingTimeWindow').value = config.TrendingTimeWindow || 'week';
                     page.querySelector('#WatchHistoryDays').value = config.WatchHistoryDays || 20;
                     page.querySelector('#WatchHistoryAllUsers').checked = config.WatchHistoryAllUsers !== false;
+                    page.querySelector('#WatchHistoryMaxScan').value = config.WatchHistoryMaxScan || 10000;
                     page.querySelector('#ImdbTop250TvListId').value = config.ImdbTop250TvListId || '';
                     page.querySelector('#ImdbTop250MovieListId').value = config.ImdbTop250MovieListId || '';
                     page.querySelector('#LimitToTitles').value = (config.LimitToTitles || []).join('\n');
@@ -340,7 +377,10 @@
                     page.querySelector('#TmdbOverrides').value = (config.TmdbOverrides || []).map(function (o) {
                         return o.Name + ' | ' + (o.Year || 0) + ' | ' + (o.TmdbId || 0);
                     }).join('\n');
-                    loadLibraries(config).then(function () { Dashboard.hideLoadingMsg(); }, function () { Dashboard.hideLoadingMsg(); });
+                    Promise.all([loadUsers(config), loadLibraries(config)]).then(function () {
+                        updateUserRowVisibility();
+                        Dashboard.hideLoadingMsg();
+                    }, function () { Dashboard.hideLoadingMsg(); });
                 });
             }
 
@@ -354,6 +394,8 @@
                 config.TrendingTimeWindow = page.querySelector('#TrendingTimeWindow').value;
                 config.WatchHistoryDays = parseInt(page.querySelector('#WatchHistoryDays').value, 10) || 20;
                 config.WatchHistoryAllUsers = page.querySelector('#WatchHistoryAllUsers').checked;
+                config.WatchHistoryUserId = page.querySelector('#WatchHistoryUserId').value;
+                config.WatchHistoryMaxScan = parseInt(page.querySelector('#WatchHistoryMaxScan').value, 10) || 10000;
                 config.ImdbTop250TvListId = page.querySelector('#ImdbTop250TvListId').value;
                 config.ImdbTop250MovieListId = page.querySelector('#ImdbTop250MovieListId').value;
                 config.Libraries = collectLibraries();
@@ -390,6 +432,7 @@
                         });
                     });
                     page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
+                    page.querySelector('#WatchHistoryAllUsers').addEventListener('change', updateUserRowVisibility);
                 }
                 load();
             });

@@ -11,6 +11,7 @@ namespace Jellyfin.Plugin.Overcoat.Services;
 public sealed class FileLog : IDisposable
 {
     private readonly StreamWriter? _writer;
+    private readonly object _gate = new();
 
     public FileLog(string logDirectory)
     {
@@ -41,8 +42,11 @@ public sealed class FileLog : IDisposable
 
         try
         {
-            _writer.WriteLine(
-                "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + "] [" + level + "] " + message);
+            lock (_gate)
+            {
+                _writer.WriteLine(
+                    "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + "] [" + level + "] " + message);
+            }
         }
         catch
         {

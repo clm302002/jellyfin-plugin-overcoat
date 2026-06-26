@@ -13,10 +13,14 @@ namespace Jellyfin.Plugin.Overcoat.Services;
 /// <c>get_recently_watched_shows</c>/<c>_movies</c>. Play tracking is episode-level (Jellyfin never
 /// sets a series-level LastPlayedDate), so for TV it collects the SeriesId of episodes played within
 /// the window; for movies it collects the movie's own id.
+///
+/// Plays are scanned newest-first and the walk stops as soon as it crosses the look-back window, so
+/// it normally reads only the handful of pages that fall inside the window regardless of how big the
+/// user's total history is. <c>maxScan</c> is only a safety ceiling for pathological cases.
 /// </summary>
 public sealed class WatchHistory
 {
-    private const int QueryLimit = 2000;
+    private const int PageSize = 500;
 
     private readonly ILibraryManager _libraryManager;
     private readonly IUserManager _userManager;
@@ -36,51 +40,93 @@ public sealed class WatchHistory
     }
 
     /// <summary>Jellyfin SeriesIds of shows with an episode played in the last <paramref name="days"/> days.</summary>
-    public HashSet<Guid> RecentlyWatchedSeriesIds(int days, bool allUsers, string? userId)
-        => Collect(BaseItemKind.Episode, days, allUsers, userId, item => (item as Episode)?.SeriesId);
+    public HashSet<Guid> RecentlyWatchedSeriesIds(int days, bool allUsers, string? userId, int maxScan)
+        => Collect(BaseItemKind.Episode, days, allUsers, userId, maxScan, item => (item as Episode)?.SeriesId);
 
     /// <summary>Jellyfin item ids of movies played in the last <paramref name="days"/> days.</summary>
-    public HashSet<Guid> RecentlyWatchedMovieIds(int days, bool allUsers, string? userId)
-        => Collect(BaseItemKind.Movie, days, allUsers, userId, item => item.Id);
+    public HashSet<Guid> RecentlyWatchedMovieIds(int days, bool allUsers, string? userId, int maxScan)
+        => Collect(BaseItemKind.Movie, days, allUsers, userId, maxScan, item => item.Id);
 
     private HashSet<Guid> Collect(
         BaseItemKind kind,
         int days,
         bool allUsers,
         string? userId,
+        int maxScan,
         Func<BaseItem, Guid?> idSelector)
     {
         var cutoff = DateTime.UtcNow.AddDays(-days);
         var result = new HashSet<Guid>();
+        if (maxScan < PageSize)
+        {
+            maxScan = PageSize;
+        }
 
         foreach (var user in ResolveUsers(allUsers, userId))
         {
-            IReadOnlyList<BaseItem> played;
-            try
+            var scanned = 0;
+            var stop = false;
+            var lastPageFull = false;
+
+            while (!stop && scanned < maxScan)
             {
-                played = _libraryManager.GetItemList(new InternalItemsQuery(user)
+                IReadOnlyList<BaseItem> page;
+                try
                 {
-                    IncludeItemTypes = new[] { kind },
-                    IsPlayed = true,
-                    Recursive = true,
-                    OrderBy = new[] { (ItemSortBy.DatePlayed, SortOrder.Descending) },
-                    Limit = QueryLimit,
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "Overcoat: watch-history query failed for a user.");
-                continue;
+                    page = _libraryManager.GetItemList(new InternalItemsQuery(user)
+                    {
+                        IncludeItemTypes = new[] { kind },
+                        IsPlayed = true,
+                        Recursive = true,
+                        OrderBy = new[] { (ItemSortBy.DatePlayed, SortOrder.Descending) },
+                        Limit = PageSize,
+                        StartIndex = scanned,
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Overcoat: watch-history query failed for a user.");
+                    break;
+                }
+
+                if (page.Count == 0)
+                {
+                    break;
+                }
+
+                foreach (var item in page)
+                {
+                    var data = _userDataManager.GetUserData(user, item);
+                    if (data?.LastPlayedDate is { } playedAt)
+                    {
+                        // Newest-first by play date → once we cross the window, everything after is
+                        // older too, so stop paging this user.
+                        if (playedAt < cutoff)
+                        {
+                            stop = true;
+                            break;
+                        }
+
+                        if (idSelector(item) is { } id && id != Guid.Empty)
+                        {
+                            result.Add(id);
+                        }
+                    }
+                }
+
+                lastPageFull = page.Count == PageSize;
+                scanned += page.Count;
+                if (!lastPageFull)
+                {
+                    break;
+                }
             }
 
-            foreach (var item in played)
+            if (!stop && lastPageFull && scanned >= maxScan)
             {
-                var data = _userDataManager.GetUserData(user, item);
-                if (data?.LastPlayedDate is { } played_at && played_at >= cutoff
-                    && idSelector(item) is { } id && id != Guid.Empty)
-                {
-                    result.Add(id);
-                }
+                _logger.LogInformation(
+                    "Overcoat: watch-history scan hit the {Max}-play safety cap for a user; older in-window plays may be missed. Raise the cap if needed.",
+                    maxScan);
             }
         }
 

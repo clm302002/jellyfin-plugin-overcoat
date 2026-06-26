@@ -35,6 +35,7 @@ public sealed class ProcessingState
     private readonly string _statePath;
     private readonly ILogger _logger;
     private readonly Dictionary<string, Entry> _cache;
+    private readonly object _gate = new();
     private bool _dirty;
 
     public ProcessingState(string dataFolder, ILogger logger)
@@ -52,9 +53,14 @@ public sealed class ProcessingState
 
     /// <summary>True if the item's current primary image differs from the one we last produced.</summary>
     public bool ExternallyChanged(string id, long currentSignature)
-        => _cache.TryGetValue(id, out var e)
-           && e.PrimarySignature != 0 && currentSignature != 0
-           && e.PrimarySignature != currentSignature;
+    {
+        lock (_gate)
+        {
+            return _cache.TryGetValue(id, out var e)
+                && e.PrimarySignature != 0 && currentSignature != 0
+                && e.PrimarySignature != currentSignature;
+        }
+    }
 
     /// <summary>
     /// Whether the item must be (re)processed. Mirrors the Python <c>needs_processing</c>: new item,
@@ -74,33 +80,36 @@ public sealed class ProcessingState
             return true;
         }
 
-        if (!_cache.TryGetValue(id, out var e))
+        lock (_gate)
         {
-            return true;
-        }
+            if (!_cache.TryGetValue(id, out var e))
+            {
+                return true;
+            }
 
-        if (e.TmdbStatus != status)
-        {
-            return true;
-        }
+            if (e.TmdbStatus != status)
+            {
+                return true;
+            }
 
-        if (OverlayCategory(e.OverlayText) != OverlayCategory(overlayText))
-        {
-            return true;
-        }
+            if (OverlayCategory(e.OverlayText) != OverlayCategory(overlayText))
+            {
+                return true;
+            }
 
-        var current = new SortedSet<string>(badgeSet ?? Enumerable.Empty<string>(), StringComparer.Ordinal);
-        if (!current.SetEquals(e.BadgeSet))
-        {
-            return true;
-        }
+            var current = new SortedSet<string>(badgeSet ?? Enumerable.Empty<string>(), StringComparer.Ordinal);
+            if (!current.SetEquals(e.BadgeSet))
+            {
+                return true;
+            }
 
-        if (e.PrimarySignature != 0 && currentSignature != 0 && e.PrimarySignature != currentSignature)
-        {
-            return true;
-        }
+            if (e.PrimarySignature != 0 && currentSignature != 0 && e.PrimarySignature != currentSignature)
+            {
+                return true;
+            }
 
-        return false;
+            return false;
+        }
     }
 
     public void MarkProcessed(
@@ -111,7 +120,7 @@ public sealed class ProcessingState
         IEnumerable<string> badgeSet,
         long signature)
     {
-        _cache[id] = new Entry
+        var entry = new Entry
         {
             Name = name,
             TmdbStatus = status,
@@ -120,7 +129,11 @@ public sealed class ProcessingState
             PrimarySignature = signature,
             LastProcessed = DateTime.UtcNow.ToString("o"),
         };
-        _dirty = true;
+        lock (_gate)
+        {
+            _cache[id] = entry;
+            _dirty = true;
+        }
     }
 
     // --- originals vault ---
@@ -163,13 +176,19 @@ public sealed class ProcessingState
             ? Directory.EnumerateFiles(_originalsDir, "*.png").Select(p => Path.GetFileNameWithoutExtension(p)!)
             : Enumerable.Empty<string>();
 
-    public IReadOnlyCollection<string> CachedIds => _cache.Keys;
+    public IReadOnlyCollection<string> CachedIds
+    {
+        get { lock (_gate) { return _cache.Keys.ToList(); } }
+    }
 
     public void Remove(string id)
     {
-        if (_cache.Remove(id))
+        lock (_gate)
         {
-            _dirty = true;
+            if (_cache.Remove(id))
+            {
+                _dirty = true;
+            }
         }
 
         InvalidateOriginal(id);
@@ -197,19 +216,29 @@ public sealed class ProcessingState
 
     public void Flush()
     {
-        if (!_dirty)
+        string json;
+        lock (_gate)
         {
-            return;
+            if (!_dirty)
+            {
+                return;
+            }
+
+            json = JsonSerializer.Serialize(_cache, new JsonSerializerOptions { WriteIndented = true });
+            _dirty = false;
         }
 
         try
         {
-            File.WriteAllText(_statePath, JsonSerializer.Serialize(_cache, new JsonSerializerOptions { WriteIndented = true }));
-            _dirty = false;
+            File.WriteAllText(_statePath, json);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Overcoat: failed to write state.json.");
+            lock (_gate)
+            {
+                _dirty = true;
+            }
         }
     }
 

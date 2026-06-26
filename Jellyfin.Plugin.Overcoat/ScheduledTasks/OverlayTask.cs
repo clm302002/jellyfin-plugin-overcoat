@@ -115,10 +115,10 @@ public class OverlayTask : IScheduledTask
 
         var trendingTv = NeedTv(l => l.TrendingBadge) ? await tmdb.GetTrendingIdsAsync("tv", config.TrendingTimeWindow, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
         var top250Tv = NeedTv(l => l.ImdbTop250Badge) ? await tmdb.GetListIdsAsync(config.ImdbTop250TvListId, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
-        var watchedSeries = NeedTv(l => l.WatchHistoryBadge) ? watch.RecentlyWatchedSeriesIds(config.WatchHistoryDays, config.WatchHistoryAllUsers, config.WatchHistoryUserId) : new HashSet<Guid>();
+        var watchedSeries = NeedTv(l => l.WatchHistoryBadge) ? watch.RecentlyWatchedSeriesIds(config.WatchHistoryDays, config.WatchHistoryAllUsers, config.WatchHistoryUserId, config.WatchHistoryMaxScan) : new HashSet<Guid>();
         var trendingMovie = NeedMovie(l => l.TrendingBadge) ? await tmdb.GetTrendingIdsAsync("movie", config.TrendingTimeWindow, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
         var top250Movie = NeedMovie(l => l.ImdbTop250Badge) ? await tmdb.GetListIdsAsync(config.ImdbTop250MovieListId, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
-        var watchedMovies = NeedMovie(l => l.WatchHistoryBadge) ? watch.RecentlyWatchedMovieIds(config.WatchHistoryDays, config.WatchHistoryAllUsers, config.WatchHistoryUserId) : new HashSet<Guid>();
+        var watchedMovies = NeedMovie(l => l.WatchHistoryBadge) ? watch.RecentlyWatchedMovieIds(config.WatchHistoryDays, config.WatchHistoryAllUsers, config.WatchHistoryUserId, config.WatchHistoryMaxScan) : new HashSet<Guid>();
 
         // Build the work list (item + its library config + type).
         var work = new List<(BaseItem Item, LibraryConfig Lib, string Type)>();

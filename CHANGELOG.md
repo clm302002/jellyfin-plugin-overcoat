@@ -14,11 +14,24 @@ All notable changes to Overcoat are documented here. Format follows
 - **Config page**: library names from the Jellyfin API are now rendered safely (a name containing
   `&`, `<`, or quotes no longer breaks the Libraries tab layout).
 
+### Added
+- **Watch-history user picker**: a "Whose plays count" dropdown on the General tab lets you scope the
+  watch-history badge to a single user (shown when "Count all users' plays" is off).
+- **Watch-history scan cap**: `WatchHistoryMaxScan` (General tab, default 10000) bounds how many recent
+  plays per user are scanned. The scan now pages newest-first and stops at the look-back window, so a
+  very heavy watcher's older in-window plays are no longer dropped by a flat 2000-play limit.
+
 ### Changed
 - Status lookup for a TV item now hits TMDB once per run instead of twice (banner + poster fallback
   reuse the same result).
 - Removed the unused `BadgeStackOffset` configuration field (dead since badges switched to
   flush-by-height stacking); will return when configurable badge spacing lands.
+- Internal: added locking to the processing-state cache and the run log file (defense-in-depth; the
+  scheduled task was already serialized).
+
+### Docs
+- Corrected the badge naming: the side badges are **TMDB Trending** and **watch-history** (the latter
+  uses the Jellyfin logo) — previously mislabeled "Jellyfin Trending" / "TVDB Trending".
 
 ## [0.2.0] — 2026-06-26
 
