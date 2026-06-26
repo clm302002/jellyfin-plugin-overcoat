@@ -3,12 +3,29 @@
 <head>
     <meta charset="utf-8" />
     <title>Overcoat</title>
+    <style>
+        .ovcTabs { display: flex; flex-wrap: wrap; gap: .5em; margin: 1.2em 0; }
+        .ovcTab {
+            border-radius: 2em; padding: .5em 1.3em; cursor: pointer;
+            border: 1px solid rgba(255,255,255,.25); background: transparent; color: inherit;
+            font-size: 1em; transition: background .15s, color .15s;
+        }
+        .ovcTab.ovcActive { background: #00a4dc; border-color: #00a4dc; color: #fff; }
+        .ovcPanel { display: none; }
+        .ovcPanel.ovcActive { display: block; }
+        .ovcLib { border: 1px solid rgba(255,255,255,.18); border-radius: .6em; padding: .8em 1em; margin-bottom: .8em; }
+        .ovcLib h4 { margin: 0 0 .5em; }
+        .ovcLibOpts { display: flex; flex-wrap: wrap; gap: 1.5em; }
+        .ovcLibOpts .checkboxContainer { margin: 0; }
+        .ovcMuted { opacity: .7; font-size: .9em; }
+        .ovcRowButtons { display: flex; flex-wrap: wrap; gap: 1em; margin: 1em 0; }
+    </style>
 </head>
 <body>
 <div id="OvercoatConfigPage"
      data-role="page"
      class="page type-interior pluginConfigurationPage"
-     data-require="emby-input,emby-button,emby-select,emby-checkbox,emby-collapse">
+     data-require="emby-input,emby-button,emby-select,emby-checkbox,emby-textarea">
     <div data-role="content">
         <div class="content-primary">
             <form id="OvercoatConfigForm">
@@ -16,33 +33,37 @@
                 <div class="verticalSection">
                     <h2 class="sectionTitle">Overcoat</h2>
                     <p class="fieldDescription">
-                        In-process successor to the Kometa-Jellyfin (jellymeta) script. Configure
-                        credentials and per-library behaviour, then run the
-                        <strong>"Apply Overcoat Overlays"</strong> scheduled task (Dashboard &rarr;
-                        Scheduled Tasks).
+                        Status overlays &amp; badges for your Jellyfin posters. Configure below, save, then
+                        run the overlay task (Maintenance tab, or Dashboard&nbsp;&rarr;&nbsp;Scheduled&nbsp;Tasks).
                     </p>
                 </div>
 
-                <!-- Credentials -->
-                <div class="verticalSection">
-                    <h3 class="sectionTitle">Credentials</h3>
+                <div class="ovcTabs">
+                    <button type="button" class="ovcTab ovcActive" data-tab="general">General</button>
+                    <button type="button" class="ovcTab" data-tab="libraries">Libraries</button>
+                    <button type="button" class="ovcTab" data-tab="maintenance">Maintenance</button>
+                </div>
+
+                <!-- ===================== GENERAL ===================== -->
+                <div class="ovcPanel ovcActive" data-panel="general">
+
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">TMDB API Key</label>
                         <input is="emby-input" type="text" id="TmdbApiKey" />
-                        <div class="fieldDescription">TMDB v3 API key. Required for status, trending and Top 250 data.</div>
+                        <div class="fieldDescription">Required. Used for status, trending and Top 250 data.</div>
                     </div>
-                </div>
 
-                <!-- Global behaviour -->
-                <div class="verticalSection">
-                    <h3 class="sectionTitle">Behaviour</h3>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="BadgesEnabled" />
+                        <span>Enable badges (master switch for watch / trending / Top 250)</span>
+                    </label>
                     <label class="checkboxContainer">
                         <input is="emby-checkbox" type="checkbox" id="CacheEnabled" />
                         <span>Use skip cache (only reprocess changed items)</span>
                     </label>
                     <label class="checkboxContainer">
                         <input is="emby-checkbox" type="checkbox" id="BackupOriginals" />
-                        <span>Back up the clean original poster before overlaying</span>
+                        <span>Keep a clean original of each poster (enables Restore)</span>
                     </label>
                     <label class="checkboxContainer">
                         <input is="emby-checkbox" type="checkbox" id="CleanupOrphans" />
@@ -52,23 +73,7 @@
                         <input is="emby-checkbox" type="checkbox" id="DryRun" />
                         <span>Dry run (compute overlays but don't save)</span>
                     </label>
-                </div>
 
-                <!-- Badges -->
-                <div class="verticalSection">
-                    <h3 class="sectionTitle">Badges</h3>
-                    <label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" id="BadgesEnabled" />
-                        <span>Enable badges (master switch)</span>
-                    </label>
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="WatchHistoryDays">Watch-history look-back (days)</label>
-                        <input is="emby-input" type="number" id="WatchHistoryDays" min="1" />
-                    </div>
-                    <label class="checkboxContainer">
-                        <input is="emby-checkbox" type="checkbox" id="WatchHistoryAllUsers" />
-                        <span>Watch history counts all users</span>
-                    </label>
                     <div class="selectContainer">
                         <label class="selectLabel" for="TrendingTimeWindow">TMDB trending window</label>
                         <select is="emby-select" id="TrendingTimeWindow">
@@ -77,43 +82,69 @@
                         </select>
                     </div>
                     <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="ImdbTop250MovieListId">IMDB Top 250 — TMDB movie list id</label>
-                        <input is="emby-input" type="text" id="ImdbTop250MovieListId" />
+                        <label class="inputLabel inputLabelUnfocused" for="WatchHistoryDays">Watch-history look-back (days)</label>
+                        <input is="emby-input" type="number" id="WatchHistoryDays" min="1" />
                     </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="WatchHistoryAllUsers" />
+                        <span>Watch history counts all users</span>
+                    </label>
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="ImdbTop250TvListId">IMDB Top 250 — TMDB TV list id</label>
                         <input is="emby-input" type="text" id="ImdbTop250TvListId" />
                     </div>
                     <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="BadgeStackOffset">Badge stack offset (px @1500h)</label>
-                        <input is="emby-input" type="number" id="BadgeStackOffset" min="0" />
+                        <label class="inputLabel inputLabelUnfocused" for="ImdbTop250MovieListId">IMDB Top 250 — TMDB movie list id</label>
+                        <input is="emby-input" type="text" id="ImdbTop250MovieListId" />
                     </div>
                 </div>
 
-                <!-- Libraries -->
-                <div class="verticalSection">
-                    <h3 class="sectionTitle">Libraries</h3>
+                <!-- ===================== LIBRARIES ===================== -->
+                <div class="ovcPanel" data-panel="libraries">
                     <p class="fieldDescription">
-                        One row per library. Name must match the Jellyfin library exactly. Leave Type
-                        as "auto" to detect from Jellyfin. Disabled libraries are skipped.
+                        Your Jellyfin TV &amp; movie libraries, detected automatically. Tick the ones Overcoat
+                        should process and choose what each gets. (Status banners apply to TV only.)
                     </p>
-                    <div id="LibrariesList"></div>
-                    <button is="emby-button" type="button" id="AddLibrary" class="raised block">
-                        <span>Add library</span>
-                    </button>
+                    <div id="OvercoatLibraries"><p class="ovcMuted">Loading libraries…</p></div>
                 </div>
 
-                <!-- Ignore / overrides -->
-                <div class="verticalSection">
-                    <h3 class="sectionTitle">Ignore titles</h3>
-                    <div class="inputContainer">
-                        <textarea is="emby-textarea" id="IgnoreTitles" rows="3"></textarea>
-                        <div class="fieldDescription">One title per line. Matching items are skipped entirely.</div>
+                <!-- ===================== MAINTENANCE ===================== -->
+                <div class="ovcPanel" data-panel="maintenance">
+                    <div class="verticalSection">
+                        <h3 class="sectionTitle">Run</h3>
+                        <p class="fieldDescription">Save your settings first, then run.</p>
+                        <div class="ovcRowButtons">
+                            <button is="emby-button" type="button" id="OvercoatRunNow" class="raised">
+                                <span>▶ Apply Overcoat Overlays now</span>
+                            </button>
+                            <button is="emby-button" type="button" id="OvercoatRestore" class="raised">
+                                <span>↩ Restore original posters</span>
+                            </button>
+                        </div>
                     </div>
-                    <h3 class="sectionTitle">TMDB overrides</h3>
-                    <div class="inputContainer">
-                        <textarea is="emby-textarea" id="TmdbOverrides" rows="3"></textarea>
-                        <div class="fieldDescription">One per line as <code>Title | year | tmdbId</code> (year may be 0).</div>
+
+                    <div class="verticalSection">
+                        <h3 class="sectionTitle">Limit to specific shows/movies</h3>
+                        <div class="inputContainer">
+                            <textarea is="emby-textarea" id="LimitToTitles" rows="3"></textarea>
+                            <div class="fieldDescription">
+                                One title per line. When non-empty, ONLY these titles are processed (great for
+                                testing). Leave empty to process everything in the enabled libraries.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="verticalSection">
+                        <h3 class="sectionTitle">Ignore titles</h3>
+                        <div class="inputContainer">
+                            <textarea is="emby-textarea" id="IgnoreTitles" rows="3"></textarea>
+                            <div class="fieldDescription">One title per line. Matching items are skipped entirely.</div>
+                        </div>
+                        <h3 class="sectionTitle">TMDB overrides</h3>
+                        <div class="inputContainer">
+                            <textarea is="emby-textarea" id="TmdbOverrides" rows="3"></textarea>
+                            <div class="fieldDescription">One per line as <code>Title | year | tmdbId</code> (year may be 0).</div>
+                        </div>
                     </div>
                 </div>
 
@@ -129,119 +160,163 @@
     <script type="text/javascript">
         (function () {
             var pluginId = "604f4e22-a0a1-490d-b383-d60336318eaa";
+            var page; // set on viewshow
 
-            function libraryRow(lib) {
-                lib = lib || {};
+            // ---- tab switching ----
+            function wireTabs() {
+                page.querySelectorAll('.ovcTab').forEach(function (tab) {
+                    tab.addEventListener('click', function () {
+                        var name = tab.getAttribute('data-tab');
+                        page.querySelectorAll('.ovcTab').forEach(function (t) { t.classList.toggle('ovcActive', t === tab); });
+                        page.querySelectorAll('.ovcPanel').forEach(function (p) {
+                            p.classList.toggle('ovcActive', p.getAttribute('data-panel') === name);
+                        });
+                    });
+                });
+            }
+
+            // ---- libraries ----
+            function libraryRow(name, type, saved) {
+                saved = saved || {};
+                var isTv = type === 'tv';
                 var row = document.createElement('div');
-                row.className = 'libraryRow';
-                row.style = 'border:1px solid #444;padding:1em;margin-bottom:1em;';
+                row.className = 'ovcLib';
+                row.setAttribute('data-name', name);
+                row.setAttribute('data-type', type);
                 row.innerHTML =
-                    '<div class="inputContainer"><label class="inputLabel">Name</label>' +
-                    '<input is="emby-input" type="text" class="libName" /></div>' +
-                    '<div class="selectContainer"><label class="selectLabel">Type</label>' +
-                    '<select is="emby-select" class="libType">' +
-                    '<option value="">auto</option><option value="tv">tv</option><option value="movie">movie</option>' +
-                    '</select></div>' +
-                    '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="libEnabled" /><span>Enabled</span></label>' +
-                    '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="libStatus" /><span>Status overlays (TV)</span></label>' +
-                    '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="libWatch" /><span>Watch-history badge</span></label>' +
-                    '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="libTrend" /><span>Trending badge</span></label>' +
-                    '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="libTop250" /><span>IMDB Top 250 badge</span></label>' +
-                    '<button is="emby-button" type="button" class="raised libRemove"><span>Remove</span></button>';
-                row.querySelector('.libName').value = lib.Name || '';
-                row.querySelector('.libType').value = lib.Type || '';
-                row.querySelector('.libEnabled').checked = lib.Enabled !== false;
-                row.querySelector('.libStatus').checked = lib.StatusOverlays !== false;
-                row.querySelector('.libWatch').checked = lib.WatchHistoryBadge !== false;
-                row.querySelector('.libTrend').checked = lib.TrendingBadge !== false;
-                row.querySelector('.libTop250').checked = lib.ImdbTop250Badge !== false;
-                row.querySelector('.libRemove').addEventListener('click', function () { row.remove(); });
+                    '<h4>' + name + ' <span class="ovcMuted">(' + type + ')</span></h4>' +
+                    '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcEnabled" /><span>Process this library</span></label>' +
+                    '<div class="ovcLibOpts">' +
+                      (isTv ? '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcStatus" /><span>Status banners</span></label>' : '') +
+                      '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcWatch" /><span>Watch-history badge</span></label>' +
+                      '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTrend" /><span>Trending badge</span></label>' +
+                      '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTop250" /><span>IMDB Top 250 badge</span></label>' +
+                    '</div>';
+                row.querySelector('.ovcEnabled').checked = !!saved.Enabled;
+                if (isTv) row.querySelector('.ovcStatus').checked = saved.StatusOverlays !== false;
+                row.querySelector('.ovcWatch').checked = saved.WatchHistoryBadge !== false;
+                row.querySelector('.ovcTrend').checked = saved.TrendingBadge !== false;
+                row.querySelector('.ovcTop250').checked = saved.ImdbTop250Badge !== false;
                 return row;
             }
 
+            function loadLibraries(config) {
+                var container = page.querySelector('#OvercoatLibraries');
+                return ApiClient.getVirtualFolders().then(function (folders) {
+                    var savedByName = {};
+                    (config.Libraries || []).forEach(function (l) { savedByName[(l.Name || '').toLowerCase()] = l; });
+                    container.innerHTML = '';
+                    var shown = 0;
+                    (folders || []).forEach(function (f) {
+                        var ct = (f.CollectionType || '').toLowerCase();
+                        var type = ct === 'tvshows' ? 'tv' : (ct === 'movies' ? 'movie' : null);
+                        if (!type) return; // only TV / movie libraries
+                        container.appendChild(libraryRow(f.Name, type, savedByName[(f.Name || '').toLowerCase()]));
+                        shown++;
+                    });
+                    if (!shown) container.innerHTML = '<p class="ovcMuted">No TV or movie libraries found.</p>';
+                });
+            }
+
             function collectLibraries() {
-                var rows = document.querySelectorAll('#LibrariesList .libraryRow');
-                return Array.prototype.map.call(rows, function (row) {
+                return Array.prototype.map.call(page.querySelectorAll('.ovcLib'), function (row) {
+                    var statusEl = row.querySelector('.ovcStatus');
                     return {
-                        Name: row.querySelector('.libName').value,
-                        Type: row.querySelector('.libType').value,
-                        Enabled: row.querySelector('.libEnabled').checked,
-                        StatusOverlays: row.querySelector('.libStatus').checked,
-                        WatchHistoryBadge: row.querySelector('.libWatch').checked,
-                        TrendingBadge: row.querySelector('.libTrend').checked,
-                        ImdbTop250Badge: row.querySelector('.libTop250').checked
+                        Name: row.getAttribute('data-name'),
+                        Type: row.getAttribute('data-type'),
+                        Enabled: row.querySelector('.ovcEnabled').checked,
+                        StatusOverlays: statusEl ? statusEl.checked : false,
+                        WatchHistoryBadge: row.querySelector('.ovcWatch').checked,
+                        TrendingBadge: row.querySelector('.ovcTrend').checked,
+                        ImdbTop250Badge: row.querySelector('.ovcTop250').checked
                     };
                 });
             }
 
+            // ---- text helpers ----
+            function linesToList(text) {
+                return (text || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+            }
             function parseOverrides(text) {
-                return (text || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean).map(function (l) {
+                return linesToList(text).map(function (l) {
                     var p = l.split('|').map(function (s) { return s.trim(); });
                     return { Name: p[0] || '', Year: parseInt(p[1], 10) || 0, TmdbId: parseInt(p[2], 10) || 0 };
                 });
             }
 
-            function load() {
-                Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-                    document.querySelector('#TmdbApiKey').value = config.TmdbApiKey || '';
-                    document.querySelector('#CacheEnabled').checked = config.CacheEnabled !== false;
-                    document.querySelector('#BackupOriginals').checked = config.BackupOriginals !== false;
-                    document.querySelector('#CleanupOrphans').checked = !!config.CleanupOrphans;
-                    document.querySelector('#DryRun').checked = !!config.DryRun;
-                    document.querySelector('#BadgesEnabled').checked = config.BadgesEnabled !== false;
-                    document.querySelector('#WatchHistoryDays').value = config.WatchHistoryDays || 20;
-                    document.querySelector('#WatchHistoryAllUsers').checked = config.WatchHistoryAllUsers !== false;
-                    document.querySelector('#TrendingTimeWindow').value = config.TrendingTimeWindow || 'week';
-                    document.querySelector('#ImdbTop250MovieListId').value = config.ImdbTop250MovieListId || '';
-                    document.querySelector('#ImdbTop250TvListId').value = config.ImdbTop250TvListId || '';
-                    document.querySelector('#BadgeStackOffset').value = config.BadgeStackOffset || 260;
-
-                    var list = document.querySelector('#LibrariesList');
-                    list.innerHTML = '';
-                    (config.Libraries || []).forEach(function (lib) { list.appendChild(libraryRow(lib)); });
-
-                    document.querySelector('#IgnoreTitles').value = (config.IgnoreTitles || []).join('\n');
-                    document.querySelector('#TmdbOverrides').value = (config.TmdbOverrides || []).map(function (o) {
-                        return o.Name + ' | ' + (o.Year || 0) + ' | ' + (o.TmdbId || 0);
-                    }).join('\n');
-
-                    Dashboard.hideLoadingMsg();
+            // ---- run / restore ----
+            function runTask(key, label) {
+                ApiClient.getScheduledTasks().then(function (tasks) {
+                    var t = (tasks || []).find(function (x) { return x.Key === key; });
+                    if (!t) { Dashboard.alert('Overcoat: task not found (' + key + '). Restart Jellyfin if you just installed.'); return; }
+                    ApiClient.startScheduledTask(t.Id).then(function () {
+                        Dashboard.alert('Overcoat: "' + label + '" started. Watch progress in Dashboard → Scheduled Tasks.');
+                    });
                 });
             }
 
-            document.querySelector('#OvercoatConfigPage').addEventListener('viewshow', load);
+            // ---- load / save ----
+            function load() {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                    page.querySelector('#TmdbApiKey').value = config.TmdbApiKey || '';
+                    page.querySelector('#BadgesEnabled').checked = config.BadgesEnabled !== false;
+                    page.querySelector('#CacheEnabled').checked = config.CacheEnabled !== false;
+                    page.querySelector('#BackupOriginals').checked = config.BackupOriginals !== false;
+                    page.querySelector('#CleanupOrphans').checked = !!config.CleanupOrphans;
+                    page.querySelector('#DryRun').checked = !!config.DryRun;
+                    page.querySelector('#TrendingTimeWindow').value = config.TrendingTimeWindow || 'week';
+                    page.querySelector('#WatchHistoryDays').value = config.WatchHistoryDays || 20;
+                    page.querySelector('#WatchHistoryAllUsers').checked = config.WatchHistoryAllUsers !== false;
+                    page.querySelector('#ImdbTop250TvListId').value = config.ImdbTop250TvListId || '';
+                    page.querySelector('#ImdbTop250MovieListId').value = config.ImdbTop250MovieListId || '';
+                    page.querySelector('#LimitToTitles').value = (config.LimitToTitles || []).join('\n');
+                    page.querySelector('#IgnoreTitles').value = (config.IgnoreTitles || []).join('\n');
+                    page.querySelector('#TmdbOverrides').value = (config.TmdbOverrides || []).map(function (o) {
+                        return o.Name + ' | ' + (o.Year || 0) + ' | ' + (o.TmdbId || 0);
+                    }).join('\n');
 
-            document.querySelector('#AddLibrary').addEventListener('click', function () {
-                document.querySelector('#LibrariesList').appendChild(libraryRow({}));
-            });
+                    loadLibraries(config).then(function () { Dashboard.hideLoadingMsg(); }, function () { Dashboard.hideLoadingMsg(); });
+                });
+            }
 
-            document.querySelector('#OvercoatConfigForm').addEventListener('submit', function (e) {
+            function save(e) {
                 e.preventDefault();
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-                    config.TmdbApiKey = document.querySelector('#TmdbApiKey').value;
-                    config.CacheEnabled = document.querySelector('#CacheEnabled').checked;
-                    config.BackupOriginals = document.querySelector('#BackupOriginals').checked;
-                    config.CleanupOrphans = document.querySelector('#CleanupOrphans').checked;
-                    config.DryRun = document.querySelector('#DryRun').checked;
-                    config.BadgesEnabled = document.querySelector('#BadgesEnabled').checked;
-                    config.WatchHistoryDays = parseInt(document.querySelector('#WatchHistoryDays').value, 10) || 20;
-                    config.WatchHistoryAllUsers = document.querySelector('#WatchHistoryAllUsers').checked;
-                    config.TrendingTimeWindow = document.querySelector('#TrendingTimeWindow').value;
-                    config.ImdbTop250MovieListId = document.querySelector('#ImdbTop250MovieListId').value;
-                    config.ImdbTop250TvListId = document.querySelector('#ImdbTop250TvListId').value;
-                    config.BadgeStackOffset = parseInt(document.querySelector('#BadgeStackOffset').value, 10) || 260;
+                    config.TmdbApiKey = page.querySelector('#TmdbApiKey').value;
+                    config.BadgesEnabled = page.querySelector('#BadgesEnabled').checked;
+                    config.CacheEnabled = page.querySelector('#CacheEnabled').checked;
+                    config.BackupOriginals = page.querySelector('#BackupOriginals').checked;
+                    config.CleanupOrphans = page.querySelector('#CleanupOrphans').checked;
+                    config.DryRun = page.querySelector('#DryRun').checked;
+                    config.TrendingTimeWindow = page.querySelector('#TrendingTimeWindow').value;
+                    config.WatchHistoryDays = parseInt(page.querySelector('#WatchHistoryDays').value, 10) || 20;
+                    config.WatchHistoryAllUsers = page.querySelector('#WatchHistoryAllUsers').checked;
+                    config.ImdbTop250TvListId = page.querySelector('#ImdbTop250TvListId').value;
+                    config.ImdbTop250MovieListId = page.querySelector('#ImdbTop250MovieListId').value;
                     config.Libraries = collectLibraries();
-                    config.IgnoreTitles = document.querySelector('#IgnoreTitles').value
-                        .split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
-                    config.TmdbOverrides = parseOverrides(document.querySelector('#TmdbOverrides').value);
-
+                    config.LimitToTitles = linesToList(page.querySelector('#LimitToTitles').value);
+                    config.IgnoreTitles = linesToList(page.querySelector('#IgnoreTitles').value);
+                    config.TmdbOverrides = parseOverrides(page.querySelector('#TmdbOverrides').value);
                     ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
                 });
                 return false;
+            }
+
+            document.querySelector('#OvercoatConfigPage').addEventListener('viewshow', function () {
+                page = this;
+                wireTabs();
+                page.querySelector('#OvercoatRunNow').addEventListener('click', function () { runTask('OvercoatApply', 'Apply Overcoat Overlays'); });
+                page.querySelector('#OvercoatRestore').addEventListener('click', function () {
+                    Dashboard.confirm('Restore the original (un-overlaid) posters Overcoat saved?', 'Restore originals', function (ok) {
+                        if (ok) runTask('OvercoatRestore', 'Restore Original Posters (Overcoat)');
+                    });
+                });
+                page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
+                load();
             });
         })();
     </script>
