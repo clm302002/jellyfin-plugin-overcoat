@@ -160,7 +160,10 @@
                 <div class="ovcPanel" data-panel="maintenance">
                     <div class="ovcCard">
                         <h3>Run</h3>
-                        <p class="fieldDescription">Save your settings first, then run.</p>
+                        <p class="fieldDescription">
+                            Heads-up: clicking either button <strong>saves your current settings first</strong>, then
+                            runs — so if you changed anything on the other tabs, just hit Run (no need to Save separately).
+                        </p>
                         <div class="ovcRowButtons">
                             <button is="emby-button" type="button" id="OvercoatRunNow" class="raised">
                                 <span>▶ Apply Overcoat Overlays now</span>
@@ -364,14 +367,18 @@
 
             document.querySelector('#OvercoatConfigPage').addEventListener('viewshow', function () {
                 page = this;
-                wireTabs();
-                page.querySelector('#OvercoatRunNow').addEventListener('click', function () { runTask('OvercoatApply', 'Apply Overcoat Overlays'); });
-                page.querySelector('#OvercoatRestore').addEventListener('click', function () {
-                    Dashboard.confirm('Restore the original (un-overlaid) posters Overcoat saved?', 'Restore originals', function (ok) {
-                        if (ok) runTask('OvercoatRestore', 'Restore Original Posters (Overcoat)');
+                // viewshow fires on every visit; wire handlers ONCE so clicks don't stack/duplicate.
+                if (!page.dataset.ovcWired) {
+                    page.dataset.ovcWired = '1';
+                    wireTabs();
+                    page.querySelector('#OvercoatRunNow').addEventListener('click', function () { runTask('OvercoatApply', 'Apply Overcoat Overlays'); });
+                    page.querySelector('#OvercoatRestore').addEventListener('click', function () {
+                        Dashboard.confirm('Restore the original (un-overlaid) posters Overcoat saved?', 'Restore originals', function (ok) {
+                            if (ok) runTask('OvercoatRestore', 'Restore Original Posters (Overcoat)');
+                        });
                     });
-                });
-                page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
+                    page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
+                }
                 load();
             });
         })();
