@@ -49,6 +49,56 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets a multiplier on the computed banner font size (1.0 = calibrated default).</summary>
     public double BannerFontScale { get; set; } = 1.0;
 
+    /// <summary>Gets or sets a value indicating whether the per-status icon is drawn beside the banner text.</summary>
+    public bool BannerIcons { get; set; } = true;
+
+    /// <summary>Gets or sets the banner colour for NEW (hex).</summary>
+    public string ColorNew { get; set; } = "#5EBD3E";
+
+    /// <summary>Gets or sets the banner colour for AIRING (hex).</summary>
+    public string ColorAiring { get; set; } = "#149BDA";
+
+    /// <summary>Gets or sets the banner colour for RETURNING (hex).</summary>
+    public string ColorReturning { get; set; } = "#A020F0";
+
+    /// <summary>Gets or sets the banner colour for ENDED (hex).</summary>
+    public string ColorEnded { get; set; } = "#424242";
+
+    /// <summary>Gets or sets the banner colour for CANCELED (hex).</summary>
+    public string ColorCanceled { get; set; } = "#D32F2F";
+
+    /// <summary>Resolves the configured banner colour for a banner text by its status keyword.</summary>
+    public string ColorForStatus(string text)
+    {
+        var u = (text ?? string.Empty).ToUpperInvariant();
+        if (u.Contains("RETURNING", StringComparison.Ordinal))
+        {
+            return ColorReturning;
+        }
+
+        if (u.Contains("CANCELED", StringComparison.Ordinal))
+        {
+            return ColorCanceled;
+        }
+
+        if (u.Contains("AIRING", StringComparison.Ordinal))
+        {
+            return ColorAiring;
+        }
+
+        if (u.Contains("ENDED", StringComparison.Ordinal))
+        {
+            return ColorEnded;
+        }
+
+        if (u.Contains("NEW", StringComparison.Ordinal))
+        {
+            return ColorNew;
+        }
+
+        return "#262626";
+    }
+
     // --- Badge globals (was badges:) ---
 
     /// <summary>Gets or sets the master kill-switch for all badges.</summary>

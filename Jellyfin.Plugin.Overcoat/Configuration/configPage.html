@@ -45,10 +45,25 @@
         #OvercoatConfigPage .ovcLibOpts { display: flex; flex-direction: column; gap: .25em; }
         #OvercoatConfigPage .ovcLibOpts .checkboxContainer { margin: 0; }
 
-        #OvercoatConfigPage .ovcPreview { margin-top: 1.2em; }
-        #OvercoatConfigPage .ovcPreview img {
-            width: 240px; max-width: 70%; border-radius: .6em; display: block;
+        /* Banners tab: controls left, preview right. */
+        #OvercoatConfigPage .ovcBannerLayout { display: flex; gap: 1.2em; flex-wrap: wrap; align-items: flex-start; }
+        #OvercoatConfigPage .ovcBannerControls { flex: 1 1 340px; }
+        #OvercoatConfigPage .ovcBannerPreview { flex: 1 1 300px; text-align: center; }
+        #OvercoatConfigPage .ovcBannerPreview img {
+            width: 260px; max-width: 92%; border-radius: .6em; display: inline-block;
             box-shadow: 0 4px 18px rgba(0,0,0,.45); background: rgba(255,255,255,.04);
+        }
+        #OvercoatConfigPage .ovcStatusSwitch { display: flex; flex-wrap: wrap; gap: .4em; justify-content: center; margin-bottom: 1em; }
+        #OvercoatConfigPage .ovcChip {
+            border-radius: 1.4em; padding: .3em 1em; cursor: pointer; font-size: .85em;
+            border: 1px solid rgba(255,255,255,.25); background: transparent; color: inherit;
+        }
+        #OvercoatConfigPage .ovcChip:hover { border-color: #00a4dc; }
+        #OvercoatConfigPage .ovcChip.ovcChipActive { background: #00a4dc; border-color: #00a4dc; color: #fff; }
+        #OvercoatConfigPage .ovcColors { display: flex; flex-wrap: wrap; gap: .9em; margin: .5em 0; }
+        #OvercoatConfigPage .ovcColors label { display: flex; flex-direction: column; align-items: center; gap: .25em; font-size: .82em; opacity: .9; }
+        #OvercoatConfigPage .ovcColors input[type="color"] {
+            width: 46px; height: 34px; border: none; border-radius: .4em; background: transparent; cursor: pointer; padding: 0;
         }
         #OvercoatConfigPage .ovcMuted { opacity: .7; font-size: .9em; }
         #OvercoatConfigPage .ovcRowButtons { display: flex; flex-wrap: wrap; gap: 1em; margin: .4em 0 1em; }
@@ -134,46 +149,71 @@
 
                 <!-- ===================== BANNERS ===================== -->
                 <div class="ovcPanel" data-panel="banners">
-                    <div class="ovcCard">
-                        <h3>Status banner look</h3>
-                        <p class="fieldDescription">
-                            Controls the NEW / AIRING / RETURNING / ENDED / CANCELED banner drawn on TV posters.
-                            Colours are picked per status automatically.
-                        </p>
-                        <div class="selectContainer">
-                            <label class="selectLabel" for="BannerStyle">Style</label>
-                            <select is="emby-select" id="BannerStyle">
-                                <option value="solid">Solid (filled)</option>
-                                <option value="glass">Glass (frosted)</option>
-                                <option value="neon">Neon (dark pill + glow)</option>
-                            </select>
-                            <div class="fieldDescription">Solid is the classic filled pill. Glass frosts the poster behind a translucent tint. Neon is a dark pill with a coloured glow.</div>
+                    <div class="ovcBannerLayout">
+                        <div class="ovcCard ovcBannerControls">
+                            <h3>Status banner look</h3>
+                            <p class="fieldDescription">
+                                Controls the NEW / AIRING / RETURNING / ENDED / CANCELED banner drawn on TV posters.
+                            </p>
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="BannerStyle">Style</label>
+                                <select is="emby-select" id="BannerStyle">
+                                    <option value="solid">Solid (filled)</option>
+                                    <option value="glass">Glass (frosted, coloured text)</option>
+                                    <option value="neon">Neon (dark pill + glow)</option>
+                                </select>
+                                <div class="fieldDescription">Solid fills the pill with the status colour. Glass frosts the poster and colours the text. Neon is a dark pill with a coloured glow.</div>
+                            </div>
+                            <div class="selectContainer" style="margin-top:1em;">
+                                <label class="selectLabel" for="BannerShape">Shape</label>
+                                <select is="emby-select" id="BannerShape">
+                                    <option value="pill">Pill (fully rounded)</option>
+                                    <option value="square">Square</option>
+                                    <option value="drop">Drop (flush to the edge)</option>
+                                </select>
+                                <div class="fieldDescription">"Drop" sits flush against the chosen edge with only the inner corners rounded — like a tab.</div>
+                            </div>
+                            <div class="selectContainer" style="margin-top:1em;">
+                                <label class="selectLabel" for="BannerPosition">Position</label>
+                                <select is="emby-select" id="BannerPosition">
+                                    <option value="top">Top</option>
+                                    <option value="bottom">Bottom</option>
+                                </select>
+                                <div class="fieldDescription">Which edge of the poster the banner sits against.</div>
+                            </div>
+                            <div class="inputContainer" style="margin-top:1em;">
+                                <label class="inputLabel inputLabelUnfocused" for="BannerFontScale">Text size</label>
+                                <input is="emby-input" type="number" id="BannerFontScale" min="0.5" max="2" step="0.05" />
+                                <div class="fieldDescription">Multiplier on the calibrated size. 1.0 = default, 1.2 = 20% bigger, 0.8 = smaller.</div>
+                            </div>
+                            <div class="ovcCheck" style="margin-top:1em;">
+                                <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerIcons" /><span>Show status icons</span></label>
+                                <div class="fieldDescription">Draw the ★ / ⟳ / ✓ icon beside the banner text. Off = text only.</div>
+                            </div>
+                            <div style="margin-top:1em;">
+                                <label class="inputLabel inputLabelUnfocused">Status colours</label>
+                                <div class="ovcColors">
+                                    <label><input type="color" id="ColorNew" /><span>New</span></label>
+                                    <label><input type="color" id="ColorAiring" /><span>Airing</span></label>
+                                    <label><input type="color" id="ColorReturning" /><span>Returning</span></label>
+                                    <label><input type="color" id="ColorEnded" /><span>Ended</span></label>
+                                    <label><input type="color" id="ColorCanceled" /><span>Canceled</span></label>
+                                </div>
+                                <div class="fieldDescription">Tap a swatch to recolour that status. Switch the preview to that status to see it.</div>
+                            </div>
                         </div>
-                        <div class="selectContainer" style="margin-top:1em;">
-                            <label class="selectLabel" for="BannerShape">Shape</label>
-                            <select is="emby-select" id="BannerShape">
-                                <option value="pill">Pill (fully rounded)</option>
-                                <option value="square">Square</option>
-                                <option value="drop">Drop (flush to the edge)</option>
-                            </select>
-                            <div class="fieldDescription">"Drop" sits flush against the chosen edge with only the inner corners rounded — like a tab.</div>
-                        </div>
-                        <div class="selectContainer" style="margin-top:1em;">
-                            <label class="selectLabel" for="BannerPosition">Position</label>
-                            <select is="emby-select" id="BannerPosition">
-                                <option value="top">Top</option>
-                                <option value="bottom">Bottom</option>
-                            </select>
-                            <div class="fieldDescription">Which edge of the poster the banner sits against.</div>
-                        </div>
-                        <div class="inputContainer" style="margin-top:1em;">
-                            <label class="inputLabel inputLabelUnfocused" for="BannerFontScale">Text size</label>
-                            <input is="emby-input" type="number" id="BannerFontScale" min="0.5" max="2" step="0.05" />
-                            <div class="fieldDescription">Multiplier on the calibrated size. 1.0 = default, 1.2 = 20% bigger, 0.8 = smaller.</div>
-                        </div>
-                        <div class="ovcPreview">
-                            <div class="ovcMuted" style="margin-bottom:.4em;">Live preview (updates as you change the options above — no run needed)</div>
+
+                        <div class="ovcCard ovcBannerPreview">
+                            <h3>Live preview</h3>
+                            <div class="ovcStatusSwitch" id="OvercoatPreviewStatuses">
+                                <button type="button" class="ovcChip" data-status="NEW">NEW</button>
+                                <button type="button" class="ovcChip" data-status="AIRING">AIRING</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-status="RETURNING">RETURNING</button>
+                                <button type="button" class="ovcChip" data-status="ENDED">ENDED</button>
+                                <button type="button" class="ovcChip" data-status="CANCELED">CANCELED</button>
+                            </div>
                             <img id="BannerPreview" alt="Banner preview" />
+                            <div class="ovcMuted" style="margin-top:.5em;">Updates instantly — no run needed.</div>
                         </div>
                     </div>
                 </div>
@@ -272,6 +312,11 @@
             var pluginId = "604f4e22-a0a1-490d-b383-d60336318eaa";
             var page;
 
+            // Preview state: which status the live preview renders, and how each maps to text + colour picker.
+            var previewStatus = 'RETURNING';
+            var STATUS_TEXT = { NEW: 'NEW', AIRING: 'AIRING', RETURNING: 'RETURNING 6/26', ENDED: 'ENDED', CANCELED: 'CANCELED' };
+            var STATUS_COLOR = { NEW: 'ColorNew', AIRING: 'ColorAiring', RETURNING: 'ColorReturning', ENDED: 'ColorEnded', CANCELED: 'ColorCanceled' };
+
             function showTab(name) {
                 page.querySelectorAll('.ovcTab').forEach(function (t) {
                     t.classList.toggle('ovcActive', t.getAttribute('data-tab') === name);
@@ -286,11 +331,15 @@
 
             // Build the preview image URL from the current banner controls (server renders it).
             function bannerPreviewUrl() {
+                var colorEl = page.querySelector('#' + STATUS_COLOR[previewStatus]);
                 var qs = [
                     'style=' + encodeURIComponent(page.querySelector('#BannerStyle').value),
                     'shape=' + encodeURIComponent(page.querySelector('#BannerShape').value),
                     'position=' + encodeURIComponent(page.querySelector('#BannerPosition').value),
                     'fontScale=' + encodeURIComponent(page.querySelector('#BannerFontScale').value || '1'),
+                    'status=' + encodeURIComponent(STATUS_TEXT[previewStatus] || 'RETURNING 6/26'),
+                    'icons=' + (page.querySelector('#BannerIcons').checked ? 'true' : 'false'),
+                    'color=' + encodeURIComponent(colorEl ? colorEl.value : ''),
                     'api_key=' + encodeURIComponent(ApiClient.accessToken()),
                     '_=' + new Date().getTime()
                 ].join('&');
@@ -440,6 +489,12 @@
                     page.querySelector('#BannerShape').value = config.BannerShape || 'pill';
                     page.querySelector('#BannerPosition').value = config.BannerPosition || 'top';
                     page.querySelector('#BannerFontScale').value = config.BannerFontScale || 1.0;
+                    page.querySelector('#BannerIcons').checked = config.BannerIcons !== false;
+                    page.querySelector('#ColorNew').value = config.ColorNew || '#5EBD3E';
+                    page.querySelector('#ColorAiring').value = config.ColorAiring || '#149BDA';
+                    page.querySelector('#ColorReturning').value = config.ColorReturning || '#A020F0';
+                    page.querySelector('#ColorEnded').value = config.ColorEnded || '#424242';
+                    page.querySelector('#ColorCanceled').value = config.ColorCanceled || '#D32F2F';
                     page.querySelector('#TrendingTimeWindow').value = config.TrendingTimeWindow || 'week';
                     page.querySelector('#WatchHistoryDays').value = config.WatchHistoryDays || 20;
                     page.querySelector('#WatchHistoryAllUsers').checked = config.WatchHistoryAllUsers !== false;
@@ -470,6 +525,12 @@
                 config.BannerShape = page.querySelector('#BannerShape').value;
                 config.BannerPosition = page.querySelector('#BannerPosition').value;
                 config.BannerFontScale = parseFloat(page.querySelector('#BannerFontScale').value) || 1.0;
+                config.BannerIcons = page.querySelector('#BannerIcons').checked;
+                config.ColorNew = page.querySelector('#ColorNew').value;
+                config.ColorAiring = page.querySelector('#ColorAiring').value;
+                config.ColorReturning = page.querySelector('#ColorReturning').value;
+                config.ColorEnded = page.querySelector('#ColorEnded').value;
+                config.ColorCanceled = page.querySelector('#ColorCanceled').value;
                 config.TrendingTimeWindow = page.querySelector('#TrendingTimeWindow').value;
                 config.WatchHistoryDays = parseInt(page.querySelector('#WatchHistoryDays').value, 10) || 20;
                 config.WatchHistoryAllUsers = page.querySelector('#WatchHistoryAllUsers').checked;
@@ -512,10 +573,20 @@
                     });
                     page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
                     page.querySelector('#WatchHistoryAllUsers').addEventListener('change', updateUserRowVisibility);
-                    ['BannerStyle', 'BannerShape', 'BannerPosition', 'BannerFontScale'].forEach(function (id) {
+                    ['BannerStyle', 'BannerShape', 'BannerPosition', 'BannerFontScale', 'BannerIcons',
+                     'ColorNew', 'ColorAiring', 'ColorReturning', 'ColorEnded', 'ColorCanceled'].forEach(function (id) {
                         var el = page.querySelector('#' + id);
                         el.addEventListener('change', refreshBannerPreview);
                         el.addEventListener('input', refreshBannerPreview);
+                    });
+                    page.querySelectorAll('#OvercoatPreviewStatuses .ovcChip').forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            previewStatus = btn.getAttribute('data-status');
+                            page.querySelectorAll('#OvercoatPreviewStatuses .ovcChip').forEach(function (b) {
+                                b.classList.toggle('ovcChipActive', b === btn);
+                            });
+                            refreshBannerPreview();
+                        });
                     });
                 }
                 load();

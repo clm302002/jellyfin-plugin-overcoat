@@ -111,6 +111,9 @@ public sealed class OverlayRenderer : IDisposable
         /// <summary>Optional explicit pill colour (hex); otherwise derived from the status text.</summary>
         public string? ColorOverride { get; set; }
 
+        /// <summary>Whether to draw the per-status icon beside the text.</summary>
+        public bool ShowIcons { get; set; } = true;
+
         /// <summary>Vertical inset from the edge for pill/square shapes (fraction of poster height).</summary>
         public double OffsetFraction { get; set; } = DefaultOffsetFraction;
     }
@@ -180,7 +183,7 @@ public sealed class OverlayRenderer : IDisposable
 
         // Per-status icon drawn to the left of the text.
         string kw = StatusKeyword(text);
-        bool hasIcon = kw.Length > 0;
+        bool hasIcon = options.ShowIcons && kw.Length > 0;
         float iconSize = textHeight * 1.08f;
         float iconGap = hasIcon ? dynamicFontSize * 0.34f : 0f;
         float iconAdvance = hasIcon ? iconSize + iconGap : 0f;

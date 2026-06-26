@@ -29,7 +29,9 @@ public class PreviewController : ControllerBase
         [FromQuery] string? shape,
         [FromQuery] string? position,
         [FromQuery] double fontScale = 1.0,
-        [FromQuery] string status = "RETURNING 6/26")
+        [FromQuery] string status = "RETURNING 6/26",
+        [FromQuery] bool icons = true,
+        [FromQuery] string? color = null)
     {
         const int w = 600;
         const int h = 900;
@@ -72,6 +74,8 @@ public class PreviewController : ControllerBase
             Shape = string.IsNullOrWhiteSpace(shape) ? "pill" : shape,
             Position = string.IsNullOrWhiteSpace(position) ? "top" : position,
             FontScale = fontScale <= 0 ? 1.0 : fontScale,
+            ShowIcons = icons,
+            ColorOverride = string.IsNullOrWhiteSpace(color) ? null : color,
         });
 
         return File(OverlayRenderer.EncodePng(bmp), "image/png");

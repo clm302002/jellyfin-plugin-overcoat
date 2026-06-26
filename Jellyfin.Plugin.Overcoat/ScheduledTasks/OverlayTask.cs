@@ -306,9 +306,10 @@ public class OverlayTask : IScheduledTask
         // Fingerprint the banner appearance so changing the style/shape/position/size in settings
         // forces every banner'd item to re-render. Empty for items with no banner (badge-only/movies),
         // so an appearance tweak never needlessly reprocesses them.
+        var bannerColor = text is null ? string.Empty : config.ColorForStatus(text);
         var appearanceKey = text is null
             ? string.Empty
-            : $"{config.BannerStyle}|{config.BannerShape}|{config.BannerPosition}|{(int)Math.Round(config.BannerFontScale * 1000)}";
+            : $"{config.BannerStyle}|{config.BannerShape}|{config.BannerPosition}|{(int)Math.Round(config.BannerFontScale * 1000)}|{config.BannerIcons}|{bannerColor}";
 
         if (!state.NeedsProcessing(id, statusKey, badgeSet, text, currentSig, appearanceKey, config.CacheEnabled))
         {
@@ -345,6 +346,8 @@ public class OverlayTask : IScheduledTask
                 Shape = config.BannerShape,
                 Position = config.BannerPosition,
                 FontScale = config.BannerFontScale,
+                ShowIcons = config.BannerIcons,
+                ColorOverride = bannerColor,
             });
         }
 
