@@ -30,6 +30,10 @@ All notable changes to Overcoat are documented here. Format follows
 - **Per-status show/hide + custom labels** — choose which statuses get a banner at all, and rename
   any of them (e.g. RETURNING → RETURNS). Renaming no longer breaks the icon/colour (status identity
   is tracked separately from the display label), and the returning date still doesn't churn the cache.
+- **Neon glow intensity** — a slider (revealed when Neon is selected) controlling how far/bright the
+  glow spreads.
+- **Font choice** — pick the banner font: the bundled display font, or the server's sans-serif /
+  serif / monospace.
 
 ### Fixed
 - **Revert on drop-to-zero**: when an item no longer qualifies for any banner or badge (e.g. you

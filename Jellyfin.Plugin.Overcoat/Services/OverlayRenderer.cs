@@ -41,6 +41,7 @@ public sealed class OverlayRenderer : IDisposable
         "Jellyfin.Plugin.Overcoat.Resources.Fonts.Juventus-Fans-Bold.ttf";
 
     private readonly SKTypeface _typeface;
+    private readonly Dictionary<string, SKTypeface> _fontCache = new();
 
     public OverlayRenderer()
     {
@@ -138,6 +139,12 @@ public sealed class OverlayRenderer : IDisposable
         /// <summary>Glass frost blur amount (0–100).</summary>
         public int GlassBlur { get; set; } = 50;
 
+        /// <summary>Neon glow intensity (0–100).</summary>
+        public int NeonGlow { get; set; } = 60;
+
+        /// <summary>Font key: "default" (embedded), "sans", "serif", or "mono".</summary>
+        public string Font { get; set; } = "default";
+
         /// <summary>Vertical inset from the edge for pill/square shapes (fraction of poster height).</summary>
         public double OffsetFraction { get; set; } = DefaultOffsetFraction;
     }
@@ -187,11 +194,12 @@ public sealed class OverlayRenderer : IDisposable
         SKColor textColor = glass ? statusColor : white;
         SKColor iconColor = (glass || neon) ? statusColor : white;
 
+        var typeface = ResolveTypeface(options.Font);
         using var textPaint = new SKPaint
         {
             IsAntialias = true,
             SubpixelText = true,
-            Typeface = _typeface,
+            Typeface = typeface,
             TextSize = dynamicFontSize,
             Color = textColor,
         };
@@ -338,19 +346,25 @@ public sealed class OverlayRenderer : IDisposable
         else if (neon)
         {
             // Dark pill with a coloured outer glow + a crisp bright edge in the status colour.
+            // Glow size, opacity, and pass count scale with the configured intensity.
+            float gIntensity = Math.Clamp(options.NeonGlow, 0, 100) / 100f;
             float bw = Math.Max(2f, dynamicFontSize * 0.06f);
-            float glowSigma = Math.Max(3f, dynamicFontSize * 0.22f);
+            float glowSigma = Math.Max(3f, dynamicFontSize * (0.12f + (0.30f * gIntensity)));
+            byte glowAlpha = (byte)(150 + (90 * gIntensity));
+            int glowPasses = gIntensity > 0.66f ? 3 : (gIntensity > 0.02f ? 2 : 1);
             using (var glow = new SKPaint
             {
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
                 StrokeWidth = bw,
-                Color = new SKColor(r, g, b, 235),
+                Color = new SKColor(r, g, b, glowAlpha),
                 MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, glowSigma),
             })
             {
-                canvas.DrawRoundRect(rrect, glow); // two passes for a denser glow
-                canvas.DrawRoundRect(rrect, glow);
+                for (int p = 0; p < glowPasses; p++)
+                {
+                    canvas.DrawRoundRect(rrect, glow);
+                }
             }
 
             using (var fill = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill, Color = new SKColor(8, 12, 24, 235) })
@@ -652,5 +666,41 @@ public sealed class OverlayRenderer : IDisposable
             byte.Parse(h.Substring(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture));
     }
 
-    public void Dispose() => _typeface.Dispose();
+    /// <summary>
+    /// Resolves the banner typeface for a font key. "default" is the embedded display font; the others
+    /// resolve from the host's font manager (glyphs depend on the fonts installed on the server, but
+    /// Jellyfin's runtime ships a sans/serif/mono set). Cached so we don't recreate per call.
+    /// </summary>
+    private SKTypeface ResolveTypeface(string? font)
+    {
+        if (string.IsNullOrEmpty(font) || string.Equals(font, "default", StringComparison.OrdinalIgnoreCase))
+        {
+            return _typeface;
+        }
+
+        if (_fontCache.TryGetValue(font, out var cached))
+        {
+            return cached ?? _typeface;
+        }
+
+        var created = font.ToLowerInvariant() switch
+        {
+            "sans" => SKTypeface.FromFamilyName("sans-serif", SKFontStyle.Bold),
+            "serif" => SKTypeface.FromFamilyName("serif", SKFontStyle.Bold),
+            "mono" => SKTypeface.FromFamilyName("monospace", SKFontStyle.Bold),
+            _ => null,
+        };
+        _fontCache[font] = created!;
+        return created ?? _typeface;
+    }
+
+    public void Dispose()
+    {
+        foreach (var tf in _fontCache.Values)
+        {
+            tf?.Dispose();
+        }
+
+        _typeface.Dispose();
+    }
 }

@@ -69,10 +69,10 @@
             margin-top: 1em; padding: .8em 1em; border-radius: .5em;
             border: 1px solid rgba(0,164,220,.35); background: rgba(0,164,220,.06);
         }
-        #OvercoatConfigPage .ovcStatusRows { display: flex; flex-direction: column; gap: .5em; margin: .5em 0; }
-        #OvercoatConfigPage .ovcStatusRow { display: flex; align-items: center; gap: .8em; }
-        #OvercoatConfigPage .ovcStatusRow .checkboxContainer { margin: 0; min-width: 130px; }
-        #OvercoatConfigPage .ovcStatusRow input[type="text"] { flex: 1; }
+        #OvercoatConfigPage .ovcStatusRows { display: flex; flex-direction: column; gap: .55em; margin: .5em 0; }
+        #OvercoatConfigPage .ovcStatusRow { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: .8em; }
+        #OvercoatConfigPage .ovcStatusRow .checkboxContainer { margin: 0; }
+        #OvercoatConfigPage .ovcStatusRow input[type="text"] { width: 100%; box-sizing: border-box; min-width: 0; }
         #OvercoatConfigPage .ovcMuted { opacity: .7; font-size: .9em; }
         #OvercoatConfigPage .ovcRowButtons { display: flex; flex-wrap: wrap; gap: 1em; margin: .4em 0 1em; }
     </style>
@@ -187,6 +187,26 @@
                                     <label class="inputLabel inputLabelUnfocused" for="GlassBlur">Frost blur (%)</label>
                                     <input is="emby-input" type="number" id="GlassBlur" min="0" max="100" step="1" />
                                 </div>
+                            </div>
+
+                            <!-- Neon-only options (revealed when Style = Neon). -->
+                            <div id="NeonOptions" class="ovcSubGroup">
+                                <div class="inputContainer">
+                                    <label class="inputLabel inputLabelUnfocused" for="NeonGlow">Glow intensity (%)</label>
+                                    <input is="emby-input" type="number" id="NeonGlow" min="0" max="100" step="1" />
+                                    <div class="fieldDescription">How far and bright the coloured glow spreads around the pill.</div>
+                                </div>
+                            </div>
+
+                            <div class="selectContainer" style="margin-top:1em;">
+                                <label class="selectLabel" for="BannerFont">Font</label>
+                                <select is="emby-select" id="BannerFont">
+                                    <option value="default">Display (bundled)</option>
+                                    <option value="sans">Sans-serif</option>
+                                    <option value="serif">Serif</option>
+                                    <option value="mono">Monospace</option>
+                                </select>
+                                <div class="fieldDescription">"Display" is Overcoat's bundled font. The others use the server's fonts (exact look depends on what's installed).</div>
                             </div>
 
                             <div class="selectContainer" style="margin-top:1em;">
@@ -389,10 +409,11 @@
                 if (name === 'banners') { refreshBannerPreview(); }
             }
 
-            // Glass options only matter when Style = Glass — reveal them then (progressive disclosure).
-            function updateGlassVisibility() {
-                var isGlass = page.querySelector('#BannerStyle').value === 'glass';
-                page.querySelector('#GlassOptions').style.display = isGlass ? 'block' : 'none';
+            // Style-specific options reveal only for their style (progressive disclosure).
+            function updateStyleOptions() {
+                var style = page.querySelector('#BannerStyle').value;
+                page.querySelector('#GlassOptions').style.display = style === 'glass' ? 'block' : 'none';
+                page.querySelector('#NeonOptions').style.display = style === 'neon' ? 'block' : 'none';
             }
 
             function val(id) { return page.querySelector('#' + id).value; }
@@ -420,6 +441,8 @@
                     'glassTint=' + encodeURIComponent(val('GlassTint') || ''),
                     'glassTintStrength=' + encodeURIComponent(val('GlassTintStrength') || '49'),
                     'glassBlur=' + encodeURIComponent(val('GlassBlur') || '50'),
+                    'neonGlow=' + encodeURIComponent(val('NeonGlow') || '60'),
+                    'font=' + encodeURIComponent(val('BannerFont')),
                     'api_key=' + encodeURIComponent(ApiClient.accessToken()),
                     '_=' + new Date().getTime()
                 ].join('&');
@@ -582,6 +605,8 @@
                     page.querySelector('#GlassTint').value = config.GlassTint || '#0E1018';
                     page.querySelector('#GlassTintStrength').value = (config.GlassTintStrength != null ? config.GlassTintStrength : 49);
                     page.querySelector('#GlassBlur').value = (config.GlassBlur != null ? config.GlassBlur : 50);
+                    page.querySelector('#NeonGlow').value = (config.NeonGlow != null ? config.NeonGlow : 60);
+                    page.querySelector('#BannerFont').value = config.BannerFont || 'default';
                     page.querySelector('#ShowNew').checked = config.ShowNew !== false;
                     page.querySelector('#ShowAiring').checked = config.ShowAiring !== false;
                     page.querySelector('#ShowReturning').checked = config.ShowReturning !== false;
@@ -592,7 +617,7 @@
                     page.querySelector('#LabelReturning').value = config.LabelReturning || 'RETURNING';
                     page.querySelector('#LabelEnded').value = config.LabelEnded || 'ENDED';
                     page.querySelector('#LabelCanceled').value = config.LabelCanceled || 'CANCELED';
-                    updateGlassVisibility();
+                    updateStyleOptions();
                     page.querySelector('#TrendingTimeWindow').value = config.TrendingTimeWindow || 'week';
                     page.querySelector('#WatchHistoryDays').value = config.WatchHistoryDays || 20;
                     page.querySelector('#WatchHistoryAllUsers').checked = config.WatchHistoryAllUsers !== false;
@@ -639,6 +664,9 @@
                 if (isNaN(config.GlassTintStrength)) { config.GlassTintStrength = 49; }
                 config.GlassBlur = parseInt(page.querySelector('#GlassBlur').value, 10);
                 if (isNaN(config.GlassBlur)) { config.GlassBlur = 50; }
+                config.NeonGlow = parseInt(page.querySelector('#NeonGlow').value, 10);
+                if (isNaN(config.NeonGlow)) { config.NeonGlow = 60; }
+                config.BannerFont = page.querySelector('#BannerFont').value;
                 config.ShowNew = page.querySelector('#ShowNew').checked;
                 config.ShowAiring = page.querySelector('#ShowAiring').checked;
                 config.ShowReturning = page.querySelector('#ShowReturning').checked;
@@ -692,15 +720,15 @@
                     page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
                     page.querySelector('#WatchHistoryAllUsers').addEventListener('change', updateUserRowVisibility);
                     ['BannerStyle', 'BannerShape', 'BannerPosition', 'BannerAlign', 'BannerFullWidth',
-                     'BannerFontScale', 'BannerIcons', 'BannerShadow', 'BannerShadowStrength',
-                     'GlassTint', 'GlassTintStrength', 'GlassBlur',
+                     'BannerFont', 'BannerFontScale', 'BannerIcons', 'BannerShadow', 'BannerShadowStrength',
+                     'GlassTint', 'GlassTintStrength', 'GlassBlur', 'NeonGlow',
                      'ColorNew', 'ColorAiring', 'ColorReturning', 'ColorEnded', 'ColorCanceled',
                      'LabelNew', 'LabelAiring', 'LabelReturning', 'LabelEnded', 'LabelCanceled'].forEach(function (id) {
                         var el = page.querySelector('#' + id);
                         el.addEventListener('change', refreshBannerPreview);
                         el.addEventListener('input', refreshBannerPreview);
                     });
-                    page.querySelector('#BannerStyle').addEventListener('change', updateGlassVisibility);
+                    page.querySelector('#BannerStyle').addEventListener('change', updateStyleOptions);
                     page.querySelectorAll('#OvercoatPreviewStatuses .ovcChip').forEach(function (btn) {
                         btn.addEventListener('click', function () {
                             previewStatus = btn.getAttribute('data-status');

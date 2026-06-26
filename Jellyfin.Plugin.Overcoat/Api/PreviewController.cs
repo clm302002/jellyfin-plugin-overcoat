@@ -39,7 +39,9 @@ public class PreviewController : ControllerBase
         [FromQuery] int shadowStrength = 60,
         [FromQuery] string? glassTint = null,
         [FromQuery] int glassTintStrength = 49,
-        [FromQuery] int glassBlur = 50)
+        [FromQuery] int glassBlur = 50,
+        [FromQuery] int neonGlow = 60,
+        [FromQuery] string? font = null)
     {
         const int w = 600;
         const int h = 900;
@@ -92,6 +94,8 @@ public class PreviewController : ControllerBase
             GlassTint = string.IsNullOrWhiteSpace(glassTint) ? "#0E1018" : glassTint,
             GlassTintStrength = glassTintStrength,
             GlassBlur = glassBlur,
+            NeonGlow = neonGlow,
+            Font = string.IsNullOrWhiteSpace(font) ? "default" : font,
         });
 
         return File(OverlayRenderer.EncodePng(bmp), "image/png");

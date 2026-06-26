@@ -329,6 +329,7 @@ public class OverlayTask : IScheduledTask
                 config.BannerShadow ? config.BannerShadowStrength.ToString(System.Globalization.CultureInfo.InvariantCulture) : "0",
                 config.GlassTint, config.GlassTintStrength.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 config.GlassBlur.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                config.NeonGlow.ToString(System.Globalization.CultureInfo.InvariantCulture), config.BannerFont,
             });
 
         if (!state.NeedsProcessing(id, statusKey, badgeSet, cacheText, currentSig, appearanceKey, config.CacheEnabled))
@@ -376,6 +377,8 @@ public class OverlayTask : IScheduledTask
                 GlassTint = config.GlassTint,
                 GlassTintStrength = config.GlassTintStrength,
                 GlassBlur = config.GlassBlur,
+                NeonGlow = config.NeonGlow,
+                Font = config.BannerFont,
             });
         }
 

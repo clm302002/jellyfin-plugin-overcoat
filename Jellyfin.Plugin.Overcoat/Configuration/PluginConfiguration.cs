@@ -110,6 +110,12 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets the glass frost blur amount (0–100).</summary>
     public int GlassBlur { get; set; } = 50;
 
+    /// <summary>Gets or sets the neon glow intensity (0–100).</summary>
+    public int NeonGlow { get; set; } = 60;
+
+    /// <summary>Gets or sets the banner font: "default" (embedded), "sans", "serif", or "mono".</summary>
+    public string BannerFont { get; set; } = "default";
+
     // --- Banner layout ---
 
     /// <summary>Gets or sets a value indicating whether the banner spans the full poster width (a band).</summary>
