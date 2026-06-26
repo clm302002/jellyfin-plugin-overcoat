@@ -20,11 +20,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Reuse the real renderer source. -->
+    <!-- Reuse the real renderer + badge compositor source. -->
     <Compile Include="..\..\Jellyfin.Plugin.Overcoat\Services\OverlayRenderer.cs" />
+    <Compile Include="..\..\Jellyfin.Plugin.Overcoat\Services\BadgeCompositor.cs" />
     <!-- Embed the same assets under the exact logical names the renderer looks up. -->
     <EmbeddedResource Include="..\..\Jellyfin.Plugin.Overcoat\Resources\Fonts\Juventus-Fans-Bold.ttf">
       <LogicalName>Jellyfin.Plugin.Overcoat.Resources.Fonts.Juventus-Fans-Bold.ttf</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\badges\*.png">
+      <LogicalName>Jellyfin.Plugin.Overcoat.Resources.Badges.%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

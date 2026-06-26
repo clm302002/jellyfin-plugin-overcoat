@@ -229,6 +229,20 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets the TMDB list id used for the IMDB Top 250 TV badge.</summary>
     public string ImdbTop250TvListId { get; set; } = "8647022";
 
+    // --- Badge layout (side ribbons: watch-history + TMDB-trending) ---
+
+    /// <summary>Gets or sets the side the badge ribbons sit on: "left" or "right".</summary>
+    public string BadgeSide { get; set; } = "left";
+
+    /// <summary>Gets or sets the vertical anchor of the badge stack: "top", "middle", or "bottom".</summary>
+    public string BadgeVertical { get; set; } = "top";
+
+    /// <summary>Gets or sets the badge size as a percentage of the calibrated size (50–200).</summary>
+    public int BadgeScale { get; set; } = 100;
+
+    /// <summary>Gets or sets the gap between stacked badges as a percentage of poster height (0–10).</summary>
+    public int BadgeGapPercent { get; set; } = 1;
+
     // --- Selection (was jellyfin.libraries / ignore_shows / tmdb_overrides) ---
 
     /// <summary>Gets or sets the per-library overlay/badge selection.</summary>

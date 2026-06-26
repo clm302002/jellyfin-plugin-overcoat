@@ -91,6 +91,7 @@
                 <div class="ovcTabs">
                     <button type="button" class="ovcTab ovcActive" data-tab="general">General</button>
                     <button type="button" class="ovcTab" data-tab="banners">Banners</button>
+                    <button type="button" class="ovcTab" data-tab="badges">Badges</button>
                     <button type="button" class="ovcTab" data-tab="apikeys">API &amp; Lists</button>
                     <button type="button" class="ovcTab" data-tab="libraries">Libraries</button>
                     <button type="button" class="ovcTab" data-tab="maintenance">Maintenance</button>
@@ -297,6 +298,58 @@
                     </div>
                 </div>
 
+                <!-- ===================== BADGES ===================== -->
+                <div class="ovcPanel" data-panel="badges">
+                    <div class="ovcBannerLayout">
+                        <div class="ovcCard ovcBannerControls">
+                            <h3>Badge layout</h3>
+                            <p class="fieldDescription">
+                                Placement of the side badges (watch-history &amp; TMDB-trending). The IMDb Top 250 badge
+                                is a baked corner ribbon and isn't affected by these. Which badges actually appear is
+                                still set per library (Libraries tab) and the global badge switch (General tab).
+                            </p>
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="BadgeSide">Side</label>
+                                <select is="emby-select" id="BadgeSide">
+                                    <option value="left">Left</option>
+                                    <option value="right">Right</option>
+                                </select>
+                                <div class="fieldDescription">Which edge the badge ribbons sit against.</div>
+                            </div>
+                            <div class="selectContainer" style="margin-top:1em;">
+                                <label class="selectLabel" for="BadgeVertical">Vertical anchor</label>
+                                <select is="emby-select" id="BadgeVertical">
+                                    <option value="top">Top</option>
+                                    <option value="middle">Middle</option>
+                                    <option value="bottom">Bottom</option>
+                                </select>
+                                <div class="fieldDescription">Where the stack sits vertically. "Top" sits below a top banner; "Bottom" rises from the bottom edge.</div>
+                            </div>
+                            <div class="inputContainer" style="margin-top:1em;">
+                                <label class="inputLabel inputLabelUnfocused" for="BadgeScale">Badge size (%)</label>
+                                <input is="emby-input" type="number" id="BadgeScale" min="50" max="200" step="5" />
+                                <div class="fieldDescription">Size relative to the calibrated default. 100 = default.</div>
+                            </div>
+                            <div class="inputContainer" style="margin-top:1em;">
+                                <label class="inputLabel inputLabelUnfocused" for="BadgeGapPercent">Gap between badges (%)</label>
+                                <input is="emby-input" type="number" id="BadgeGapPercent" min="0" max="10" step="1" />
+                                <div class="fieldDescription">Vertical spacing between stacked badges, as a percent of poster height.</div>
+                            </div>
+                        </div>
+
+                        <div class="ovcCard ovcBannerPreview">
+                            <h3>Live preview</h3>
+                            <div class="ovcStatusSwitch" id="OvercoatPreviewBadges">
+                                <button type="button" class="ovcChip ovcChipActive" data-badge="watch_history">Watch</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-badge="tmdb_trending">Trending</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-badge="imdb_top250">Top 250</button>
+                            </div>
+                            <img id="BadgePreview" alt="Badge preview" />
+                            <div class="ovcMuted" style="margin-top:.5em;">Shows your saved banner + the toggled badges. Updates instantly.</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ===================== API & LISTS ===================== -->
                 <div class="ovcPanel" data-panel="apikeys">
                     <div class="ovcCard">
@@ -407,6 +460,29 @@
                     p.style.display = on ? 'block' : 'none';
                 });
                 if (name === 'banners') { refreshBannerPreview(); }
+                if (name === 'badges') { refreshBadgePreview(); }
+            }
+
+            // Build the badge preview URL: saved banner + the toggled badges with live placement.
+            function badgePreviewUrl() {
+                var keys = [];
+                page.querySelectorAll('#OvercoatPreviewBadges .ovcChip.ovcChipActive').forEach(function (b) {
+                    keys.push(b.getAttribute('data-badge'));
+                });
+                var qs = [
+                    'badges=' + encodeURIComponent(keys.join(',')),
+                    'side=' + encodeURIComponent(val('BadgeSide')),
+                    'vertical=' + encodeURIComponent(val('BadgeVertical')),
+                    'scale=' + encodeURIComponent(val('BadgeScale') || '100'),
+                    'gap=' + encodeURIComponent(val('BadgeGapPercent') || '1'),
+                    'api_key=' + encodeURIComponent(ApiClient.accessToken()),
+                    '_=' + new Date().getTime()
+                ].join('&');
+                return ApiClient.getUrl('Overcoat/BadgePreview') + '?' + qs;
+            }
+            function refreshBadgePreview() {
+                var img = page && page.querySelector('#BadgePreview');
+                if (img) { img.src = badgePreviewUrl(); }
             }
 
             // Style-specific options reveal only for their style (progressive disclosure).
@@ -618,6 +694,10 @@
                     page.querySelector('#LabelEnded').value = config.LabelEnded || 'ENDED';
                     page.querySelector('#LabelCanceled').value = config.LabelCanceled || 'CANCELED';
                     updateStyleOptions();
+                    page.querySelector('#BadgeSide').value = config.BadgeSide || 'left';
+                    page.querySelector('#BadgeVertical').value = config.BadgeVertical || 'top';
+                    page.querySelector('#BadgeScale').value = (config.BadgeScale != null ? config.BadgeScale : 100);
+                    page.querySelector('#BadgeGapPercent').value = (config.BadgeGapPercent != null ? config.BadgeGapPercent : 1);
                     page.querySelector('#TrendingTimeWindow').value = config.TrendingTimeWindow || 'week';
                     page.querySelector('#WatchHistoryDays').value = config.WatchHistoryDays || 20;
                     page.querySelector('#WatchHistoryAllUsers').checked = config.WatchHistoryAllUsers !== false;
@@ -667,6 +747,12 @@
                 config.NeonGlow = parseInt(page.querySelector('#NeonGlow').value, 10);
                 if (isNaN(config.NeonGlow)) { config.NeonGlow = 60; }
                 config.BannerFont = page.querySelector('#BannerFont').value;
+                config.BadgeSide = page.querySelector('#BadgeSide').value;
+                config.BadgeVertical = page.querySelector('#BadgeVertical').value;
+                config.BadgeScale = parseInt(page.querySelector('#BadgeScale').value, 10);
+                if (isNaN(config.BadgeScale)) { config.BadgeScale = 100; }
+                config.BadgeGapPercent = parseInt(page.querySelector('#BadgeGapPercent').value, 10);
+                if (isNaN(config.BadgeGapPercent)) { config.BadgeGapPercent = 1; }
                 config.ShowNew = page.querySelector('#ShowNew').checked;
                 config.ShowAiring = page.querySelector('#ShowAiring').checked;
                 config.ShowReturning = page.querySelector('#ShowReturning').checked;
@@ -736,6 +822,17 @@
                                 b.classList.toggle('ovcChipActive', b === btn);
                             });
                             refreshBannerPreview();
+                        });
+                    });
+                    ['BadgeSide', 'BadgeVertical', 'BadgeScale', 'BadgeGapPercent'].forEach(function (id) {
+                        var el = page.querySelector('#' + id);
+                        el.addEventListener('change', refreshBadgePreview);
+                        el.addEventListener('input', refreshBadgePreview);
+                    });
+                    page.querySelectorAll('#OvercoatPreviewBadges .ovcChip').forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            btn.classList.toggle('ovcChipActive');  // multi-toggle
+                            refreshBadgePreview();
                         });
                     });
                 }

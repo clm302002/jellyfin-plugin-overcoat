@@ -317,20 +317,35 @@ public class OverlayTask : IScheduledTask
         // Fingerprint the banner appearance so changing any banner setting forces every banner'd item
         // to re-render. Empty for items with no banner (badge-only/movies), so an appearance tweak
         // never needlessly reprocesses them. (Label changes are caught via cacheText below.)
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
         var bannerColor = iconKey.Length == 0 ? string.Empty : config.ColorForIdentity(iconKey);
-        var appearanceKey = text is null
-            ? string.Empty
-            : string.Join("|", new[]
+        var keyParts = new List<string>();
+        if (text is not null)
+        {
+            keyParts.Add(string.Join("|", new[]
             {
                 config.BannerStyle, config.BannerShape, config.BannerPosition,
-                ((int)Math.Round(config.BannerFontScale * 1000)).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                ((int)Math.Round(config.BannerFontScale * 1000)).ToString(inv),
                 config.BannerIcons.ToString(), bannerColor,
                 config.BannerFullWidth.ToString(), config.BannerAlign,
-                config.BannerShadow ? config.BannerShadowStrength.ToString(System.Globalization.CultureInfo.InvariantCulture) : "0",
-                config.GlassTint, config.GlassTintStrength.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                config.GlassBlur.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                config.NeonGlow.ToString(System.Globalization.CultureInfo.InvariantCulture), config.BannerFont,
-            });
+                config.BannerShadow ? config.BannerShadowStrength.ToString(inv) : "0",
+                config.GlassTint, config.GlassTintStrength.ToString(inv),
+                config.GlassBlur.ToString(inv),
+                config.NeonGlow.ToString(inv), config.BannerFont,
+            }));
+        }
+
+        // Include badge layout when the item carries badges, so changing placement/size/gap re-renders.
+        if (badgeSet.Count > 0)
+        {
+            keyParts.Add(string.Join("|", new[]
+            {
+                "badges", config.BadgeSide, config.BadgeVertical,
+                config.BadgeScale.ToString(inv), config.BadgeGapPercent.ToString(inv),
+            }));
+        }
+
+        var appearanceKey = string.Join("||", keyParts);
 
         if (!state.NeedsProcessing(id, statusKey, badgeSet, cacheText, currentSig, appearanceKey, config.CacheEnabled))
         {
@@ -382,7 +397,11 @@ public class OverlayTask : IScheduledTask
             });
         }
 
-        badges.Apply(renderer, bmp, badgeSet);
+        badges.Apply(renderer, bmp, badgeSet, new BadgeCompositor.BadgeLayout(
+            string.Equals(config.BadgeSide, "right", StringComparison.OrdinalIgnoreCase),
+            config.BadgeVertical,
+            config.BadgeScale,
+            config.BadgeGapPercent));
         var png = OverlayRenderer.EncodePng(bmp);
 
         if (config.DryRun)

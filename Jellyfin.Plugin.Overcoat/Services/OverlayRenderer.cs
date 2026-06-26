@@ -633,7 +633,7 @@ public sealed class OverlayRenderer : IDisposable
     /// distortion on non-2:3 posters). Returns the placed height so the caller can stack the next
     /// badge flush directly beneath it. Used by <see cref="BadgeCompositor"/> for the side ribbons.
     /// </summary>
-    public int DrawRibbonBadge(SKBitmap poster, byte[] badgeBytes, bool rightSide, int topY)
+    public int DrawRibbonBadge(SKBitmap poster, byte[] badgeBytes, bool rightSide, int topY, float scaleMultiplier = 1f)
     {
         using var badge = SKBitmap.Decode(badgeBytes);
         if (badge is null)
@@ -641,7 +641,7 @@ public sealed class OverlayRenderer : IDisposable
             return 0;
         }
 
-        var scale = poster.Height / (float)BadgeDesignHeight;
+        var scale = (poster.Height / (float)BadgeDesignHeight) * scaleMultiplier;
         int w = Math.Max(1, (int)(badge.Width * scale));
         int h = Math.Max(1, (int)(badge.Height * scale));
         using var resized = badge.Resize(new SKImageInfo(w, h), SKFilterQuality.High);
@@ -655,6 +655,19 @@ public sealed class OverlayRenderer : IDisposable
         canvas.DrawBitmap(resized, x, topY);
         canvas.Flush();
         return h;
+    }
+
+    /// <summary>Computes the placed height of a ribbon badge (for stack layout) without drawing it.</summary>
+    public int MeasureRibbonHeight(byte[] badgeBytes, int posterHeight, float scaleMultiplier = 1f)
+    {
+        using var badge = SKBitmap.Decode(badgeBytes);
+        if (badge is null)
+        {
+            return 0;
+        }
+
+        var scale = (posterHeight / (float)BadgeDesignHeight) * scaleMultiplier;
+        return Math.Max(1, (int)(badge.Height * scale));
     }
 
     private static (byte R, byte G, byte B) HexToRgb(string hex)

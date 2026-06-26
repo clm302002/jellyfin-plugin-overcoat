@@ -15,10 +15,14 @@ public sealed class BadgeCompositor
     public const string TmdbTrending = "tmdb_trending";
     public const string ImdbTop250 = "imdb_top250";
 
-    // Where the side-ribbon stack starts (fraction of poster height) and the gap between ribbons.
-    // (Will become configurable when the badge settings land; small gap ≈ the original flush design.)
-    private const float RibbonStartFraction = 0.34f;
-    private const float RibbonGapFraction = 0.010f;
+    /// <summary>Placement options for the side-ribbon stack.</summary>
+    public readonly record struct BadgeLayout(bool RightSide, string Vertical, int ScalePercent, int GapPercent)
+    {
+        public static BadgeLayout Default => new(false, "top", 100, 1);
+    }
+
+    // "top" anchor starts here (fraction of poster height) — below where a top banner sits.
+    private const float TopAnchorFraction = 0.34f;
 
     // Side ribbons in stack order (top → down) — cropped art, positioned/stacked dynamically.
     private static readonly (string Key, string Resource)[] Ribbons =
@@ -31,32 +35,49 @@ public sealed class BadgeCompositor
 
     private readonly Dictionary<string, byte[]> _art = new(StringComparer.Ordinal);
 
-    /// <summary>Draws each qualifying badge onto <paramref name="poster"/> (mutated in place).</summary>
+    /// <summary>Draws each qualifying badge with the default layout.</summary>
     public void Apply(OverlayRenderer renderer, SKBitmap poster, ISet<string> badges)
+        => Apply(renderer, poster, badges, BadgeLayout.Default);
+
+    /// <summary>Draws each qualifying badge onto <paramref name="poster"/> (mutated in place) per <paramref name="layout"/>.</summary>
+    public void Apply(OverlayRenderer renderer, SKBitmap poster, ISet<string> badges, BadgeLayout layout)
     {
         if (badges.Count == 0)
         {
             return;
         }
 
-        // Side ribbons: stack flush, each directly beneath the previous.
-        var cursorY = (int)(poster.Height * RibbonStartFraction);
-        var gap = (int)(poster.Height * RibbonGapFraction);
-        foreach (var (key, resource) in Ribbons)
+        float scale = Math.Clamp(layout.ScalePercent, 25, 300) / 100f;
+        int gap = (int)(poster.Height * (Math.Clamp(layout.GapPercent, 0, 20) / 100f));
+
+        // The side ribbons that are actually present, in stack order.
+        var present = Ribbons.Where(rb => badges.Contains(rb.Key)).ToList();
+        if (present.Count > 0)
         {
-            if (!badges.Contains(key))
+            // Measure the stack first so we can anchor it top / middle / bottom.
+            var heights = present.Select(rb => renderer.MeasureRibbonHeight(Art(rb.Resource), poster.Height, scale)).ToList();
+            int stackH = heights.Sum() + (gap * (present.Count - 1));
+
+            int startY = (layout.Vertical ?? "top").ToLowerInvariant() switch
             {
-                continue;
+                "middle" => (poster.Height - stackH) / 2,
+                "bottom" => poster.Height - stackH - (int)(poster.Height * 0.06f),
+                _ => (int)(poster.Height * TopAnchorFraction),
+            };
+            if (startY < 0)
+            {
+                startY = 0;
             }
 
-            var h = renderer.DrawRibbonBadge(poster, Art(resource), rightSide: false, cursorY);
-            if (h > 0)
+            var cursorY = startY;
+            for (int i = 0; i < present.Count; i++)
             {
-                cursorY += h + gap;
+                var h = renderer.DrawRibbonBadge(poster, Art(present[i].Resource), layout.RightSide, cursorY, scale);
+                cursorY += (h > 0 ? h : heights[i]) + gap;
             }
         }
 
-        // IMDB Top 250: full-canvas corner ribbon (placement baked into the art).
+        // IMDB Top 250: full-canvas corner ribbon (placement baked into the art — unaffected by layout).
         if (badges.Contains(ImdbTop250))
         {
             renderer.DrawBadge(poster, Art(ImdbResource), "mid-left", 0, fullOverlay: true);

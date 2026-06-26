@@ -6,7 +6,13 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+- **Badges tab** with a live preview studio (mirrors the Banners tab): adjust the side badges'
+  **side** (left/right), **vertical anchor** (top/middle/bottom), **size**, and **gap**, and see them
+  composited on a sample poster **together with your saved banner**. Preview toggles let you show/hide
+  each badge (Watch / Trending / Top 250). Backed by a new authenticated `Overcoat/BadgePreview`
+  endpoint. (The IMDb Top 250 corner ribbon is baked art and isn't affected by these placement
+  options.) Changing badge layout re-renders badged posters on the next run.
 
 ## [0.3.0] — 2026-06-26
 

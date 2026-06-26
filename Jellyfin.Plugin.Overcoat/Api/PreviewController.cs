@@ -43,40 +43,7 @@ public class PreviewController : ControllerBase
         [FromQuery] int neonGlow = 60,
         [FromQuery] string? font = null)
     {
-        const int w = 600;
-        const int h = 900;
-
-        using var bmp = new SKBitmap(w, h);
-        using (var canvas = new SKCanvas(bmp))
-        {
-            // Sample poster backdrop: a diagonal gradient + soft shapes so the glass frost has
-            // something to blur, plus a couple of faux title bars for realism.
-            using (var bg = new SKPaint
-            {
-                Shader = SKShader.CreateLinearGradient(
-                    new SKPoint(0, 0),
-                    new SKPoint(w, h),
-                    new[] { new SKColor(40, 52, 98), new SKColor(120, 46, 120), new SKColor(20, 24, 42) },
-                    new[] { 0f, 0.5f, 1f },
-                    SKShaderTileMode.Clamp),
-            })
-            {
-                canvas.DrawRect(0, 0, w, h, bg);
-            }
-
-            using (var blob = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, 28) })
-            {
-                canvas.DrawCircle(w * 0.32f, h * 0.42f, w * 0.34f, blob);
-                canvas.DrawCircle(w * 0.78f, h * 0.70f, w * 0.22f, blob);
-            }
-
-            using (var bar = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, 40) })
-            {
-                canvas.DrawRoundRect(new SKRect(w * 0.15f, h * 0.82f, w * 0.85f, h * 0.855f), 6, 6, bar);
-                canvas.DrawRoundRect(new SKRect(w * 0.28f, h * 0.885f, w * 0.72f, h * 0.91f), 6, 6, bar);
-            }
-        }
-
+        using var bmp = BuildSamplePoster();
         using var renderer = new OverlayRenderer();
         renderer.DrawStatusBanner(bmp, status, new OverlayRenderer.BannerOptions
         {
@@ -99,5 +66,111 @@ public class PreviewController : ControllerBase
         });
 
         return File(OverlayRenderer.EncodePng(bmp), "image/png");
+    }
+
+    /// <summary>
+    /// Renders the sample poster with the **saved** banner settings plus the requested badges and
+    /// badge layout — so the Badges tab shows the banner and badges composited together.
+    /// </summary>
+    /// <param name="badges">CSV of badge keys: watch_history, tmdb_trending, imdb_top250.</param>
+    /// <param name="side">left | right.</param>
+    /// <param name="vertical">top | middle | bottom.</param>
+    /// <param name="scale">Badge size percent.</param>
+    /// <param name="gap">Gap between stacked badges (percent of poster height).</param>
+    [HttpGet("BadgePreview")]
+    public ActionResult GetBadgePreview(
+        [FromQuery] string? badges = null,
+        [FromQuery] string? side = null,
+        [FromQuery] string? vertical = null,
+        [FromQuery] int scale = 100,
+        [FromQuery] int gap = 1)
+    {
+        using var bmp = BuildSamplePoster();
+        using var renderer = new OverlayRenderer();
+
+        var config = Plugin.Instance?.Configuration;
+
+        // Draw the banner using the saved settings (a representative RETURNING sample) so the badge
+        // preview shows the full composite the way it'll look in the library.
+        if (config is not null)
+        {
+            const string identity = "RETURNING";
+            if (config.IsStatusShown(identity))
+            {
+                var label = config.LabelForStatus(identity);
+                renderer.DrawStatusBanner(bmp, label + " 6/26", new OverlayRenderer.BannerOptions
+                {
+                    Style = config.BannerStyle,
+                    Shape = config.BannerShape,
+                    Position = config.BannerPosition,
+                    FontScale = config.BannerFontScale,
+                    ShowIcons = config.BannerIcons,
+                    IconKey = identity,
+                    ColorOverride = config.ColorForIdentity(identity),
+                    FullWidth = config.BannerFullWidth,
+                    Align = config.BannerAlign,
+                    Shadow = config.BannerShadow,
+                    ShadowStrength = config.BannerShadowStrength,
+                    GlassTint = config.GlassTint,
+                    GlassTintStrength = config.GlassTintStrength,
+                    GlassBlur = config.GlassBlur,
+                    NeonGlow = config.NeonGlow,
+                    Font = config.BannerFont,
+                });
+            }
+        }
+
+        var set = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var b in (badges ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            set.Add(b);
+        }
+
+        if (set.Count > 0)
+        {
+            new BadgeCompositor().Apply(renderer, bmp, set, new BadgeCompositor.BadgeLayout(
+                string.Equals(side, "right", StringComparison.OrdinalIgnoreCase),
+                string.IsNullOrWhiteSpace(vertical) ? "top" : vertical,
+                scale,
+                gap));
+        }
+
+        return File(OverlayRenderer.EncodePng(bmp), "image/png");
+    }
+
+    private static SKBitmap BuildSamplePoster()
+    {
+        const int w = 600;
+        const int h = 900;
+        var bmp = new SKBitmap(w, h);
+        using var canvas = new SKCanvas(bmp);
+
+        // Diagonal gradient + soft shapes (so the glass frost has something to blur) + faux title bars.
+        using (var bg = new SKPaint
+        {
+            Shader = SKShader.CreateLinearGradient(
+                new SKPoint(0, 0),
+                new SKPoint(w, h),
+                new[] { new SKColor(40, 52, 98), new SKColor(120, 46, 120), new SKColor(20, 24, 42) },
+                new[] { 0f, 0.5f, 1f },
+                SKShaderTileMode.Clamp),
+        })
+        {
+            canvas.DrawRect(0, 0, w, h, bg);
+        }
+
+        using (var blob = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, 28) })
+        {
+            canvas.DrawCircle(w * 0.32f, h * 0.42f, w * 0.34f, blob);
+            canvas.DrawCircle(w * 0.78f, h * 0.70f, w * 0.22f, blob);
+        }
+
+        using (var bar = new SKPaint { IsAntialias = true, Color = new SKColor(255, 255, 255, 40) })
+        {
+            canvas.DrawRoundRect(new SKRect(w * 0.15f, h * 0.82f, w * 0.85f, h * 0.855f), 6, 6, bar);
+            canvas.DrawRoundRect(new SKRect(w * 0.28f, h * 0.885f, w * 0.72f, h * 0.91f), 6, 6, bar);
+        }
+
+        return bmp;
     }
 }

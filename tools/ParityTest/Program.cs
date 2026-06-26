@@ -51,6 +51,22 @@ foreach (var (label, opts, text) in styleMatrix)
     Console.WriteLine($"wrote {outPath} ({bmp.Width}x{bmp.Height})");
 }
 
+// Badge layout matrix via BadgeCompositor (embedded art) — banner + ribbons per layout.
+foreach (var (lbl, layout, set) in new (string, BadgeCompositor.BadgeLayout, string[])[]
+{
+    ("badges-left-top",        new(false, "top",    100, 1), new[] { "watch_history", "tmdb_trending", "imdb_top250" }),
+    ("badges-right-middle",    new(true,  "middle", 120, 2), new[] { "watch_history", "tmdb_trending" }),
+    ("badges-left-bottom-sm",  new(false, "bottom",  70, 1), new[] { "watch_history", "tmdb_trending" }),
+})
+{
+    using var bmp = OverlayRenderer.Decode(poster)!;
+    renderer.DrawStatusBanner(bmp, "RETURNING 6/26", new() { Style = "glass", IconKey = "RETURNING" });
+    new BadgeCompositor().Apply(renderer, bmp, new HashSet<string>(set), layout);
+    var outPath = Path.Combine(outDir, $"badge-{lbl}.png");
+    File.WriteAllBytes(outPath, OverlayRenderer.EncodePng(bmp));
+    Console.WriteLine($"wrote {outPath} ({bmp.Width}x{bmp.Height})");
+}
+
 // Badge-path smoke test: status banner + two edge-ribbon badges (stacked) + IMDB full-overlay.
 var badgeDir = Environment.GetEnvironmentVariable("BADGE_DIR");
 if (badgeDir is not null)
