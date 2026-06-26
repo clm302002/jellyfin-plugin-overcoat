@@ -14,8 +14,9 @@ manifest.json
 .idea/
 *.DotSettings.user
 
-# Private working notes / roadmap — stays local, never pushed
+# Private working notes / roadmap / Claude operating manual — stays local, never pushed
 private/
+CLAUDE.md
 
 # Local staging bundle + backups (built artifacts, not source)
 dist/
