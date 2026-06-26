@@ -170,6 +170,7 @@ public sealed class OverlayRenderer : IDisposable
         bool drop = string.Equals(options.Shape, "drop", StringComparison.OrdinalIgnoreCase);
         bool square = string.Equals(options.Shape, "square", StringComparison.OrdinalIgnoreCase);
         bool glass = string.Equals(options.Style, "glass", StringComparison.OrdinalIgnoreCase);
+        bool neon = string.Equals(options.Style, "neon", StringComparison.OrdinalIgnoreCase);
 
         float offsetY = (int)(posterHeight * options.OffsetFraction);
         float bannerX = (posterWidth - bannerWidth) / 2f;
@@ -243,6 +244,38 @@ public sealed class OverlayRenderer : IDisposable
             using (var shadow = new SKPaint { IsAntialias = true, SubpixelText = true, Typeface = _typeface, TextSize = dynamicFontSize, Color = new SKColor(0, 0, 0, 130) })
             {
                 canvas.DrawText(spaced, penX + sh, baselineY + sh, shadow);
+            }
+        }
+        else if (neon)
+        {
+            // Dark pill with a coloured outer glow + a crisp bright edge in the status colour.
+            float bw = Math.Max(2f, dynamicFontSize * 0.06f);
+            float glowSigma = Math.Max(3f, dynamicFontSize * 0.22f);
+            using (var glow = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = bw,
+                Color = new SKColor(r, g, b, 235),
+                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, glowSigma),
+            })
+            {
+                canvas.DrawRoundRect(rrect, glow); // two passes for a denser glow
+                canvas.DrawRoundRect(rrect, glow);
+            }
+
+            using (var fill = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill, Color = new SKColor(8, 12, 24, 235) })
+            {
+                canvas.DrawRoundRect(rrect, fill);
+            }
+
+            var inset = rect;
+            inset.Inflate(-bw / 2f, -bw / 2f);
+            using (var innerR = new SKRoundRect())
+            using (var border = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = Math.Max(1.5f, bw * 0.5f), Color = new SKColor(r, g, b, 255) })
+            {
+                innerR.SetRectRadii(inset, radii);
+                canvas.DrawRoundRect(innerR, border);
             }
         }
         else

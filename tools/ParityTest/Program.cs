@@ -28,6 +28,10 @@ var styleMatrix = new (string Label, OverlayRenderer.BannerOptions Opts, string 
     ("solid-drop-top",   new() { Style = "solid", Shape = "drop",   Position = "top" },    "RETURNING 6/26"),
     ("glass-square-top", new() { Style = "glass", Shape = "square", Position = "top" },    "ENDED"),
     ("glass-pill-bottom",new() { Style = "glass", Shape = "pill",   Position = "bottom" }, "CANCELED"),
+    ("neon-pill-new",    new() { Style = "neon",  Shape = "pill",   Position = "top" },    "NEW"),
+    ("neon-pill-return", new() { Style = "neon",  Shape = "pill",   Position = "top" },    "RETURNING 6/26"),
+    ("neon-pill-ended",  new() { Style = "neon",  Shape = "pill",   Position = "top" },    "ENDED"),
+    ("neon-pill-airing", new() { Style = "neon",  Shape = "pill",   Position = "top" },    "AIRING"),
 };
 foreach (var (label, opts, text) in styleMatrix)
 {
