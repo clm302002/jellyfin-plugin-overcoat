@@ -13,6 +13,18 @@ Inspired by **Kometa**, built specifically for **Jellyfin**.
 
 ---
 
+## 🤖 Yes, this is vibe-coded
+
+Full transparency: I'm not a professional C#/Jellyfin developer — I built Overcoat for my own server,
+mostly by "vibe coding" it with an AI assistant until it did what I wanted. I'm sharing it in case
+someone else wants something similar.
+
+It works and I use it daily, but treat it as a hobby project: expect rough edges, **back up anything
+you care about**, and know that things may change. Bug reports, ideas, and pull requests are very
+welcome — but no pressure, and no promises. 🧥
+
+---
+
 ## What it does
 
 Overcoat gives your Jellyfin library a polished, information-rich poster view without needing external scripts or manual poster edits.
