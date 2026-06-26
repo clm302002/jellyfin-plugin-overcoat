@@ -6,7 +6,12 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Changed
+- **AIRING shows the next episode again** with a chosen **format** (Date `6/28` / Day of week `Tue` /
+  Countdown `3d`) — always, with no "within N days" window (that window only applies to RETURNING).
+  v0.5.0 had reduced AIRING to a plain word; this restores the format dropdown.
+- The AIRING-off fallback now reuses the next-episode data already fetched (no extra TMDB call) —
+  removed the `/tv/{id}/season/{n}` lookup to keep API usage minimal.
 
 ## [0.5.0] — 2026-06-26
 

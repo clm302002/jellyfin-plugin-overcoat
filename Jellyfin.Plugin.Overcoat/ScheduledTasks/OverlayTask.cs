@@ -257,7 +257,7 @@ public class OverlayTask : IScheduledTask
             if (info is not null)
             {
                 statusKey = info.Status ?? "tv";
-                var banner = await ResolveBannerAsync(StatusOverlayResolver.ResolveIdentity(info), info, tmdbId, tmdb, config, ct).ConfigureAwait(false);
+                var banner = ResolveBanner(StatusOverlayResolver.ResolveIdentity(info), info, config);
                 iconKey = banner.IconKey;
                 text = banner.Text;
                 cacheText = text;
@@ -421,18 +421,16 @@ public class OverlayTask : IScheduledTask
     }
 
     /// <summary>
-    /// Resolves the banner (icon identity + rendered text) for a TV show. AIRING is shown as the plain
-    /// word on the day a new episode is out; RETURNING shows the upcoming episode/season date per its
-    /// window + format. If AIRING is opted out, an air-day show falls back to RETURNING showing the
-    /// *following* episode's date (one extra TMDB call when needed). Statuses turned off → no banner.
+    /// Resolves the banner (icon identity + rendered text) for a TV show. AIRING (actively airing)
+    /// shows the next episode in its chosen format, always (no window). RETURNING shows the upcoming
+    /// episode/season date per its format + window. If AIRING is opted out, the show falls back to
+    /// RETURNING using the upcoming-episode data already in hand (no extra TMDB call). Statuses turned
+    /// off → no banner.
     /// </summary>
-    private static async Task<(string IconKey, string? Text)> ResolveBannerAsync(
+    private static (string IconKey, string? Text) ResolveBanner(
         string? identity,
         TmdbService.TvStatusInfo info,
-        int tmdbId,
-        TmdbService tmdb,
-        PluginConfiguration config,
-        CancellationToken ct)
+        PluginConfiguration config)
     {
         if (identity is null)
         {
@@ -443,18 +441,19 @@ public class OverlayTask : IScheduledTask
         {
             if (config.ShowAiring)
             {
-                return ("AIRING", config.LabelForStatus("AIRING"));
+                // Always show the next episode in the chosen format (no window).
+                return ("AIRING", WithSuffix(config.LabelForStatus("AIRING"),
+                    FormatAirSuffix(config.AiringDateFormat, int.MaxValue, InfoToAir(info))));
             }
 
-            // Opted out of AIRING → fall back to RETURNING with the NEXT future episode's date.
+            // Opted out of AIRING → fall back to RETURNING with the upcoming episode we already have.
             if (!config.ShowReturning)
             {
                 return (string.Empty, null);
             }
 
-            var nextEp = await NextFutureEpisodeAsync(info, tmdbId, tmdb, ct).ConfigureAwait(false);
             return ("RETURNING", WithSuffix(config.LabelForStatus("RETURNING"),
-                FormatAirSuffix(config.ReturningDateFormat, config.ReturningDateWindowDays, nextEp)));
+                FormatAirSuffix(config.ReturningDateFormat, config.ReturningDateWindowDays, InfoToAir(info))));
         }
 
         if (identity == "RETURNING")
@@ -484,24 +483,6 @@ public class OverlayTask : IScheduledTask
         => info.NextAirDate is { } d && info.DaysUntilAir is { } du
             ? new TmdbService.EpisodeAir(d, info.NextAirDay ?? string.Empty, du)
             : null;
-
-    /// <summary>The next *future* episode: TMDB's listed next if it's already in the future, else the
-    /// episode after it (fetched), for the AIRING-opted-out fallback.</summary>
-    private static async Task<TmdbService.EpisodeAir?> NextFutureEpisodeAsync(
-        TmdbService.TvStatusInfo info, int tmdbId, TmdbService tmdb, CancellationToken ct)
-    {
-        if (info.DaysUntilAir is { } du && du >= 1)
-        {
-            return InfoToAir(info);
-        }
-
-        if (info.NextSeason is { } s && info.NextEpisode is { } e)
-        {
-            return await tmdb.GetFollowingEpisodeAsync(tmdbId, s, e, ct).ConfigureAwait(false);
-        }
-
-        return null;
-    }
 
     /// <summary>Formats an episode's air info per the status's format + window. Null when out of window or unavailable.</summary>
     private static string? FormatAirSuffix(string? format, int window, TmdbService.EpisodeAir? air)

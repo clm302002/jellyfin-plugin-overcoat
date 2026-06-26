@@ -268,7 +268,15 @@
                             </div>
 
                             <h4 class="ovcGroup">Status dates</h4>
-                            <p class="fieldDescription" style="margin-top:0;">AIRING shows automatically (no date) on the day a new episode is out. RETURNING shows the upcoming episode/season date — pick its format and how close it must be to appear. (If you turn AIRING off in the Statuses group, an airing show falls back to RETURNING with the following episode's date.)</p>
+                            <p class="fieldDescription" style="margin-top:0;">AIRING shows the next episode in the chosen format, always (no "within" window). RETURNING shows the upcoming episode/season date only when it's within the chosen window. (Turn AIRING off in the Statuses group and an airing show falls back to RETURNING.)</p>
+                            <div class="selectContainer" style="margin-top:.6em;">
+                                <label class="selectLabel" for="AiringDateFormat">Airing — format</label>
+                                <select is="emby-select" id="AiringDateFormat">
+                                    <option value="date">Date (6/28)</option>
+                                    <option value="day">Day of week (Tue)</option>
+                                    <option value="countdown">Countdown (3d)</option>
+                                </select>
+                            </div>
                             <div class="selectContainer" style="margin-top:.6em;">
                                 <label class="selectLabel" for="ReturningDateFormat">Returning — format</label>
                                 <select is="emby-select" id="ReturningDateFormat">
@@ -530,14 +538,14 @@
             // Build the preview image URL from the current banner controls (server renders it). The
             // preview shows the custom label text for the selected status, with the canonical identity
             // passed as iconKey so the icon/colour stay correct even after a rename.
-            // Sample next-air suffix for the preview. AIRING shows just the word (it's "today");
-            // RETURNING reflects the chosen format.
+            // Sample next-air suffix for the preview, reflecting the chosen format (AIRING/RETURNING).
             function sampleSuffix(st) {
-                if (st !== 'RETURNING') { return ''; }
-                var fmt = val('ReturningDateFormat');
-                if (fmt === 'day') { return 'Mon'; }
-                if (fmt === 'countdown') { return '21d'; }
-                return '7/14'; // date
+                var fmtId = st === 'AIRING' ? 'AiringDateFormat' : (st === 'RETURNING' ? 'ReturningDateFormat' : null);
+                if (!fmtId) { return ''; }
+                var fmt = val(fmtId);
+                if (fmt === 'day') { return st === 'AIRING' ? 'Tue' : 'Mon'; }
+                if (fmt === 'countdown') { return st === 'AIRING' ? '3d' : '21d'; }
+                return st === 'AIRING' ? '6/28' : '7/14'; // date
             }
             function bannerPreviewUrl() {
                 var st = previewStatus;
@@ -712,6 +720,7 @@
                     page.querySelector('#BannerPosition').value = config.BannerPosition || 'top';
                     page.querySelector('#BannerFontScale').value = config.BannerFontScale || 1.0;
                     page.querySelector('#BannerIcons').checked = config.BannerIcons !== false;
+                    page.querySelector('#AiringDateFormat').value = config.AiringDateFormat || 'date';
                     page.querySelector('#ReturningDateFormat').value = config.ReturningDateFormat || 'date';
                     page.querySelector('#ReturningDateWindowDays').value = String(config.ReturningDateWindowDays != null ? config.ReturningDateWindowDays : 90);
                     page.querySelector('#ColorNew').value = config.ColorNew || '#5EBD3E';
@@ -774,6 +783,7 @@
                 config.BannerPosition = page.querySelector('#BannerPosition').value;
                 config.BannerFontScale = parseFloat(page.querySelector('#BannerFontScale').value) || 1.0;
                 config.BannerIcons = page.querySelector('#BannerIcons').checked;
+                config.AiringDateFormat = page.querySelector('#AiringDateFormat').value;
                 config.ReturningDateFormat = page.querySelector('#ReturningDateFormat').value;
                 config.ReturningDateWindowDays = parseInt(page.querySelector('#ReturningDateWindowDays').value, 10);
                 if (isNaN(config.ReturningDateWindowDays)) { config.ReturningDateWindowDays = 90; }
@@ -856,7 +866,7 @@
                     ['BannerStyle', 'BannerShape', 'BannerPosition', 'BannerAlign', 'BannerFullWidth',
                      'BannerFont', 'BannerFontScale', 'BannerIcons', 'BannerShadow', 'BannerShadowStrength',
                      'GlassTint', 'GlassTintStrength', 'GlassBlur', 'NeonGlow',
-                     'ReturningDateFormat',
+                     'AiringDateFormat', 'ReturningDateFormat',
                      'ColorNew', 'ColorAiring', 'ColorReturning', 'ColorEnded', 'ColorCanceled',
                      'LabelNew', 'LabelAiring', 'LabelReturning', 'LabelEnded', 'LabelCanceled'].forEach(function (id) {
                         var el = page.querySelector('#' + id);

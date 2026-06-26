@@ -52,7 +52,10 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets a value indicating whether the per-status icon is drawn beside the banner text.</summary>
     public bool BannerIcons { get; set; } = true;
 
-    // --- Status date display (RETURNING date; AIRING auto-shows on the air day, no date) ---
+    // --- Status date display (AIRING shows the next episode; RETURNING shows the upcoming date) ---
+
+    /// <summary>Gets or sets how the AIRING next-episode is shown: "date" (6/28), "day" (Tue), or "countdown" (3d). Always shown when known (no window).</summary>
+    public string AiringDateFormat { get; set; } = "date";
 
     /// <summary>Gets or sets how the RETURNING date is shown: "date" (7/14), "day" (Mon), or "countdown" (21d).</summary>
     public string ReturningDateFormat { get; set; } = "date";

@@ -33,8 +33,6 @@ public sealed class TmdbService
         string? NextAirDay,  // abbreviated weekday, e.g. "Tue"
         int? DaysUntilAir,
         int? DaysSinceLastAir,
-        int? NextSeason,     // next_episode_to_air.season_number (for the episode-after lookup)
-        int? NextEpisode,    // next_episode_to_air.episode_number
         string? PosterPath); // TMDB poster_path, for the no-Jellyfin-poster fallback
 
     /// <summary>An episode's air info: "M/D" date, abbreviated weekday, and days until it airs.</summary>
@@ -134,8 +132,6 @@ public sealed class TmdbService
             string? nextDate = null;
             string? nextDay = null;
             int? daysUntil = null;
-            int? nextSeason = null;
-            int? nextEpisode = null;
             if (root.TryGetProperty("next_episode_to_air", out var next)
                 && next.ValueKind == JsonValueKind.Object
                 && TryGetDate(next, "air_date", out var nextAir))
@@ -143,15 +139,6 @@ public sealed class TmdbService
                 daysUntil = (nextAir - today).Days;
                 nextDate = $"{nextAir.Month}/{nextAir.Day}";
                 nextDay = nextAir.ToString("ddd", CultureInfo.InvariantCulture);
-                if (next.TryGetProperty("season_number", out var sn) && sn.TryGetInt32(out var snv))
-                {
-                    nextSeason = snv;
-                }
-
-                if (next.TryGetProperty("episode_number", out var en) && en.TryGetInt32(out var env))
-                {
-                    nextEpisode = env;
-                }
             }
 
             int? daysSinceLast = null;
@@ -164,53 +151,11 @@ public sealed class TmdbService
 
             string? posterPath = root.TryGetProperty("poster_path", out var pp) ? pp.GetString() : null;
 
-            return new TvStatusInfo(status, daysSinceFirst, nextDate, nextDay, daysUntil, daysSinceLast, nextSeason, nextEpisode, posterPath);
+            return new TvStatusInfo(status, daysSinceFirst, nextDate, nextDay, daysUntil, daysSinceLast, posterPath);
         }
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "TMDB /tv/{Id} failed", tmdbId);
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Fetches the air info of the episode AFTER <paramref name="episode"/> in <paramref name="season"/>
-    /// (used to show the *following* episode's date when AIRING banners are off). Returns null if there
-    /// is no known following episode in that season.
-    /// </summary>
-    public async Task<EpisodeAir?> GetFollowingEpisodeAsync(int tmdbId, int season, int episode, CancellationToken ct)
-    {
-        try
-        {
-            var url = $"{Base}/tv/{tmdbId}/season/{season}?api_key={_apiKey}";
-            using var doc = await GetJsonAsync(url, ct).ConfigureAwait(false);
-            if (doc is null
-                || !doc.RootElement.TryGetProperty("episodes", out var eps)
-                || eps.ValueKind != JsonValueKind.Array)
-            {
-                return null;
-            }
-
-            var today = DateTime.Now.Date;
-            foreach (var ep in eps.EnumerateArray())
-            {
-                if (ep.TryGetProperty("episode_number", out var en)
-                    && en.TryGetInt32(out var num)
-                    && num == episode + 1
-                    && TryGetDate(ep, "air_date", out var air))
-                {
-                    return new EpisodeAir(
-                        $"{air.Month}/{air.Day}",
-                        air.ToString("ddd", CultureInfo.InvariantCulture),
-                        (air - today).Days);
-                }
-            }
-
-            return null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "TMDB /tv/{Id}/season/{Season} failed", tmdbId, season);
             return null;
         }
     }
