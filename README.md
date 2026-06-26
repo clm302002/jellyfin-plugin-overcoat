@@ -107,27 +107,39 @@ Additional metadata sources may be required for some badges as they are added.
 
 ## Installation
 
-> Overcoat is not fully released yet. Until the first tagged release is available, build from source.
+### Add the plugin repository (recommended)
 
-Once a release is available:
+In Jellyfin, go to **Dashboard → Plugins → Repositories**, click **+**, and add:
 
-1. Go to **Dashboard → Plugins → Repositories**
-2. Add the Overcoat plugin repository URL
-3. Install **Overcoat** from the plugin catalog
-4. Restart Jellyfin
-5. Open **Plugins → Overcoat**
-6. Add your API keys and choose which libraries to process
-7. Run the scheduled task: **Apply Overcoat Overlays**
+* **Repository Name:** `Overcoat`
+* **Repository URL:**
+
+  ```
+  https://github.com/clm302002/jellyfin-plugin-overcoat/releases/latest/download/manifest.json
+  ```
+
+Then:
+
+1. Open **Dashboard → Plugins → Catalog**, find **Overcoat**, and click **Install**.
+2. **Restart Jellyfin.**
+3. Open **Plugins → Overcoat**, add your TMDB API key, and choose which libraries to process.
+4. Run the scheduled task: **Dashboard → Scheduled Tasks → Apply Overcoat Overlays**.
+
+> ⚠️ The repository URL becomes active once the first release is published (`v0.1.0`). Until then,
+> use **Build from source** below.
 
 ---
 
 ## Build from source
 
+Requires the **.NET 9 SDK**.
+
 ```bash
 dotnet build Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release
 ```
 
-The compiled plugin DLL can be copied into Jellyfin’s plugin directory.
+Copy the built `Jellyfin.Plugin.Overcoat.dll` into a folder under Jellyfin's `plugins/` directory
+(e.g. `plugins/Overcoat_0.1.0.0/`), restart Jellyfin, then configure it under **Plugins → Overcoat**.
 
 ---
 
