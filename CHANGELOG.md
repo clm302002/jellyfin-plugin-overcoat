@@ -8,11 +8,16 @@ All notable changes to Overcoat are documented here. Format follows
 
 ### Added
 - **Status banner styles** (new **Banners** settings tab): choose the banner **style** — `Solid`
-  (the classic filled pill), `Glass` (a frosted, translucent chip that blurs the poster behind a
-  colour tint), or `Neon` (a dark pill with a coloured outer glow + bright edge in the status
-  colour) — its **shape** (`Pill` / `Square` / `Drop`, where Drop sits flush against the edge
-  with only the inner corners rounded), its **position** (`Top` / `Bottom`), and a **text-size**
-  multiplier. Changing any of these re-renders existing banners on the next run.
+  (the classic filled pill), `Glass` (a frosted, translucent panel that blurs the poster and shows
+  the status via **coloured text**), or `Neon` (a dark pill with a coloured outer glow + bright edge
+  in the status colour) — its **shape** (`Pill` / `Square` / `Drop`, where Drop sits flush against
+  the edge with only the inner corners rounded), its **position** (`Top` / `Bottom`), and a
+  **text-size** multiplier. Changing any of these re-renders existing banners on the next run.
+- **Per-status banner icons**: ★ NEW, ⟳ RETURNING, ✓ ENDED, ✕ CANCELED, and a live-dot for AIRING,
+  drawn beside the text and coloured to match.
+- **Live banner preview** on the Banners tab — a sample poster rendered server-side (via a new
+  authenticated `Overcoat/BannerPreview` endpoint) that updates instantly as you change the options,
+  so you can dial in a look without running the task.
 
 ### Fixed
 - **Revert on drop-to-zero**: when an item no longer qualifies for any banner or badge (e.g. you

@@ -45,6 +45,11 @@
         #OvercoatConfigPage .ovcLibOpts { display: flex; flex-direction: column; gap: .25em; }
         #OvercoatConfigPage .ovcLibOpts .checkboxContainer { margin: 0; }
 
+        #OvercoatConfigPage .ovcPreview { margin-top: 1.2em; }
+        #OvercoatConfigPage .ovcPreview img {
+            width: 240px; max-width: 70%; border-radius: .6em; display: block;
+            box-shadow: 0 4px 18px rgba(0,0,0,.45); background: rgba(255,255,255,.04);
+        }
         #OvercoatConfigPage .ovcMuted { opacity: .7; font-size: .9em; }
         #OvercoatConfigPage .ovcRowButtons { display: flex; flex-wrap: wrap; gap: 1em; margin: .4em 0 1em; }
     </style>
@@ -166,6 +171,10 @@
                             <input is="emby-input" type="number" id="BannerFontScale" min="0.5" max="2" step="0.05" />
                             <div class="fieldDescription">Multiplier on the calibrated size. 1.0 = default, 1.2 = 20% bigger, 0.8 = smaller.</div>
                         </div>
+                        <div class="ovcPreview">
+                            <div class="ovcMuted" style="margin-bottom:.4em;">Live preview (updates as you change the options above — no run needed)</div>
+                            <img id="BannerPreview" alt="Banner preview" />
+                        </div>
                     </div>
                 </div>
 
@@ -272,6 +281,24 @@
                     p.classList.toggle('ovcActive', on);
                     p.style.display = on ? 'block' : 'none';
                 });
+                if (name === 'banners') { refreshBannerPreview(); }
+            }
+
+            // Build the preview image URL from the current banner controls (server renders it).
+            function bannerPreviewUrl() {
+                var qs = [
+                    'style=' + encodeURIComponent(page.querySelector('#BannerStyle').value),
+                    'shape=' + encodeURIComponent(page.querySelector('#BannerShape').value),
+                    'position=' + encodeURIComponent(page.querySelector('#BannerPosition').value),
+                    'fontScale=' + encodeURIComponent(page.querySelector('#BannerFontScale').value || '1'),
+                    'api_key=' + encodeURIComponent(ApiClient.accessToken()),
+                    '_=' + new Date().getTime()
+                ].join('&');
+                return ApiClient.getUrl('Overcoat/BannerPreview') + '?' + qs;
+            }
+            function refreshBannerPreview() {
+                var img = page && page.querySelector('#BannerPreview');
+                if (img) { img.src = bannerPreviewUrl(); }
             }
             function wireTabs() {
                 page.querySelectorAll('.ovcTab').forEach(function (tab) {
@@ -426,6 +453,7 @@
                     }).join('\n');
                     Promise.all([loadUsers(config), loadLibraries(config)]).then(function () {
                         updateUserRowVisibility();
+                        refreshBannerPreview();
                         Dashboard.hideLoadingMsg();
                     }, function () { Dashboard.hideLoadingMsg(); });
                 });
@@ -484,6 +512,11 @@
                     });
                     page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
                     page.querySelector('#WatchHistoryAllUsers').addEventListener('change', updateUserRowVisibility);
+                    ['BannerStyle', 'BannerShape', 'BannerPosition', 'BannerFontScale'].forEach(function (id) {
+                        var el = page.querySelector('#' + id);
+                        el.addEventListener('change', refreshBannerPreview);
+                        el.addEventListener('input', refreshBannerPreview);
+                    });
                 }
                 load();
             });

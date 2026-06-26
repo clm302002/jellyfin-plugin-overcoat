@@ -15,6 +15,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- ASP.NET Core shared framework — needed for the dashboard preview API controller. The server
+         already runs on it, so nothing is shipped in the plugin .zip. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!--
       Jellyfin server assemblies. PrivateAssets=all so they are NOT shipped inside the
       plugin .zip — the server provides them at runtime. Keep this pinned to the server

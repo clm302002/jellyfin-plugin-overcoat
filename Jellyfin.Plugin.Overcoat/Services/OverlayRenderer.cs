@@ -145,6 +145,20 @@ public sealed class OverlayRenderer : IDisposable
         var spaced = string.Join(" ", text.ToUpperInvariant().ToCharArray());
         var pillHex = options.ColorOverride ?? GetBannerColor(text);
         var (r, g, b) = HexToRgb(pillHex);
+        var statusColor = new SKColor(r, g, b);
+        var white = new SKColor(255, 255, 255);
+
+        bool atBottom = string.Equals(options.Position, "bottom", StringComparison.OrdinalIgnoreCase);
+        bool drop = string.Equals(options.Shape, "drop", StringComparison.OrdinalIgnoreCase);
+        bool square = string.Equals(options.Shape, "square", StringComparison.OrdinalIgnoreCase);
+        bool glass = string.Equals(options.Style, "glass", StringComparison.OrdinalIgnoreCase);
+        bool neon = string.Equals(options.Style, "neon", StringComparison.OrdinalIgnoreCase);
+
+        // "solid" colours the fill (white text/icon); "glass"/"neon" keep a neutral panel and
+        // colour the text/icon instead (the look where the background stays constant and the
+        // status is shown by the text colour).
+        SKColor textColor = glass ? statusColor : white;
+        SKColor iconColor = (glass || neon) ? statusColor : white;
 
         using var textPaint = new SKPaint
         {
@@ -152,7 +166,7 @@ public sealed class OverlayRenderer : IDisposable
             SubpixelText = true,
             Typeface = _typeface,
             TextSize = dynamicFontSize,
-            Color = new SKColor(255, 255, 255, 255),
+            Color = textColor,
         };
 
         // Tight ink bounds relative to the baseline at (0,0): Top is negative (above baseline).
@@ -163,14 +177,16 @@ public sealed class OverlayRenderer : IDisposable
 
         int paddingX = (int)(dynamicFontSize * 0.5f);
         int paddingY = (int)(dynamicFontSize * 0.25f);
-        float bannerWidth = textWidth + (paddingX * 2);
-        float bannerHeight = textHeight + (paddingY * 2);
 
-        bool atBottom = string.Equals(options.Position, "bottom", StringComparison.OrdinalIgnoreCase);
-        bool drop = string.Equals(options.Shape, "drop", StringComparison.OrdinalIgnoreCase);
-        bool square = string.Equals(options.Shape, "square", StringComparison.OrdinalIgnoreCase);
-        bool glass = string.Equals(options.Style, "glass", StringComparison.OrdinalIgnoreCase);
-        bool neon = string.Equals(options.Style, "neon", StringComparison.OrdinalIgnoreCase);
+        // Per-status icon drawn to the left of the text.
+        string kw = StatusKeyword(text);
+        bool hasIcon = kw.Length > 0;
+        float iconSize = textHeight * 1.08f;
+        float iconGap = hasIcon ? dynamicFontSize * 0.34f : 0f;
+        float iconAdvance = hasIcon ? iconSize + iconGap : 0f;
+
+        float bannerWidth = iconAdvance + textWidth + (paddingX * 2);
+        float bannerHeight = textHeight + (paddingY * 2);
 
         float offsetY = (int)(posterHeight * options.OffsetFraction);
         float bannerX = (posterWidth - bannerWidth) / 2f;
@@ -199,8 +215,14 @@ public sealed class OverlayRenderer : IDisposable
         using var rrect = new SKRoundRect();
         rrect.SetRectRadii(rect, radii);
 
-        float penX = bannerX + paddingX;
+        float contentLeft = bannerX + paddingX;
+        float penX = contentLeft + iconAdvance;
         float baselineY = bannerY + paddingY - inkBounds.Top;
+        float iconCx = contentLeft + (iconSize / 2f);
+        float iconCy = bannerY + (bannerHeight / 2f);
+
+        bool flushTop = drop && !atBottom;
+        bool flushBottom = drop && atBottom;
 
         // For glass, snapshot the untouched poster first so the backdrop blur isn't sampling the chip.
         using var snapBmp = glass ? poster.Copy() : null;
@@ -210,41 +232,36 @@ public sealed class OverlayRenderer : IDisposable
 
         if (glass && backdrop is not null)
         {
-            // Frosted backdrop: blurred copy of the poster, clipped to the chip.
+            // Frosted backdrop: a strongly-blurred copy of the poster, clipped to the chip.
             canvas.Save();
             canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, true);
-            float sigma = Math.Max(2f, dynamicFontSize * 0.30f);
+            float sigma = Math.Max(3f, dynamicFontSize * 0.55f);
             using (var blur = SKImageFilter.CreateBlur(sigma, sigma))
             using (var blurPaint = new SKPaint { ImageFilter = blur, IsAntialias = true })
             {
                 canvas.DrawImage(backdrop, 0, 0, blurPaint);
             }
 
+            // Neutral dark glass veil (constant colour — the status shows through the text, not the fill).
+            using (var veil = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill, Color = new SKColor(14, 16, 24, 125) })
+            {
+                canvas.DrawRect(rect, veil);
+            }
+
+            // Soft top sheen (no hard border) — skip when the chip is flush to the top edge.
+            if (!flushTop)
+            {
+                using var sheen = SKShader.CreateLinearGradient(
+                    new SKPoint(rect.Left, rect.Top),
+                    new SKPoint(rect.Left, rect.Top + (bannerHeight * 0.55f)),
+                    new[] { new SKColor(255, 255, 255, 60), new SKColor(255, 255, 255, 0) },
+                    null,
+                    SKShaderTileMode.Clamp);
+                using var sheenPaint = new SKPaint { IsAntialias = true, Shader = sheen };
+                canvas.DrawRect(rect, sheenPaint);
+            }
+
             canvas.Restore();
-
-            // Translucent colour tint over the frost.
-            using (var tint = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill, Color = new SKColor(r, g, b, 130) })
-            {
-                canvas.DrawRoundRect(rrect, tint);
-            }
-
-            // Subtle light border for the glass edge.
-            float bw = Math.Max(1f, dynamicFontSize * 0.05f);
-            var inset = rect;
-            inset.Inflate(-bw / 2f, -bw / 2f);
-            using (var innerR = new SKRoundRect())
-            using (var border = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = bw, Color = new SKColor(255, 255, 255, 90) })
-            {
-                innerR.SetRectRadii(inset, radii);
-                canvas.DrawRoundRect(innerR, border);
-            }
-
-            // Drop shadow on the text so it stays legible over a bright frosted patch.
-            float sh = Math.Max(1f, bw * 0.5f);
-            using (var shadow = new SKPaint { IsAntialias = true, SubpixelText = true, Typeface = _typeface, TextSize = dynamicFontSize, Color = new SKColor(0, 0, 0, 130) })
-            {
-                canvas.DrawText(spaced, penX + sh, baselineY + sh, shadow);
-            }
         }
         else if (neon)
         {
@@ -269,13 +286,25 @@ public sealed class OverlayRenderer : IDisposable
                 canvas.DrawRoundRect(rrect, fill);
             }
 
+            // Crisp bright edge — but not along a flush edge (keeps "drop" feeling like a true drop).
             var inset = rect;
             inset.Inflate(-bw / 2f, -bw / 2f);
             using (var innerR = new SKRoundRect())
-            using (var border = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = Math.Max(1.5f, bw * 0.5f), Color = new SKColor(r, g, b, 255) })
+            using (var border = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = Math.Max(1.5f, bw * 0.5f), Color = statusColor })
             {
                 innerR.SetRectRadii(inset, radii);
+                canvas.Save();
+                if (flushTop)
+                {
+                    canvas.ClipRect(new SKRect(0, rect.Top + bw, posterWidth, posterHeight));
+                }
+                else if (flushBottom)
+                {
+                    canvas.ClipRect(new SKRect(0, 0, posterWidth, rect.Bottom - bw));
+                }
+
                 canvas.DrawRoundRect(innerR, border);
+                canvas.Restore();
             }
         }
         else
@@ -284,8 +313,130 @@ public sealed class OverlayRenderer : IDisposable
             canvas.DrawRoundRect(rrect, pillPaint);
         }
 
+        if (hasIcon)
+        {
+            DrawStatusIcon(canvas, kw, iconCx, iconCy, iconSize, iconColor);
+        }
+
         canvas.DrawText(spaced, penX, baselineY, textPaint);
         canvas.Flush();
+    }
+
+    /// <summary>Maps banner text to a status keyword used to pick the icon (empty = no icon).</summary>
+    private static string StatusKeyword(string text)
+    {
+        var upper = text.ToUpperInvariant();
+        foreach (var k in new[] { "RETURNING", "CANCELED", "AIRING", "ENDED", "NEW" })
+        {
+            if (upper.Contains(k, StringComparison.Ordinal))
+            {
+                return k;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>Draws a small vector status icon centred at (cx, cy) within a box of side <paramref name="size"/>.</summary>
+    private static void DrawStatusIcon(SKCanvas canvas, string keyword, float cx, float cy, float size, SKColor color)
+    {
+        float r = size / 2f;
+        using var stroke = new SKPaint
+        {
+            IsAntialias = true,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = Math.Max(1.5f, size * 0.13f),
+            StrokeCap = SKStrokeCap.Round,
+            StrokeJoin = SKStrokeJoin.Round,
+            Color = color,
+        };
+        using var fill = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill, Color = color };
+
+        switch (keyword)
+        {
+            case "NEW": // five-point star
+            {
+                using var path = new SKPath();
+                float inner = r * 0.42f;
+                for (int i = 0; i < 10; i++)
+                {
+                    double ang = (-Math.PI / 2) + (i * Math.PI / 5);
+                    float rad = (i % 2 == 0) ? r : inner;
+                    float x = cx + (rad * (float)Math.Cos(ang));
+                    float y = cy + (rad * (float)Math.Sin(ang));
+                    if (i == 0)
+                    {
+                        path.MoveTo(x, y);
+                    }
+                    else
+                    {
+                        path.LineTo(x, y);
+                    }
+                }
+
+                path.Close();
+                canvas.DrawPath(path, fill);
+                break;
+            }
+
+            case "ENDED": // checkmark
+            {
+                using var path = new SKPath();
+                path.MoveTo(cx - (r * 0.6f), cy + (r * 0.05f));
+                path.LineTo(cx - (r * 0.15f), cy + (r * 0.5f));
+                path.LineTo(cx + (r * 0.65f), cy - (r * 0.5f));
+                canvas.DrawPath(path, stroke);
+                break;
+            }
+
+            case "CANCELED": // cross
+            {
+                float d = r * 0.78f;
+                canvas.DrawLine(cx - d, cy - d, cx + d, cy + d, stroke);
+                canvas.DrawLine(cx - d, cy + d, cx + d, cy - d, stroke);
+                break;
+            }
+
+            case "AIRING": // live dot + broadcast waves
+            {
+                canvas.DrawCircle(cx, cy, r * 0.32f, fill);
+                for (int i = 1; i <= 2; i++)
+                {
+                    float rr = (r * 0.32f) + (i * r * 0.34f);
+                    var oval = new SKRect(cx - rr, cy - rr, cx + rr, cy + rr);
+                    using var wave = new SKPath();
+                    wave.AddArc(oval, -45, 90);
+                    canvas.DrawPath(wave, stroke);
+                }
+
+                break;
+            }
+
+            case "RETURNING": // circular arrow
+            {
+                var oval = new SKRect(cx - r, cy - r, cx + r, cy + r);
+                using var arc = new SKPath();
+                arc.AddArc(oval, -50, 300);
+                canvas.DrawPath(arc, stroke);
+
+                // Arrowhead (filled triangle) at the arc's end.
+                double a = (-50 + 300) * Math.PI / 180.0;
+                float ex = cx + (r * (float)Math.Cos(a));
+                float ey = cy + (r * (float)Math.Sin(a));
+                float tx = -(float)Math.Sin(a);
+                float ty = (float)Math.Cos(a);
+                float nx = (float)Math.Cos(a);
+                float ny = (float)Math.Sin(a);
+                float s = r * 0.62f;
+                using var head = new SKPath();
+                head.MoveTo(ex + (tx * s), ey + (ty * s));
+                head.LineTo(ex + (nx * s * 0.7f), ey + (ny * s * 0.7f));
+                head.LineTo(ex - (nx * s * 0.7f), ey - (ny * s * 0.7f));
+                head.Close();
+                canvas.DrawPath(head, fill);
+                break;
+            }
+        }
     }
 
     /// <summary>
