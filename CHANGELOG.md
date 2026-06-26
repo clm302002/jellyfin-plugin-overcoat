@@ -6,6 +6,10 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.2.0] — 2026-06-26
+
 ### Added
 - **Own log file**: each run writes `Overcoat_<date>.log` into Jellyfin's log directory, so it shows
   as its own entry under Dashboard → Logs (run start, data-set counts, per-item results, restores,

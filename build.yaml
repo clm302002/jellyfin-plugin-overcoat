@@ -3,7 +3,7 @@
 # and to generate / update the repository manifest JSON that users add to Jellyfin.
 name: "Overcoat"
 guid: "604f4e22-a0a1-490d-b383-d60336318eaa"
-version: "0.1.0.0"
+version: "0.2.0.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 owner: "clm302002"

@@ -88,11 +88,12 @@ The current focus is TV status overlays, with badges and movie overlays being ac
 | Area                    | Status      |
 | ----------------------- | ----------- |
 | TV status banners       | Working     |
-| Jellyfin Trending badge | In progress |
-| TVDB Trending badge     | In progress |
-| IMDb Top 250 badge      | In progress |
-| Movie overlays          | In progress |
-| Settings page polish    | Planned     |
+| Jellyfin Trending badge | Working     |
+| TVDB Trending badge     | Working     |
+| IMDb Top 250 badge      | Working     |
+| Movie overlays (badges) | Working     |
+| Settings page           | Working     |
+| Settings customization  | In progress |
 
 ---
 
