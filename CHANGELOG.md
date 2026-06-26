@@ -6,7 +6,19 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+- **AIRING next-episode date** — the AIRING banner can now show when the next episode drops, like
+  RETURNING does for the next season.
+- **Per-status date controls** (Banners tab → "Status dates"): AIRING and RETURNING each get their own
+  **format** (Date `6/28` / Day of week `Tue` / Countdown `3d`) and **window** (Never / 30 / 60 / 90 /
+  Always-when-known) — the date only appears when the next episode is within the window.
+
+### Changed
+- The Banners tab controls are now organised into labelled groups (Style · Shape & layout · Effects ·
+  Status dates · Colours · Statuses).
+- A banner's shown date now stays current: a changed next-air date re-renders the poster on the next
+  run (previously the returning date was collapsed in the skip-cache and could go stale). Countdown
+  format therefore re-renders date-bearing shows ~daily; Date/Day only when the date actually changes.
 
 ## [0.4.0] — 2026-06-26
 

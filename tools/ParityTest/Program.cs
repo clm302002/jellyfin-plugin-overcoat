@@ -41,6 +41,10 @@ var styleMatrix = new (string Label, OverlayRenderer.BannerOptions Opts, string 
     ("font-mono",        new() { Style = "solid", Shape = "pill",   Position = "top", Font = "mono",  IconKey = "AIRING" }, "AIRING"),
     ("neon-glow-low",    new() { Style = "neon",  Shape = "pill",   Position = "top", NeonGlow = 10, IconKey = "ENDED" }, "ENDED"),
     ("neon-glow-high",   new() { Style = "neon",  Shape = "pill",   Position = "top", NeonGlow = 100, IconKey = "RETURNING" }, "RETURNING 6/26"),
+    ("airing-date",      new() { Style = "neon",  Shape = "pill",   Position = "top", IconKey = "AIRING" }, "AIRING 6/28"),
+    ("airing-day",       new() { Style = "neon",  Shape = "pill",   Position = "top", IconKey = "AIRING" }, "AIRING TUE"),
+    ("airing-countdown", new() { Style = "neon",  Shape = "pill",   Position = "top", IconKey = "AIRING" }, "AIRING 3D"),
+    ("returning-day",    new() { Style = "glass", Shape = "pill",   Position = "top", IconKey = "RETURNING" }, "RETURNING MON"),
 };
 foreach (var (label, opts, text) in styleMatrix)
 {

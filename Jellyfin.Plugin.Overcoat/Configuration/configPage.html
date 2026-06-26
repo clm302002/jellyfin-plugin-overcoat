@@ -69,6 +69,11 @@
             margin-top: 1em; padding: .8em 1em; border-radius: .5em;
             border: 1px solid rgba(0,164,220,.35); background: rgba(0,164,220,.06);
         }
+        #OvercoatConfigPage .ovcGroup {
+            margin: 1.5em 0 .6em; font-size: .82em; font-weight: 600; letter-spacing: .05em;
+            text-transform: uppercase; opacity: .7; border-bottom: 1px solid rgba(255,255,255,.12); padding-bottom: .3em;
+        }
+        #OvercoatConfigPage .ovcGroup.ovcGroupFirst { margin-top: .4em; }
         #OvercoatConfigPage .ovcStatusRows { display: flex; flex-direction: column; gap: .55em; margin: .5em 0; }
         #OvercoatConfigPage .ovcStatusRow { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: .8em; }
         #OvercoatConfigPage .ovcStatusRow .checkboxContainer { margin: 0; }
@@ -164,6 +169,8 @@
                             <p class="fieldDescription">
                                 Controls the NEW / AIRING / RETURNING / ENDED / CANCELED banner drawn on TV posters.
                             </p>
+
+                            <h4 class="ovcGroup ovcGroupFirst">Style</h4>
                             <div class="selectContainer">
                                 <label class="selectLabel" for="BannerStyle">Style</label>
                                 <select is="emby-select" id="BannerStyle">
@@ -210,6 +217,7 @@
                                 <div class="fieldDescription">"Display" is Overcoat's bundled font. The others use the server's fonts (exact look depends on what's installed).</div>
                             </div>
 
+                            <h4 class="ovcGroup">Shape &amp; layout</h4>
                             <div class="selectContainer" style="margin-top:1em;">
                                 <label class="selectLabel" for="BannerShape">Shape</label>
                                 <select is="emby-select" id="BannerShape">
@@ -245,6 +253,7 @@
                                 <input is="emby-input" type="number" id="BannerFontScale" min="0.5" max="2" step="0.05" />
                                 <div class="fieldDescription">Multiplier on the calibrated size. 1.0 = default, 1.2 = 20% bigger, 0.8 = smaller.</div>
                             </div>
+                            <h4 class="ovcGroup">Effects</h4>
                             <div class="ovcCheck" style="margin-top:1em;">
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerIcons" /><span>Show status icons</span></label>
                                 <div class="fieldDescription">Draw the ★ / ⟳ / ✓ icon beside the banner text. Off = text only.</div>
@@ -258,7 +267,48 @@
                                 <input is="emby-input" type="number" id="BannerShadowStrength" min="0" max="100" step="1" />
                             </div>
 
-                            <div style="margin-top:1em;">
+                            <h4 class="ovcGroup">Status dates</h4>
+                            <p class="fieldDescription" style="margin-top:0;">When a show's next episode is close, append its date to the banner (e.g. "AIRING 6/28"). Configured separately for Airing and Returning.</p>
+                            <div class="selectContainer" style="margin-top:.6em;">
+                                <label class="selectLabel" for="AiringDateFormat">Airing — format</label>
+                                <select is="emby-select" id="AiringDateFormat">
+                                    <option value="date">Date (6/28)</option>
+                                    <option value="day">Day of week (Tue)</option>
+                                    <option value="countdown">Countdown (3d)</option>
+                                </select>
+                            </div>
+                            <div class="selectContainer" style="margin-top:.6em;">
+                                <label class="selectLabel" for="AiringDateWindowDays">Airing — show date when within</label>
+                                <select is="emby-select" id="AiringDateWindowDays">
+                                    <option value="-1">Never</option>
+                                    <option value="30">30 days</option>
+                                    <option value="60">60 days</option>
+                                    <option value="90">90 days</option>
+                                    <option value="100000">Always (when known)</option>
+                                </select>
+                            </div>
+                            <div class="selectContainer" style="margin-top:.6em;">
+                                <label class="selectLabel" for="ReturningDateFormat">Returning — format</label>
+                                <select is="emby-select" id="ReturningDateFormat">
+                                    <option value="date">Date (7/14)</option>
+                                    <option value="day">Day of week (Mon)</option>
+                                    <option value="countdown">Countdown (21d)</option>
+                                </select>
+                            </div>
+                            <div class="selectContainer" style="margin-top:.6em;">
+                                <label class="selectLabel" for="ReturningDateWindowDays">Returning — show date when within</label>
+                                <select is="emby-select" id="ReturningDateWindowDays">
+                                    <option value="-1">Never</option>
+                                    <option value="30">30 days</option>
+                                    <option value="60">60 days</option>
+                                    <option value="90">90 days</option>
+                                    <option value="100000">Always (when known)</option>
+                                </select>
+                                <div class="fieldDescription">The window can't be shown in the preview (it depends on real air dates) — only the format is previewed.</div>
+                            </div>
+
+                            <h4 class="ovcGroup">Colours</h4>
+                            <div style="margin-top:.4em;">
                                 <label class="inputLabel inputLabelUnfocused">Status colours</label>
                                 <div class="ovcColors">
                                     <label><input type="color" id="ColorNew" /><span>New</span></label>
@@ -270,7 +320,8 @@
                                 <div class="fieldDescription">Tap a swatch to recolour that status. Switch the preview to that status to see it.</div>
                             </div>
 
-                            <div style="margin-top:1.2em;">
+                            <h4 class="ovcGroup">Statuses</h4>
+                            <div style="margin-top:.4em;">
                                 <label class="inputLabel inputLabelUnfocused">Per-status: show &amp; label</label>
                                 <div class="ovcStatusRows">
                                     <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowNew" /><span>New</span></label><input is="emby-input" type="text" id="LabelNew" /></div>
@@ -497,10 +548,20 @@
             // Build the preview image URL from the current banner controls (server renders it). The
             // preview shows the custom label text for the selected status, with the canonical identity
             // passed as iconKey so the icon/colour stay correct even after a rename.
+            // Sample next-air suffix for the preview, reflecting the chosen format (AIRING/RETURNING only).
+            function sampleSuffix(st) {
+                var fmtId = st === 'AIRING' ? 'AiringDateFormat' : (st === 'RETURNING' ? 'ReturningDateFormat' : null);
+                if (!fmtId) { return ''; }
+                var fmt = val(fmtId);
+                if (fmt === 'day') { return st === 'AIRING' ? 'Tue' : 'Mon'; }
+                if (fmt === 'countdown') { return st === 'AIRING' ? '3d' : '21d'; }
+                return st === 'AIRING' ? '6/28' : '7/14'; // date
+            }
             function bannerPreviewUrl() {
                 var st = previewStatus;
                 var label = val(STATUS_LABEL[st]) || st;
-                var text = (st === 'RETURNING') ? (label + ' 6/26') : label;
+                var suf = sampleSuffix(st);
+                var text = suf ? (label + ' ' + suf) : label;
                 var qs = [
                     'style=' + encodeURIComponent(val('BannerStyle')),
                     'shape=' + encodeURIComponent(val('BannerShape')),
@@ -669,6 +730,10 @@
                     page.querySelector('#BannerPosition').value = config.BannerPosition || 'top';
                     page.querySelector('#BannerFontScale').value = config.BannerFontScale || 1.0;
                     page.querySelector('#BannerIcons').checked = config.BannerIcons !== false;
+                    page.querySelector('#AiringDateFormat').value = config.AiringDateFormat || 'date';
+                    page.querySelector('#AiringDateWindowDays').value = String(config.AiringDateWindowDays != null ? config.AiringDateWindowDays : 90);
+                    page.querySelector('#ReturningDateFormat').value = config.ReturningDateFormat || 'date';
+                    page.querySelector('#ReturningDateWindowDays').value = String(config.ReturningDateWindowDays != null ? config.ReturningDateWindowDays : 90);
                     page.querySelector('#ColorNew').value = config.ColorNew || '#5EBD3E';
                     page.querySelector('#ColorAiring').value = config.ColorAiring || '#149BDA';
                     page.querySelector('#ColorReturning').value = config.ColorReturning || '#A020F0';
@@ -729,6 +794,12 @@
                 config.BannerPosition = page.querySelector('#BannerPosition').value;
                 config.BannerFontScale = parseFloat(page.querySelector('#BannerFontScale').value) || 1.0;
                 config.BannerIcons = page.querySelector('#BannerIcons').checked;
+                config.AiringDateFormat = page.querySelector('#AiringDateFormat').value;
+                config.AiringDateWindowDays = parseInt(page.querySelector('#AiringDateWindowDays').value, 10);
+                if (isNaN(config.AiringDateWindowDays)) { config.AiringDateWindowDays = 90; }
+                config.ReturningDateFormat = page.querySelector('#ReturningDateFormat').value;
+                config.ReturningDateWindowDays = parseInt(page.querySelector('#ReturningDateWindowDays').value, 10);
+                if (isNaN(config.ReturningDateWindowDays)) { config.ReturningDateWindowDays = 90; }
                 config.ColorNew = page.querySelector('#ColorNew').value;
                 config.ColorAiring = page.querySelector('#ColorAiring').value;
                 config.ColorReturning = page.querySelector('#ColorReturning').value;
@@ -808,6 +879,7 @@
                     ['BannerStyle', 'BannerShape', 'BannerPosition', 'BannerAlign', 'BannerFullWidth',
                      'BannerFont', 'BannerFontScale', 'BannerIcons', 'BannerShadow', 'BannerShadowStrength',
                      'GlassTint', 'GlassTintStrength', 'GlassBlur', 'NeonGlow',
+                     'AiringDateFormat', 'ReturningDateFormat',
                      'ColorNew', 'ColorAiring', 'ColorReturning', 'ColorEnded', 'ColorCanceled',
                      'LabelNew', 'LabelAiring', 'LabelReturning', 'LabelEnded', 'LabelCanceled'].forEach(function (id) {
                         var el = page.querySelector('#' + id);

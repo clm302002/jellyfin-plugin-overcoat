@@ -243,9 +243,9 @@ public class OverlayTask : IScheduledTask
     {
         // Status banner (TV only, when the library has status overlays on). Fetch the TMDB status
         // once and reuse it for the poster fallback below — avoids a second /tv/{id} call.
-        // `text` is what's rendered (custom label + date); `iconKey` is the canonical identity used
-        // for the icon/colour; `cacheText` is the date-free label used for change detection so the
-        // returning date drifting day-to-day doesn't churn reprocessing.
+        // `text` is what's rendered (custom label + optional next-air date); `iconKey` is the canonical
+        // identity used for the icon/colour; `cacheText` carries the full text so a changed date
+        // re-renders (kept current).
         string? text = null;
         string? cacheText = null;
         string iconKey = string.Empty;
@@ -257,12 +257,13 @@ public class OverlayTask : IScheduledTask
             if (info is not null)
             {
                 statusKey = info.Status ?? "tv";
-                if (StatusOverlayResolver.ResolveIdentity(info) is { } res && config.IsStatusShown(res.Identity))
+                if (StatusOverlayResolver.ResolveIdentity(info) is { } identity && config.IsStatusShown(identity))
                 {
-                    iconKey = res.Identity;
-                    var label = config.LabelForStatus(res.Identity);
-                    cacheText = label;
-                    text = string.IsNullOrEmpty(res.DateSuffix) ? label : $"{label} {res.DateSuffix}";
+                    iconKey = identity;
+                    var label = config.LabelForStatus(identity);
+                    var suffix = BuildDateSuffix(identity, info, config);
+                    text = string.IsNullOrEmpty(suffix) ? label : $"{label} {suffix}";
+                    cacheText = text;
                 }
             }
         }
@@ -421,6 +422,43 @@ public class OverlayTask : IScheduledTask
         _logger.LogInformation("Overcoat: '{Name}' → banner='{Text}' badges=[{Badges}].", item.Name, text ?? "-", string.Join(",", badgeSet));
         file.Info($"{item.Name} → banner='{text ?? "-"}' badges=[{string.Join(",", badgeSet)}]");
         return true;
+    }
+
+    /// <summary>
+    /// Builds the next-air date suffix for an AIRING/RETURNING banner, honouring that status's
+    /// configured window + format. Returns null when there's no date to show (other statuses, no
+    /// next-air data, or outside the window).
+    /// </summary>
+    private static string? BuildDateSuffix(string identity, TmdbService.TvStatusInfo info, PluginConfiguration config)
+    {
+        string format;
+        int window;
+        if (identity == "AIRING")
+        {
+            format = config.AiringDateFormat;
+            window = config.AiringDateWindowDays;
+        }
+        else if (identity == "RETURNING")
+        {
+            format = config.ReturningDateFormat;
+            window = config.ReturningDateWindowDays;
+        }
+        else
+        {
+            return null;
+        }
+
+        if (info.DaysUntilAir is not { } days || days < 0 || days > window)
+        {
+            return null;
+        }
+
+        return format?.ToLowerInvariant() switch
+        {
+            "day" => string.IsNullOrEmpty(info.NextAirDay) ? null : info.NextAirDay,
+            "countdown" => $"{days}d",
+            _ => string.IsNullOrEmpty(info.NextAirDate) ? null : info.NextAirDate, // "date"
+        };
     }
 
     /// <summary>Clean source poster: the Jellyfin file if present; for TV, else the TMDB poster (movies have no fallback).</summary>

@@ -254,9 +254,8 @@ public sealed class ProcessingState
         }
     }
 
-    private static string OverlayCategory(string? text)
-    {
-        var t = (text ?? string.Empty).ToUpperInvariant();
-        return t.StartsWith("RETURNING", StringComparison.Ordinal) ? "RETURNING" : t;
-    }
+    // The exact banner text (incl. any date/day/countdown suffix) drives reprocessing, so a changed
+    // next-air date re-renders and stays current. (Was previously collapsed for RETURNING to avoid
+    // date churn; the date is now a wanted, configurable feature.)
+    private static string OverlayCategory(string? text) => (text ?? string.Empty).ToUpperInvariant();
 }

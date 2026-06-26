@@ -52,6 +52,20 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets a value indicating whether the per-status icon is drawn beside the banner text.</summary>
     public bool BannerIcons { get; set; } = true;
 
+    // --- Status date display (next-episode / returning date) ---
+
+    /// <summary>Gets or sets how the AIRING next-episode date is shown: "date" (6/28), "day" (Tue), or "countdown" (3d).</summary>
+    public string AiringDateFormat { get; set; } = "date";
+
+    /// <summary>Gets or sets the AIRING date window in days: show the next-episode date only when it's within this many days. -1 = never, large = always-when-known.</summary>
+    public int AiringDateWindowDays { get; set; } = 90;
+
+    /// <summary>Gets or sets how the RETURNING date is shown: "date" (7/14), "day" (Mon), or "countdown" (21d).</summary>
+    public string ReturningDateFormat { get; set; } = "date";
+
+    /// <summary>Gets or sets the RETURNING date window in days: show the date only when the next episode is within this many days. -1 = never, large = always-when-known.</summary>
+    public int ReturningDateWindowDays { get; set; } = 90;
+
     /// <summary>Gets or sets the banner colour for NEW (hex).</summary>
     public string ColorNew { get; set; } = "#5EBD3E";
 

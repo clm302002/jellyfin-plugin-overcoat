@@ -30,6 +30,7 @@ public sealed class TmdbService
         string? Status,
         int? DaysSinceFirstAir,
         string? NextAirDate, // "M/D"
+        string? NextAirDay,  // abbreviated weekday, e.g. "Tue"
         int? DaysUntilAir,
         int? DaysSinceLastAir,
         string? PosterPath); // TMDB poster_path, for the no-Jellyfin-poster fallback
@@ -126,6 +127,7 @@ public sealed class TmdbService
             }
 
             string? nextDate = null;
+            string? nextDay = null;
             int? daysUntil = null;
             if (root.TryGetProperty("next_episode_to_air", out var next)
                 && next.ValueKind == JsonValueKind.Object
@@ -133,6 +135,7 @@ public sealed class TmdbService
             {
                 daysUntil = (nextAir - today).Days;
                 nextDate = $"{nextAir.Month}/{nextAir.Day}";
+                nextDay = nextAir.ToString("ddd", CultureInfo.InvariantCulture);
             }
 
             int? daysSinceLast = null;
@@ -145,7 +148,7 @@ public sealed class TmdbService
 
             string? posterPath = root.TryGetProperty("poster_path", out var pp) ? pp.GetString() : null;
 
-            return new TvStatusInfo(status, daysSinceFirst, nextDate, daysUntil, daysSinceLast, posterPath);
+            return new TvStatusInfo(status, daysSinceFirst, nextDate, nextDay, daysUntil, daysSinceLast, posterPath);
         }
         catch (Exception ex)
         {
