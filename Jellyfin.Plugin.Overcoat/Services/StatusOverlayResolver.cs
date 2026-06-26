@@ -15,8 +15,6 @@ namespace Jellyfin.Plugin.Overcoat.Services;
 public static class StatusOverlayResolver
 {
     private const int NewMaxDaysSinceFirstAir = 90;
-    private const int MidSeasonDays = 14;   // last episode within this many days → still AIRING
-    private const int ImminentDays = 3;     // next episode within this many days → AIRING (not RETURNING)
 
     /// <summary>Identity-only resolve (no date). Convenience wrapper over <see cref="ResolveIdentity"/>.</summary>
     public static string? Resolve(TmdbService.TvStatusInfo info) => ResolveIdentity(info);
@@ -72,13 +70,14 @@ public static class StatusOverlayResolver
             return null;
         }
 
-        // Refine the active "AIRING" base: a show that's mid-season (last episode recent) or has an
-        // imminent next episode stays AIRING; otherwise it's between seasons → RETURNING.
+        // Refine the active base: AIRING means an episode is out *today* (it airs today, or aired
+        // today and the next has rolled forward). Any other active state is RETURNING — the caller
+        // shows the upcoming episode/season date for that.
         if (baseText == "AIRING")
         {
-            bool midSeason = info.DaysSinceLastAir is { } sinceLast && sinceLast <= MidSeasonDays;
-            bool imminent = info.DaysUntilAir is { } until && until >= 0 && until <= ImminentDays;
-            return (midSeason || imminent) ? "AIRING" : "RETURNING";
+            bool airsToday = info.DaysUntilAir is 0;
+            bool airedToday = info.DaysSinceLastAir is 0;
+            return (airsToday || airedToday) ? "AIRING" : "RETURNING";
         }
 
         return baseText;
