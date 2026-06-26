@@ -290,7 +290,7 @@ public class OverlayTask : IScheduledTask
             renderer.DrawStatusBanner(bmp, text);
         }
 
-        badges.Apply(renderer, bmp, badgeSet, config.BadgeStackOffset);
+        badges.Apply(renderer, bmp, badgeSet);
         var png = OverlayRenderer.EncodePng(bmp);
 
         if (config.DryRun)

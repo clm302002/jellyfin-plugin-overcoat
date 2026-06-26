@@ -9,7 +9,9 @@ All notable changes to Overcoat are documented here. Format follows
 ### Added
 - **Badges**: watch-history (Jellyfin play activity), TMDB-trending, and IMDB Top 250 — applied to
   TV and movie posters, gated by per-library toggles and the global badge switch. Watch-history is
-  resolved in-process from recent play data; trending/Top 250 from TMDB.
+  resolved in-process from recent play data; trending/Top 250 from TMDB. The side ribbons use
+  cropped art and stack **flush** (each placed beneath the previous by its real height), so they sit
+  close together and can be repositioned later.
 - **Movie pipeline**: movies get badges only (no status banner), with TMDB id from ProviderIds
   (Tmdb, or Imdb via /find).
 - **Skip cache + originals vault + self-heal** (`ProcessingState`): the clean original poster is

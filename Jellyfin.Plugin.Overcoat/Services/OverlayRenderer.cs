@@ -268,6 +268,36 @@ public sealed class OverlayRenderer : IDisposable
         canvas.Flush();
     }
 
+    /// <summary>
+    /// Draws a **cropped** ribbon badge (just the ribbon graphic, not a full-poster canvas) on one
+    /// side at an explicit top-Y, scaled uniformly by <c>height/1500</c> (preserves aspect — no
+    /// distortion on non-2:3 posters). Returns the placed height so the caller can stack the next
+    /// badge flush directly beneath it. Used by <see cref="BadgeCompositor"/> for the side ribbons.
+    /// </summary>
+    public int DrawRibbonBadge(SKBitmap poster, byte[] badgeBytes, bool rightSide, int topY)
+    {
+        using var badge = SKBitmap.Decode(badgeBytes);
+        if (badge is null)
+        {
+            return 0;
+        }
+
+        var scale = poster.Height / (float)BadgeDesignHeight;
+        int w = Math.Max(1, (int)(badge.Width * scale));
+        int h = Math.Max(1, (int)(badge.Height * scale));
+        using var resized = badge.Resize(new SKImageInfo(w, h), SKFilterQuality.High);
+        if (resized is null)
+        {
+            return 0;
+        }
+
+        int x = rightSide ? poster.Width - w : 0;
+        using var canvas = new SKCanvas(poster);
+        canvas.DrawBitmap(resized, x, topY);
+        canvas.Flush();
+        return h;
+    }
+
     private static (byte R, byte G, byte B) HexToRgb(string hex)
     {
         var h = hex.TrimStart('#');
