@@ -6,6 +6,10 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.4.0] — 2026-06-26
+
 ### Added
 - **Badges tab** with a live preview studio (mirrors the Banners tab): adjust the side badges'
   **side** (left/right), **vertical anchor** (top/middle/bottom), **size**, and **gap**, and see them
