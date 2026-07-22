@@ -953,6 +953,21 @@
                 if (!el) { return; }
                 el.textContent = '';
 
+                // The panel exists to answer one question, so answer it in a sentence first. Reading
+                // four figures and doing the subtraction yourself is not an answer.
+                var verdict = document.createElement('p');
+                verdict.className = 'ovcVaultVerdict';
+                if (!h.TrackedItems) {
+                    verdict.textContent = 'Overcoat has not overlaid any posters yet, so there is nothing to restore.';
+                } else if (!h.TrackedWithoutOriginal) {
+                    verdict.textContent = 'All ' + h.TrackedItems + ' posters Overcoat manages can be put back.';
+                } else {
+                    verdict.className += ' ovcVaultVerdictWarn';
+                    verdict.textContent = h.TrackedWithoutOriginal + ' of ' + h.TrackedItems
+                        + ' posters have no saved copy and cannot be restored — see "If something looks wrong" below.';
+                }
+                el.appendChild(verdict);
+
                 function stat(label, value, tone) {
                     var d = document.createElement('div');
                     d.className = 'ovcStat' + (tone ? ' ' + tone : '');
@@ -971,11 +986,14 @@
                     el.appendChild(d);
                 }
 
-                stat('posters Overcoat manages', h.TrackedItems);
-                stat('can be restored', h.TrackedWithOriginal, h.TrackedWithOriginal ? 'ovcStatGood' : '');
-                // The only figure that represents actual risk: overlaid, with no clean copy saved.
-                stat('no saved copy', h.TrackedWithoutOriginal, h.TrackedWithoutOriginal ? 'ovcStatWarn' : '');
-                stat('saved copies on disk', h.VaultSizeDisplay);
+                // Labels are written so the number reads naturally in front of them — "0 without a
+                // saved copy", not "0 no saved copy" — because they sit beside the value whether the
+                // stylesheet loaded or not.
+                stat('posters managed', h.TrackedItems);
+                stat('restorable', h.TrackedWithOriginal, h.TrackedWithOriginal ? 'ovcStatGood' : '');
+                // The only figure representing real risk: overlaid, with no clean copy saved.
+                stat('without a saved copy', h.TrackedWithoutOriginal, h.TrackedWithoutOriginal ? 'ovcStatWarn' : '');
+                stat('on disk', h.VaultSizeDisplay);
                 if (h.OrphanedOriginals) {
                     stat('for items no longer in your library', h.OrphanedOriginals);
                 }
@@ -1160,8 +1178,24 @@
                 // viewshow fires on every visit; wire handlers ONCE so clicks don't stack/duplicate.
                 if (!page.dataset.ovcWired) {
                     page.dataset.ovcWired = '1';
+                    // Pin the stylesheet URL to the installed plugin version. The endpoint sends an
+                    // ETag so a browser SHOULD revalidate, but a browser still holding a copy cached
+                    // under an older long max-age never asks — it just serves the stale file, and the
+                    // page renders new markup against old CSS with nothing to hint that a hard refresh
+                    // would fix it. A version in the URL sidesteps that: a new version is a new URL.
                     var css = page.querySelector('#OvercoatStylesheet');
-                    if (css && window.ApiClient && ApiClient.getUrl) { css.href = ApiClient.getUrl('Overcoat/Configuration/configPage.css'); }
+                    if (css && window.ApiClient && ApiClient.getUrl) {
+                        var cssUrl = ApiClient.getUrl('Overcoat/Configuration/configPage.css');
+                        css.href = cssUrl;
+                        ApiClient.getJSON(ApiClient.getUrl('Plugins')).then(function (plugins) {
+                            var mine = (plugins || []).filter(function (x) {
+                                return (x.Id || '').replace(/-/g, '').toLowerCase() === pluginId.replace(/-/g, '').toLowerCase();
+                            })[0];
+                            if (mine && mine.Version) {
+                                css.href = cssUrl + (cssUrl.indexOf('?') === -1 ? '?' : '&') + 'v=' + encodeURIComponent(mine.Version);
+                            }
+                        }, function () { /* styling only — never surface this */ });
+                    }
                     detectTheme();
                     wireTabs();
                     page.querySelector('#OvercoatDescriptions').addEventListener('click', toggleDescriptions);

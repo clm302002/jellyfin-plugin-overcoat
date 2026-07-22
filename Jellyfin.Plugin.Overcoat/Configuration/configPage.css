@@ -138,6 +138,7 @@
 #OvercoatConfigPage .ovcVaultStats {
   display: flex;
   flex-wrap: wrap;
+  align-items: stretch;
   gap: 0.75rem;
   margin: 0.75rem 0 1rem;
 }
@@ -194,4 +195,15 @@
 
 #OvercoatConfigPage .ovcRecoveryHelp li + li {
   margin-top: 0.45rem;
+}
+
+/* Recovery: the sentence answers the question; the tiles below are supporting detail. */
+#OvercoatConfigPage .ovcVaultVerdict {
+  width: 100%;
+  margin: 0 0 0.15rem;
+  font-size: 0.98rem;
+}
+
+#OvercoatConfigPage .ovcVaultVerdictWarn {
+  color: #ff8a80;
 }

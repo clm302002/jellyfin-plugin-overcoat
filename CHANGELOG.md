@@ -6,7 +6,15 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Fixed
+- **The Recovery panel now states its conclusion**, e.g. *"All 545 posters Overcoat manages can be
+  put back."* Reading four figures and doing the subtraction yourself was not an answer to the
+  question the panel exists for. The figures stay underneath as detail, with labels reworded so the
+  number reads naturally in front of them — "0 without a saved copy" rather than "0 no saved copy".
+- **The settings page can no longer render against a stale stylesheet.** The CSS URL now carries the
+  installed plugin version, so a new version is a new URL. Revalidation headers alone weren't enough:
+  a browser still holding a copy cached under an older long-lived header never asks, and silently
+  serves the old file against new markup.
 
 ## [0.7.1] — 2026-07-22
 
