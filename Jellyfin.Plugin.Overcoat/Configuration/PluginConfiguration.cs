@@ -50,14 +50,11 @@ public class PluginConfiguration : BasePluginConfiguration
     /// </summary>
     public bool CacheEnabled { get; set; } = true;
 
-    /// <summary>Gets or sets a value indicating whether the clean original poster is vaulted before overlaying.</summary>
-    public bool BackupOriginals { get; set; } = true;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether orphaned cache entries / vaulted originals for
-    /// items no longer in Jellyfin are pruned at the end of a full run.
-    /// </summary>
-    public bool CleanupOrphans { get; set; }
+    // NOTE: `BackupOriginals` and `CleanupOrphans` used to live here. Both were rendered on the
+    // settings page, saved and loaded — and read by nothing. The clean original is always vaulted
+    // (that is what makes Restore possible), and orphan pruning was never implemented. They were
+    // removed in v0.6.1 rather than left lying to users. XmlSerializer ignores the now-unknown
+    // elements in existing config files, so no migration is needed.
 
     /// <summary>Gets or sets a value indicating whether the task computes overlays but skips saving (diagnostics).</summary>
     public bool DryRun { get; set; }

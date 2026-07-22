@@ -59,6 +59,13 @@ public sealed class TmdbService
     /// </summary>
     public int FailedRequests { get; private set; }
 
+    /// <summary>
+    /// A set of TMDB ids plus whether the fetch that produced it failed. An empty set with
+    /// <see cref="Failed"/> set means "we don't know what's in this set", which is very different
+    /// from "this set is empty" — the latter legitimately strips badges, the former must not.
+    /// </summary>
+    public readonly record struct IdSetResult(HashSet<int> Ids, bool Failed);
+
     /// <summary>Air-date/status snapshot for a show. Mirrors what <c>process_show</c> gathers from TMDB.</summary>
     public sealed record TvStatusInfo(
         string? Status,
@@ -229,40 +236,57 @@ public sealed class TmdbService
     }
 
     /// <summary>Trending TMDB ids. <paramref name="mediaType"/> is "tv" or "movie"; window "day"/"week".</summary>
-    public async Task<HashSet<int>> GetTrendingIdsAsync(string mediaType, string window, CancellationToken ct)
+    public async Task<IdSetResult> GetTrendingIdsAsync(string mediaType, string window, CancellationToken ct)
     {
         var ids = new HashSet<int>();
         try
         {
             var w = window == "day" ? "day" : "week";
             var url = $"{Base}/trending/{mediaType}/{w}?api_key={_apiKey}";
-            using var doc = await GetJsonAsync(url, ct).ConfigureAwait(false);
-            if (doc is not null && doc.RootElement.TryGetProperty("results", out var results))
+            var (doc, outcome) = await FetchJsonAsync(url, ct).ConfigureAwait(false);
+            if (doc is null)
             {
-                foreach (var r in results.EnumerateArray())
+                // Couldn't reach TMDB. An empty set here is NOT "nothing is trending" — callers must
+                // not strip badges (or revert badge-only posters) on the strength of it.
+                return new IdSetResult(ids, outcome == FetchOutcome.Failed);
+            }
+
+            using (doc)
+            {
+                if (doc.RootElement.TryGetProperty("results", out var results))
                 {
-                    if (r.TryGetProperty("id", out var idEl) && idEl.TryGetInt32(out var id))
+                    foreach (var r in results.EnumerateArray())
                     {
-                        ids.Add(id);
+                        if (r.TryGetProperty("id", out var idEl) && idEl.TryGetInt32(out var id))
+                        {
+                            ids.Add(id);
+                        }
                     }
                 }
             }
+
+            return new IdSetResult(ids, false);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "TMDB trending {Type}/{Window} failed", mediaType, window);
+            FailedRequests++;
+            _logger.LogWarning(ex, "TMDB trending {Type}/{Window} failed; badges from it will be treated as unknown.", mediaType, window);
+            return new IdSetResult(ids, true);
         }
-
-        return ids;
     }
 
     /// <summary>All TMDB ids in a TMDB list (paginated). Used for the IMDB Top 250 lists.</summary>
-    public async Task<HashSet<int>> GetListIdsAsync(string listId, CancellationToken ct)
+    public async Task<IdSetResult> GetListIdsAsync(string listId, CancellationToken ct)
     {
         var ids = new HashSet<int>();
         if (string.IsNullOrWhiteSpace(listId))
         {
-            return ids;
+            // Not configured — a genuinely empty set, not a failure.
+            return new IdSetResult(ids, false);
         }
 
         try
@@ -273,11 +297,15 @@ public sealed class TmdbService
                 var url = $"{Base}/list/{listId}?api_key={_apiKey}&language=en-US&page={page}";
                 int count = 0;
                 int totalPages = 1;
-                using (var doc = await GetJsonAsync(url, ct).ConfigureAwait(false))
+                var (doc, outcome) = await FetchJsonAsync(url, ct).ConfigureAwait(false);
+                using (doc)
                 {
                     if (doc is null)
                     {
-                        break;
+                        // Bailing out mid-pagination would hand back a partial list that looks
+                        // complete — every id on the unread pages would silently lose its badge.
+                        // Report the whole set as unknown instead.
+                        return new IdSetResult(ids, outcome == FetchOutcome.Failed);
                     }
 
                     var root = doc.RootElement;
@@ -306,13 +334,19 @@ public sealed class TmdbService
 
                 page++;
             }
+
+            return new IdSetResult(ids, false);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "TMDB list {ListId} failed", listId);
+            FailedRequests++;
+            _logger.LogWarning(ex, "TMDB list {ListId} failed; badges from it will be treated as unknown.", listId);
+            return new IdSetResult(ids, true);
         }
-
-        return ids;
     }
 
     private static bool TryGetDate(JsonElement obj, string prop, out DateTime date)

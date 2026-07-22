@@ -62,6 +62,8 @@ public class RestoreOriginalsTask : IScheduledTask
 
         int done = 0;
         int restored = 0;
+        int orphaned = 0;
+        int failed = 0;
         foreach (var id in ids)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -69,6 +71,7 @@ public class RestoreOriginalsTask : IScheduledTask
             {
                 var bytes = await state.ReadOriginalAsync(id, cancellationToken).ConfigureAwait(false);
                 var item = Guid.TryParse(id, out var g) ? _libraryManager.GetItemById(g) : null;
+
                 if (bytes is not null && item is not null)
                 {
                     using var ms = new MemoryStream(bytes);
@@ -79,13 +82,36 @@ public class RestoreOriginalsTask : IScheduledTask
                     restored++;
                     _logger.LogInformation("Overcoat: restored '{Name}'.", item.Name);
                     file.Info("Restored " + item.Name);
-                }
 
-                // Clear the cache entry + vaulted original whether or not the item still exists.
-                state.Remove(id);
+                    // Only now is it safe to drop the vaulted copy — the poster is back.
+                    state.Remove(id);
+                }
+                else if (item is null)
+                {
+                    // The item is genuinely gone from the library, so there is nothing to restore it
+                    // onto. This is the orphan case, and clearing it is the point.
+                    orphaned++;
+                    _logger.LogInformation("Overcoat: item {Id} no longer exists; dropping its vaulted original.", id);
+                    file.Info("Dropped vaulted original for removed item " + id);
+                    state.Remove(id);
+                }
+                else
+                {
+                    // The item exists but its vaulted original couldn't be read. KEEP the entry — it is
+                    // the only clean copy of that poster, and deleting it here would strand the item
+                    // overlaid forever with no way back. (This is what made a restore report 548/549.)
+                    failed++;
+                    _logger.LogError(
+                        "Overcoat: could not read the vaulted original for '{Name}' ({Id}); keeping it so a later run can retry.",
+                        item.Name ?? "?",
+                        id);
+                    file.Error("Could not read vaulted original for " + (item.Name ?? id) + " — kept for retry");
+                }
             }
             catch (Exception ex)
             {
+                // Left in the vault deliberately: a failed restore must stay retryable.
+                failed++;
                 _logger.LogError(ex, "Overcoat: failed restoring item {Id}.", id);
                 file.Error("Restore failed for " + id + " — " + ex.Message);
             }
@@ -97,8 +123,17 @@ public class RestoreOriginalsTask : IScheduledTask
         }
 
         state.Flush();
-        _logger.LogInformation("Overcoat: restore done. {Restored}/{Count} poster(s) restored.", restored, ids.Count);
-        file.Info($"Restore done — {restored}/{ids.Count} poster(s) restored.");
+        _logger.LogInformation(
+            "Overcoat: restore done. {Restored}/{Count} poster(s) restored ({Orphaned} removed item(s) dropped, {Failed} failed and kept for retry).",
+            restored,
+            ids.Count,
+            orphaned,
+            failed);
+        file.Info($"Restore done — {restored}/{ids.Count} poster(s) restored; {orphaned} removed item(s) dropped; {failed} failed and kept for retry.");
+        if (failed > 0)
+        {
+            file.Error($"{failed} poster(s) could not be restored. Their clean originals are still vaulted — re-run this task to retry.");
+        }
     }
 
     /// <inheritdoc />

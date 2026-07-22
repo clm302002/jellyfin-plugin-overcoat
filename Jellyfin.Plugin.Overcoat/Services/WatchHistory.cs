@@ -39,15 +39,22 @@ public sealed class WatchHistory
         _logger = logger;
     }
 
+    /// <summary>
+    /// A set of watched ids plus whether the scan that produced it failed part-way. A partial or
+    /// empty set with <see cref="Failed"/> set means "we don't know what was watched" — callers must
+    /// not strip badges on the strength of it.
+    /// </summary>
+    public readonly record struct WatchedResult(HashSet<Guid> Ids, bool Failed);
+
     /// <summary>Jellyfin SeriesIds of shows with an episode played in the last <paramref name="days"/> days.</summary>
-    public HashSet<Guid> RecentlyWatchedSeriesIds(int days, bool allUsers, string? userId, int maxScan)
+    public WatchedResult RecentlyWatchedSeriesIds(int days, bool allUsers, string? userId, int maxScan)
         => Collect(BaseItemKind.Episode, days, allUsers, userId, maxScan, item => (item as Episode)?.SeriesId);
 
     /// <summary>Jellyfin item ids of movies played in the last <paramref name="days"/> days.</summary>
-    public HashSet<Guid> RecentlyWatchedMovieIds(int days, bool allUsers, string? userId, int maxScan)
+    public WatchedResult RecentlyWatchedMovieIds(int days, bool allUsers, string? userId, int maxScan)
         => Collect(BaseItemKind.Movie, days, allUsers, userId, maxScan, item => item.Id);
 
-    private HashSet<Guid> Collect(
+    private WatchedResult Collect(
         BaseItemKind kind,
         int days,
         bool allUsers,
@@ -57,6 +64,7 @@ public sealed class WatchHistory
     {
         var cutoff = DateTime.UtcNow.AddDays(-days);
         var result = new HashSet<Guid>();
+        var failed = false;
         if (maxScan < PageSize)
         {
             maxScan = PageSize;
@@ -85,7 +93,10 @@ public sealed class WatchHistory
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "Overcoat: watch-history query failed for a user.");
+                    // Partial history is indistinguishable from "nothing watched", which would strip
+                    // watch-history badges. Flag it so the caller can leave those posters alone.
+                    failed = true;
+                    _logger.LogWarning(ex, "Overcoat: watch-history query failed for a user; watch badges will be treated as unknown this run.");
                     break;
                 }
 
@@ -124,13 +135,16 @@ public sealed class WatchHistory
 
             if (!stop && lastPageFull && scanned >= maxScan)
             {
-                _logger.LogInformation(
+                // Also incomplete: in-window plays past the cap were never read, so a missing id here
+                // doesn't mean "not watched". Same hazard as an outright query failure.
+                failed = true;
+                _logger.LogWarning(
                     "Overcoat: watch-history scan hit the {Max}-play safety cap for a user; older in-window plays may be missed. Raise the cap if needed.",
                     maxScan);
             }
         }
 
-        return result;
+        return new WatchedResult(result, failed);
     }
 
     private IEnumerable<JellyfinUser> ResolveUsers(bool allUsers, string? userId)

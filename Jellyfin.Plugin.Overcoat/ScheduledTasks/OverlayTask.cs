@@ -113,12 +113,40 @@ public class OverlayTask : IScheduledTask
         bool NeedMovie(Func<LibraryConfig, bool> f) => b && plans.Any(p => p.Type == "movie" && f(p.Lib));
         var watch = new WatchHistory(_libraryManager, _userManager, _userDataManager, _logger);
 
-        var trendingTv = NeedTv(l => l.TrendingBadge) ? await tmdb.GetTrendingIdsAsync("tv", config.TrendingTimeWindow, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
-        var top250Tv = NeedTv(l => l.ImdbTop250Badge) ? await tmdb.GetListIdsAsync(config.ImdbTop250TvListId, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
-        var watchedSeries = NeedTv(l => l.WatchHistoryBadge) ? watch.RecentlyWatchedSeriesIds(config.WatchHistoryDays, config.WatchHistoryAllUsers, config.WatchHistoryUserId, config.WatchHistoryMaxScan) : new HashSet<Guid>();
-        var trendingMovie = NeedMovie(l => l.TrendingBadge) ? await tmdb.GetTrendingIdsAsync("movie", config.TrendingTimeWindow, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
-        var top250Movie = NeedMovie(l => l.ImdbTop250Badge) ? await tmdb.GetListIdsAsync(config.ImdbTop250MovieListId, cancellationToken).ConfigureAwait(false) : new HashSet<int>();
-        var watchedMovies = NeedMovie(l => l.WatchHistoryBadge) ? watch.RecentlyWatchedMovieIds(config.WatchHistoryDays, config.WatchHistoryAllUsers, config.WatchHistoryUserId, config.WatchHistoryMaxScan) : new HashSet<Guid>();
+        var emptyIds = new TmdbService.IdSetResult(new HashSet<int>(), false);
+        var emptyWatched = new WatchHistory.WatchedResult(new HashSet<Guid>(), false);
+
+        var trendingTvR = NeedTv(l => l.TrendingBadge) ? await tmdb.GetTrendingIdsAsync("tv", config.TrendingTimeWindow, cancellationToken).ConfigureAwait(false) : emptyIds;
+        var top250TvR = NeedTv(l => l.ImdbTop250Badge) ? await tmdb.GetListIdsAsync(config.ImdbTop250TvListId, cancellationToken).ConfigureAwait(false) : emptyIds;
+        var watchedSeriesR = NeedTv(l => l.WatchHistoryBadge) ? watch.RecentlyWatchedSeriesIds(config.WatchHistoryDays, config.WatchHistoryAllUsers, config.WatchHistoryUserId, config.WatchHistoryMaxScan) : emptyWatched;
+        var trendingMovieR = NeedMovie(l => l.TrendingBadge) ? await tmdb.GetTrendingIdsAsync("movie", config.TrendingTimeWindow, cancellationToken).ConfigureAwait(false) : emptyIds;
+        var top250MovieR = NeedMovie(l => l.ImdbTop250Badge) ? await tmdb.GetListIdsAsync(config.ImdbTop250MovieListId, cancellationToken).ConfigureAwait(false) : emptyIds;
+        var watchedMoviesR = NeedMovie(l => l.WatchHistoryBadge) ? watch.RecentlyWatchedMovieIds(config.WatchHistoryDays, config.WatchHistoryAllUsers, config.WatchHistoryUserId, config.WatchHistoryMaxScan) : emptyWatched;
+
+        var trendingTv = trendingTvR.Ids;
+        var top250Tv = top250TvR.Ids;
+        var watchedSeries = watchedSeriesR.Ids;
+        var trendingMovie = trendingMovieR.Ids;
+        var top250Movie = top250MovieR.Ids;
+        var watchedMovies = watchedMoviesR.Ids;
+
+        // If ANY badge source we depend on couldn't be read, a missing badge means "unknown", not
+        // "not earned". Movies are badges-only, so an empty badge set would otherwise send them down
+        // the revert path below and strip perfectly good posters over a transient TMDB blip.
+        var failedSets = new List<string>();
+        if (trendingTvR.Failed) { failedSets.Add("TMDB trending (TV)"); }
+        if (top250TvR.Failed) { failedSets.Add("TMDB list (TV top 250)"); }
+        if (watchedSeriesR.Failed) { failedSets.Add("watch history (series)"); }
+        if (trendingMovieR.Failed) { failedSets.Add("TMDB trending (movies)"); }
+        if (top250MovieR.Failed) { failedSets.Add("TMDB list (movie top 250)"); }
+        if (watchedMoviesR.Failed) { failedSets.Add("watch history (movies)"); }
+        var badgeDataIncomplete = failedSets.Count > 0;
+        if (badgeDataIncomplete)
+        {
+            _logger.LogWarning(
+                "Overcoat: badge data incomplete this run ({Sets}) — items that would otherwise lose all overlays will be left untouched.",
+                string.Join(", ", failedSets));
+        }
 
         // Build the work list (item + its library config + type).
         var work = new List<(BaseItem Item, LibraryConfig Lib, string Type)>();
@@ -146,8 +174,15 @@ public class OverlayTask : IScheduledTask
 
         _logger.LogInformation("Overcoat: processing {Count} item(s){DryRun}.", work.Count, config.DryRun ? " (dry run)" : string.Empty);
         file.Info($"Run started — {work.Count} item(s){(config.DryRun ? " (dry run)" : string.Empty)}.");
-        file.Info($"Data sets — trendingTv={trendingTv.Count}, top250Tv={top250Tv.Count}, watchedSeries={watchedSeries.Count}, " +
-                  $"trendingMovie={trendingMovie.Count}, top250Movie={top250Movie.Count}, watchedMovies={watchedMovies.Count}.");
+        // Mark failed sets explicitly — a bare "0" can't be told apart from "badge disabled".
+        string N(TmdbService.IdSetResult r) => r.Failed ? "FAILED" : r.Ids.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string W(WatchHistory.WatchedResult r) => r.Failed ? "FAILED" : r.Ids.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        file.Info($"Data sets — trendingTv={N(trendingTvR)}, top250Tv={N(top250TvR)}, watchedSeries={W(watchedSeriesR)}, " +
+                  $"trendingMovie={N(trendingMovieR)}, top250Movie={N(top250MovieR)}, watchedMovies={W(watchedMoviesR)}.");
+        if (badgeDataIncomplete)
+        {
+            file.Error("Badge data incomplete (" + string.Join(", ", failedSets) + ") — posters that would lose all overlays are being left untouched.");
+        }
 
         int done = 0;
         int updated = 0;
@@ -195,7 +230,7 @@ public class OverlayTask : IScheduledTask
                     }
                 }
 
-                if (await ProcessItemAsync(item, lib, type, tmdbId.Value, badgeSet, tmdb, renderer, badges, state, file, config, cancellationToken).ConfigureAwait(false))
+                if (await ProcessItemAsync(item, lib, type, tmdbId.Value, badgeSet, tmdb, renderer, badges, state, file, config, badgeDataIncomplete, cancellationToken).ConfigureAwait(false))
                 {
                     updated++;
                 }
@@ -259,6 +294,7 @@ public class OverlayTask : IScheduledTask
         ProcessingState state,
         FileLog file,
         PluginConfiguration config,
+        bool badgeDataIncomplete,
         CancellationToken ct)
     {
         // Status banner (TV only, when the library has status overlays on). Fetch the TMDB status
@@ -301,14 +337,62 @@ public class OverlayTask : IScheduledTask
 
         var id = item.Id.ToString("N");
         var currentSig = ProcessingState.Signature(item);
-        var changedExternally = state.ExternallyChanged(id, currentSig);
+
+        // The mtime signature only tells us the file was touched, not that its bytes changed. Confirm
+        // against the hash of what we last wrote before believing it — otherwise a library scan or a
+        // metadata write is mistaken for someone replacing the art, and the re-baseline below
+        // re-overlays an already-overlaid poster.
+        var contentConfirmedDifferent = false;
+        if (state.SignatureChanged(id, currentSig))
+        {
+            var knownHash = state.ProducedHashFor(id);
+            if (knownHash.Length == 0)
+            {
+                // Written by <=0.6.0, so there is no hash to compare against. Nothing to decide here:
+                // the moved signature alone makes NeedsProcessing re-render below, which records a
+                // hash and makes every later run decidable. Crucially we do NOT treat it as a
+                // confirmed replacement, so the render sources from the vaulted clean original rather
+                // than the live (possibly already-overlaid) poster. Self-heals after a single run.
+            }
+            else
+            {
+                var currentBytes = await ReadPrimaryImageAsync(item, ct).ConfigureAwait(false);
+                if (currentBytes is not null && string.Equals(ProcessingState.HashBytes(currentBytes), knownHash, StringComparison.Ordinal))
+                {
+                    // Same bytes we wrote — only the timestamp moved. Adopt the new signature so the
+                    // cheap check passes next run, and carry on as unchanged.
+                    state.RefreshSignature(id, currentSig);
+                    _logger.LogDebug("Overcoat: '{Name}' timestamp changed but content is unchanged; not re-baselining.", item.Name ?? "?");
+                }
+                else
+                {
+                    // Confirmed: the bytes on disk are not ours. Only now is it right to abandon the
+                    // vaulted original and re-baseline on whatever replaced it.
+                    contentConfirmedDifferent = true;
+                }
+            }
+        }
 
         // Item now qualifies for nothing. If we previously overlaid it (clean original vaulted),
         // restore that original so unticking everything reverts the poster — unless the art was
         // changed outside Overcoat, in which case leave their art and just stop tracking it.
         if (text is null && badgeSet.Count == 0)
         {
-            if (state.HasOriginal(id) && !changedExternally)
+            // ...but only when we actually know it earns nothing. With a badge source unread, an empty
+            // badge set means "unknown", and reverting on that would strip a good poster.
+            if (badgeDataIncomplete)
+            {
+                _logger.LogWarning(
+                    "Overcoat: '{Name}' would lose all overlays, but badge data is incomplete this run — leaving its poster untouched.",
+                    item.Name ?? "?");
+                file.Info((item.Name ?? "?") + " → badge data incomplete; poster left untouched (will retry next run)");
+                return false;
+            }
+
+            // Only a *confirmed* replacement should block the revert. A bare timestamp move we
+            // couldn't verify must not — otherwise we skip the restore and fall through to dropping
+            // the vault below, destroying the clean original we were about to put back.
+            if (state.HasOriginal(id) && !contentConfirmedDifferent)
             {
                 if (config.DryRun)
                 {
@@ -330,8 +414,10 @@ public class OverlayTask : IScheduledTask
                 return true;
             }
 
-            // Never overlaid by us, or the art was changed externally — nothing to revert; drop stale tracking.
-            if (changedExternally)
+            // Never overlaid by us, or the art was confirmed replaced — nothing to revert onto, so
+            // drop the stale tracking. Deliberately NOT done for an unverified timestamp move: that
+            // would discard a clean original we may still need.
+            if (contentConfirmedDifferent)
             {
                 state.Remove(id);
             }
@@ -339,11 +425,15 @@ public class OverlayTask : IScheduledTask
             return false;
         }
 
-        if (changedExternally)
+        // Re-baseline on the replacement art only when we actually confirmed the bytes differ. Do NOT
+        // delete the vaulted original here either — if acquiring the new poster then fails, that
+        // deletion would have destroyed the only clean copy with nothing to put in its place. Skip
+        // the vault *read* instead, and let the successful write below overwrite it.
+        var forceReacquire = contentConfirmedDifferent;
+        if (contentConfirmedDifferent)
         {
             _logger.LogInformation("Overcoat: '{Name}' poster changed externally — re-baselining.", item.Name);
             file.Info((item.Name ?? "?") + " — poster changed externally, re-baselining");
-            state.InvalidateOriginal(id);
         }
 
         // Fingerprint the banner appearance so changing any banner setting forces every banner'd item
@@ -386,7 +476,9 @@ public class OverlayTask : IScheduledTask
         }
 
         // Always overlay the clean original (vault → current poster → TMDB), never the live poster.
-        var original = await state.ReadOriginalAsync(id, ct).ConfigureAwait(false);
+        // On a genuine external replacement the vault is deliberately bypassed so we re-baseline on
+        // the new art — but the old vault file stays on disk until the new one overwrites it.
+        var original = forceReacquire ? null : await state.ReadOriginalAsync(id, ct).ConfigureAwait(false);
         if (original is null)
         {
             original = await AcquireSourcePosterAsync(item, type, tmdbId, info, tmdb, ct).ConfigureAwait(false);
@@ -448,7 +540,23 @@ public class OverlayTask : IScheduledTask
         await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, ct).ConfigureAwait(false);
 
         var produced = _libraryManager.GetItemById(item.Id) ?? item;
-        state.MarkProcessed(id, item.Name ?? string.Empty, statusKey, cacheText, badgeSet, ProcessingState.Signature(produced), appearanceKey);
+
+        // Hash what actually landed on disk, not the bytes we handed to SaveImage — if Jellyfin
+        // re-encodes or rewrites the file, hashing our intended bytes would never match on read-back
+        // and the whole content check would silently degrade to the old mtime-only behaviour. An
+        // empty hash (read-back failed) does exactly that, deliberately, rather than lying.
+        var writtenBytes = await ReadPrimaryImageAsync(produced, ct).ConfigureAwait(false);
+        var producedHash = writtenBytes is not null ? ProcessingState.HashBytes(writtenBytes) : string.Empty;
+
+        state.MarkProcessed(
+            id,
+            item.Name ?? string.Empty,
+            statusKey,
+            cacheText,
+            badgeSet,
+            ProcessingState.Signature(produced),
+            appearanceKey,
+            producedHash);
 
         _logger.LogInformation("Overcoat: '{Name}' → banner='{Text}' badges=[{Badges}].", item.Name, text ?? "-", string.Join(",", badgeSet));
         file.Info($"{item.Name} → banner='{text ?? "-"}' badges=[{string.Join(",", badgeSet)}]");
@@ -536,6 +644,34 @@ public class OverlayTask : IScheduledTask
     }
 
     /// <summary>Clean source poster: the Jellyfin file if present; for TV, else the TMDB poster (movies have no fallback).</summary>
+    /// <summary>
+    /// Reads the item's current primary image bytes straight off disk, or null if there isn't one.
+    /// Used to confirm whether a changed timestamp actually means changed content.
+    /// </summary>
+    private async Task<byte[]?> ReadPrimaryImageAsync(BaseItem item, CancellationToken ct)
+    {
+        try
+        {
+            if (!item.HasImage(ImageType.Primary, 0))
+            {
+                return null;
+            }
+
+            var path = item.GetImagePath(ImageType.Primary, 0);
+            return File.Exists(path) ? await File.ReadAllBytesAsync(path, ct).ConfigureAwait(false) : null;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Unreadable — fall back to treating the item as externally changed (the old behaviour).
+            _logger.LogDebug(ex, "Overcoat: could not read the current poster for '{Name}'.", item.Name ?? "?");
+            return null;
+        }
+    }
+
     private async Task<byte[]?> AcquireSourcePosterAsync(BaseItem item, string type, int tmdbId, TmdbService.TvStatusInfo? info, TmdbService tmdb, CancellationToken ct)
     {
         if (item.HasImage(ImageType.Primary, 0))

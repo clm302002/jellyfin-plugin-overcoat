@@ -150,14 +150,6 @@
                             <div class="fieldDescription">Only reprocess items that changed since the last run (much faster). Off reprocesses everything.</div>
                         </div>
                         <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BackupOriginals" /><span>Keep clean originals</span></label>
-                            <div class="fieldDescription">Save an un-overlaid copy of each poster so you can Restore later. Recommended.</div>
-                        </div>
-                        <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="CleanupOrphans" /><span>Prune removed items</span></label>
-                            <div class="fieldDescription">After a full run, drop saved data for items no longer in your libraries.</div>
-                        </div>
-                        <div class="ovcCheck">
                             <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="DryRun" /><span>Dry run</span></label>
                             <div class="fieldDescription">Test mode — works out what it would do but doesn't change any posters.</div>
                         </div>
@@ -783,8 +775,6 @@
                     page.querySelector('#TmdbApiKey').value = config.TmdbApiKey || '';
                     page.querySelector('#BadgesEnabled').checked = config.BadgesEnabled !== false;
                     page.querySelector('#CacheEnabled').checked = config.CacheEnabled !== false;
-                    page.querySelector('#BackupOriginals').checked = config.BackupOriginals !== false;
-                    page.querySelector('#CleanupOrphans').checked = !!config.CleanupOrphans;
                     page.querySelector('#DryRun').checked = !!config.DryRun;
                     fillHours();
                     page.querySelector('#ScheduleEnabled').checked = config.ScheduleEnabled !== false;
@@ -851,8 +841,6 @@
                 config.TmdbApiKey = page.querySelector('#TmdbApiKey').value;
                 config.BadgesEnabled = page.querySelector('#BadgesEnabled').checked;
                 config.CacheEnabled = page.querySelector('#CacheEnabled').checked;
-                config.BackupOriginals = page.querySelector('#BackupOriginals').checked;
-                config.CleanupOrphans = page.querySelector('#CleanupOrphans').checked;
                 config.DryRun = page.querySelector('#DryRun').checked;
                 config.BannerStyle = page.querySelector('#BannerStyle').value;
                 config.BannerShape = page.querySelector('#BannerShape').value;

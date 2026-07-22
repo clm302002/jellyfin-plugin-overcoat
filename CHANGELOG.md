@@ -8,6 +8,47 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.6.1] — 2026-07-21
+
+Follow-up to 0.6.0, same theme: **never take a destructive action on incomplete information.** 0.6.0
+fixed one place where "we couldn't find out" was treated as "we found out it's nothing". A full audit
+found three more — two of which could destroy the vaulted clean original, the only route back to an
+un-overlaid poster.
+
+### Fixed
+- **Badge lookups no longer strip posters when they fail.** TMDB trending, the TMDB list used for
+  IMDb Top 250, and the watch-history scan all returned an empty (or silently *partial*) set when
+  they failed. Movies carry no status banner, so an empty badge set sent them down the revert path —
+  restoring the clean original and dropping the item from the cache. A single rate-limit or timeout
+  at the start of a run could therefore un-overlay a movie library, with the overlays returning on
+  the next run: poster flapping. Each source now reports failure, and any item that would lose all
+  its overlays while badge data is incomplete is **left exactly as it is** and retried next run.
+- **The IMDb Top 250 list no longer returns a partial set.** A failure part-way through pagination
+  used to return the pages fetched so far, which looks complete — every title on the unread pages
+  silently lost its badge. It now reports the whole set as unknown.
+- **"Restore original posters" no longer deletes originals it didn't restore.** The vaulted copy was
+  cleared unconditionally, so an item that failed to restore lost its clean poster anyway — with no
+  error and no way to retry. (This is why a restore could report e.g. 548/549 and leave one poster
+  permanently overlaid.) Failed items now **keep** their vaulted original for a retry, and the
+  summary reports restored / dropped-orphan / failed separately.
+- **A touched timestamp is no longer mistaken for a replaced poster.** External-change detection
+  compared only the image's modified time, so anything that touched the file without changing it — a
+  library scan, a metadata write, a copy, a permissions fix — read as a replacement. That deleted the
+  vaulted clean original and re-overlaid the *current* (already-overlaid) poster. Overcoat now
+  records a hash of what it wrote and confirms the content actually changed before re-baselining.
+- **The clean original is never deleted before its replacement exists.** Re-baselining used to delete
+  the vaulted file first; if fetching the new art then failed, the only clean copy was already gone.
+
+### Changed
+- TMDB and watch-history failures now log at `Warning` (they were `Debug`, i.e. invisible by
+  default), and the run's data-set line prints `FAILED` instead of `0` — a bare zero couldn't be told
+  apart from "that badge is switched off".
+- Removed two settings that did nothing: **"Keep clean originals"** and **"Prune removed items"**.
+  Both were saved and loaded but read by no code — the clean original is always vaulted (that is what
+  makes Restore work), and orphan pruning was never implemented. Existing config files still load.
+- `ScheduleSync` now logs when it finds the schedule already correct, so "ran, nothing to do" can be
+  told apart from "never loaded".
+
 ## [0.6.0] — 2026-07-21
 
 ### Fixed

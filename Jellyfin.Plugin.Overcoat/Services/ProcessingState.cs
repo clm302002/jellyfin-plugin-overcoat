@@ -32,6 +32,14 @@ public sealed class ProcessingState
         /// <summary>Banner appearance fingerprint (style/shape/position/size) — empty for items with no banner.</summary>
         public string AppearanceKey { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Hash of the PNG bytes we last wrote for this item. The mtime signature alone can't tell
+        /// our own write from someone else's — anything that touches the file's timestamp without
+        /// changing its content (a library scan, a metadata write, a copy) looks like a replacement.
+        /// Empty for entries written by v0.6.0 and earlier; those fall back to mtime-only.
+        /// </summary>
+        public string ProducedHash { get; set; } = string.Empty;
+
         public string LastProcessed { get; set; } = string.Empty;
     }
 
@@ -55,8 +63,42 @@ public sealed class ProcessingState
     public static long Signature(BaseItem item)
         => item.GetImageInfo(ImageType.Primary, 0)?.DateModified.Ticks ?? 0;
 
-    /// <summary>True if the item's current primary image differs from the one we last produced.</summary>
-    public bool ExternallyChanged(string id, long currentSignature)
+    /// <summary>Content hash of a PNG we produced, used to recognise our own output later.</summary>
+    public static string HashBytes(byte[] bytes)
+        => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes));
+
+    /// <summary>The hash we recorded for an item, or empty if unknown / never processed.</summary>
+    public string ProducedHashFor(string id)
+    {
+        lock (_gate)
+        {
+            return _cache.TryGetValue(id, out var e) ? e.ProducedHash : string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Records a new mtime signature for an item whose content we've confirmed is still ours, so the
+    /// cheap mtime pre-check passes on subsequent runs instead of re-hashing every time.
+    /// </summary>
+    public void RefreshSignature(string id, long signature)
+    {
+        lock (_gate)
+        {
+            if (_cache.TryGetValue(id, out var e) && e.PrimarySignature != signature)
+            {
+                e.PrimarySignature = signature;
+                _dirty = true;
+            }
+        }
+    }
+
+    /// <summary>
+    /// True if the item's primary image mtime differs from the one we last produced. This is only a
+    /// cheap first pass — an mtime bump does NOT prove the bytes changed, so callers must confirm
+    /// with <see cref="ProducedHashFor"/> before treating it as an external replacement. Acting on
+    /// this alone destroys the vaulted original and re-overlays an already-overlaid poster.
+    /// </summary>
+    public bool SignatureChanged(string id, long currentSignature)
     {
         lock (_gate)
         {
@@ -129,7 +171,8 @@ public sealed class ProcessingState
         string? overlayText,
         IEnumerable<string> badgeSet,
         long signature,
-        string appearanceKey)
+        string appearanceKey,
+        string producedHash)
     {
         var entry = new Entry
         {
@@ -139,6 +182,7 @@ public sealed class ProcessingState
             BadgeSet = (badgeSet ?? Enumerable.Empty<string>()).OrderBy(x => x, StringComparer.Ordinal).ToList(),
             PrimarySignature = signature,
             AppearanceKey = appearanceKey,
+            ProducedHash = producedHash,
             LastProcessed = DateTime.UtcNow.ToString("o"),
         };
         lock (_gate)

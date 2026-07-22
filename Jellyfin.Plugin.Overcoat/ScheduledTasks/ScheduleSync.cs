@@ -83,6 +83,12 @@ public sealed class ScheduleSync : IHostedService, IDisposable
                 && current[0].Type == desired.Type
                 && current[0].TimeOfDayTicks == desired.TimeOfDayTicks)
             {
+                // Log even the no-op: without this, "ran and found nothing to do" and "never loaded
+                // at all" look identical, which makes the feature impossible to verify when the
+                // configured time already matches the default.
+                _logger.LogDebug(
+                    "Overcoat: overlay task schedule already correct ({Time}); nothing to change.",
+                    config.ScheduleTimeOfDay.ToString(@"hh\:mm", System.Globalization.CultureInfo.InvariantCulture));
                 return;
             }
 
