@@ -103,7 +103,8 @@ Releases are cut by pushing a tag; **pushing to a branch publishes nothing.**
 | `v0.7.0-beta.2` | `0.7.0.2` | beta | " |
 | `v0.7.0` | `0.7.0.500` | stable | `releases/latest/download/manifest.json` |
 | `v0.8.0-beta.1` | `0.8.0.1` | beta | next line starts over |
-| `v0.8.0-beta.2` | `0.8.0.2` | beta | current wide-card test build |
+| `v0.8.0-beta.2` | `0.8.0.2` | beta | wide-card test build |
+| `v0.8.0-beta.3` | `0.8.0.3` | beta | current wide-card test build |
 
 GitHub's "latest" excludes prereleases, so a beta can never appear on the stable URL. The beta channel
 is a **superset** — stable releases are published there too — so subscribing to the beta URL alone is

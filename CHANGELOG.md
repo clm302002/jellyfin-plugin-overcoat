@@ -27,6 +27,9 @@ All notable changes to Overcoat are documented here. Format follows
 ### Fixed
 - **Landscape text fitting no longer changes portrait output.** The 94%-width shrink rule is now
   explicitly landscape-only, preserving the calibrated poster renderer and its independent revision.
+- **Badges on wide cards are now twice as large.** Side ribbons and the IMDb corner mark use a
+  landscape-only optical scale, while portrait poster sizing and the configured badge size stay
+  unchanged.
 
 ## [0.7.2] — 2026-07-22
 

@@ -27,7 +27,7 @@ public sealed class OverlayRenderer : IDisposable
     /// for some other reason, and everything else silently keeps the old art forever.
     /// </summary>
     public const int RendererRevision = 1;
-    public const int LandscapeRendererRevision = 1;
+    public const int LandscapeRendererRevision = 2;
 
     /// <summary>Status → pill colour. Mirrors <c>OverlayProcessor.BANNER_COLORS</c>.</summary>
     public static readonly IReadOnlyDictionary<string, string> BannerColors = new Dictionary<string, string>
@@ -610,7 +610,9 @@ public sealed class OverlayRenderer : IDisposable
                 // the bottom-right 351x351 region. Stretching that canvas across a 16:9 Thumb makes
                 // the mark enormous and distorted, so crop the mark and preserve its aspect.
                 var source = new SKRect(649, 1149, 1000, 1500);
-                var side = Math.Max(1, (int)(posterHeight * 0.234f));
+                // Landscape cards need a larger optical scale than portrait posters: at the old
+                // height-relative size this corner mark was tiny against a 16:9 canvas.
+                var side = Math.Max(1, (int)(posterHeight * 0.468f));
                 var destination = new SKRect(posterWidth - side, posterHeight - side, posterWidth, posterHeight);
                 canvas.DrawBitmap(badge, source, destination);
                 canvas.Flush();

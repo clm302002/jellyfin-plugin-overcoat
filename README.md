@@ -137,8 +137,9 @@ users** reverses that preference. Neither action changes, overlays, or deletes e
 | Originals vault, dry run, restore task | Working for posters and managed series Thumbs |
 | Badge art/style selection | Planned |
 
-Current prerelease: **v0.8.0-beta.2** (`0.8.0.2`) on the optional beta channel. It contains the
-wide-card pipeline and the all-current-user artwork controls; live-library validation is in progress.
+Current prerelease: **v0.8.0-beta.3** (`0.8.0.3`) on the optional beta channel. It contains the
+wide-card pipeline, the all-current-user artwork controls, and larger wide-card badges;
+live-library validation is in progress.
 
 A TMDB API key is required for status and TMDB-backed lists. Overcoat is tested against the pinned
 Jellyfin 10.11 API surface; newer Jellyfin releases may require a plugin update.

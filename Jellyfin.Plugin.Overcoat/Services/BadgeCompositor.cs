@@ -24,6 +24,11 @@ public sealed class BadgeCompositor
     // "top" anchor starts here (fraction of poster height) — near the very top edge.
     private const float TopAnchorFraction = 0.06f;
 
+    // A height-relative badge that reads well on a portrait poster looks much smaller against the
+    // width of a 16:9 card. Give landscape artwork its own optical scale without changing the
+    // configured size (or the established portrait rendering).
+    private const float LandscapeScaleMultiplier = 2f;
+
     // Side ribbons in stack order (top → down) — cropped art, positioned/stacked dynamically.
     private static readonly (string Key, string Resource)[] Ribbons =
     {
@@ -48,6 +53,10 @@ public sealed class BadgeCompositor
         }
 
         float scale = Math.Clamp(layout.ScalePercent, 25, 300) / 100f;
+        if (poster.Width > poster.Height)
+        {
+            scale *= LandscapeScaleMultiplier;
+        }
         int gap = (int)(poster.Height * (Math.Clamp(layout.GapPercent, 0, 20) / 100f));
 
         // The side ribbons that are actually present, in stack order.
