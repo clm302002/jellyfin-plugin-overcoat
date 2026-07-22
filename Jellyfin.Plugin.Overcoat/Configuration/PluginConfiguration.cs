@@ -267,7 +267,7 @@ public class PluginConfiguration : BasePluginConfiguration
     /// </summary>
     public int WatchHistoryMaxScan { get; set; } = 10000;
 
-    /// <summary>Gets or sets the TMDB trending window: "day" or "week".</summary>
+    /// <summary>Gets or sets the TMDB trending window: "day", "week", or rolling "month".</summary>
     public string TrendingTimeWindow { get; set; } = "week";
 
     /// <summary>Gets or sets the TMDB list id used for the IMDB Top 250 movie badge.</summary>
@@ -337,6 +337,7 @@ public static class ConfigurationSanitizer
 
         c.WatchHistoryDays = Math.Clamp(c.WatchHistoryDays, 1, 3650);
         c.WatchHistoryMaxScan = Math.Clamp(c.WatchHistoryMaxScan, 500, 1_000_000);
+        c.TrendingTimeWindow = c.TrendingTimeWindow is "day" or "week" or "month" ? c.TrendingTimeWindow : "week";
         c.ScheduleHour = Math.Clamp(c.ScheduleHour, 0, 23);
         c.ScheduleMinute = Math.Clamp(c.ScheduleMinute, 0, 59);
 

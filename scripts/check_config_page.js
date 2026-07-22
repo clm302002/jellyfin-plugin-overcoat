@@ -98,7 +98,7 @@ const cssPatterns = [
   ['plugin overflow is corrected', /overflow:\s*visible\s*!important/],
   ['desktop preview is sticky', /\.ovcPreviewRail\s*\{[^}]*position:\s*sticky/],
   ['studio stacks below 1100px', /@media\s*\(max-width:1099px\)/],
-  ['general cards use 480px minimum', /minmax\(min\(100%,480px\),1fr\)/],
+  ['responsive cards use 480px minimum', /minmax\(min\(100%,480px\),1fr\)/],
 ];
 for (const [label, pattern] of cssPatterns) {
   if (!pattern.test(css)) { console.error(`FAIL ${label}`); failures++; }
@@ -136,5 +136,19 @@ if (/data-tab="general"/.test(html) || /data-panel="general"/.test(html)) {
 } else {
   console.log('ok   General tab stays removed');
 }
+
+if (!/id="TrendingTimeWindow"[\s\S]*?<option value="month">Month<\/option>/.test(html)) {
+  console.error('FAIL monthly TMDB trending option is missing'); failures++;
+} else { console.log('ok   monthly TMDB trending option exists'); }
+if (!/<details class="ovcCard" open>\s*<summary>Status dates/.test(html)
+    || !/<details class="ovcCard" open>\s*<summary>Colours &amp; labels/.test(html)) {
+  console.error('FAIL status dates and colours/labels must default open'); failures++;
+} else { console.log('ok   requested banner accordions default open'); }
+const badgeTabAt = html.indexOf('data-tab="badges"');
+const librariesTabAt = html.indexOf('data-tab="libraries"');
+const apiTabAt = html.indexOf('data-tab="apikeys"');
+if (!(badgeTabAt < librariesTabAt && librariesTabAt < apiTabAt)) {
+  console.error('FAIL Libraries tab is not directly after Badges and before TMDB API'); failures++;
+} else { console.log('ok   Libraries tab follows Badges'); }
 
 process.exit(failures ? 1 : 0);

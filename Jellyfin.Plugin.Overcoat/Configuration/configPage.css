@@ -90,6 +90,17 @@
 #OvercoatConfigPage .ovcStatusRow { display:grid; grid-template-columns:8.5rem minmax(0,1fr); gap:.75rem; align-items:center; }
 #OvercoatConfigPage .ovcGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:1.25rem; }
 #OvercoatConfigPage .ovcLib { border:1px solid var(--ov-border); border-radius:.6rem; padding:1rem; background:var(--ov-surface-2); }
+#OvercoatConfigPage .ovcLib h4 { margin:0 0 .8rem; }
+#OvercoatConfigPage .ovcLibOpts { display:grid; gap:.55rem; margin:.75rem 0 0 1rem; padding:.8rem 1rem; border-left:3px solid var(--ov-accent); border-radius:0 .5rem .5rem 0; background:color-mix(in srgb,var(--ov-surface) 72%,transparent); }
+#OvercoatConfigPage .ovcLibOpts[hidden] { display:none; }
+#OvercoatConfigPage .ovcFormStack { display:grid; gap:1.15rem; }
+#OvercoatConfigPage .ovcSectionHeading { margin:.5rem 0 -.35rem; padding-bottom:.65rem; border-bottom:1px solid var(--ov-border); }
+#OvercoatConfigPage .ovcSectionHeading h3 { margin:0 0 .2rem; font-size:1.2rem; }
+#OvercoatConfigPage .ovcActionGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+#OvercoatConfigPage .ovcActionTile { min-width:0; padding:1.1rem; border:1px solid var(--ov-border); border-radius:.65rem; background:var(--ov-surface-2); }
+#OvercoatConfigPage .ovcActionTile h3 { margin:0 0 .4rem; }
+#OvercoatConfigPage .ovcActionTile button { margin:.65rem 0; }
+#OvercoatConfigPage .ovcRestoreTile { border-color:color-mix(in srgb,var(--ov-warning) 60%,var(--ov-border)); }
 #OvercoatConfigPage .ovcMuted, #OvercoatConfigPage .fieldDescription { color:var(--ov-muted); overflow-wrap:anywhere; }
 #OvercoatConfigPage .ovcNoDescriptions .fieldDescription { display:none !important; }
 #OvercoatConfigPage input[type="text"], #OvercoatConfigPage input[type="password"], #OvercoatConfigPage input[type="number"], #OvercoatConfigPage select, #OvercoatConfigPage textarea { width:100%; max-width:100%; }
@@ -120,6 +131,7 @@
     #OvercoatConfigPage .ovcTab { padding:.5rem .65rem; }
     #OvercoatConfigPage .ovcTabLabel { display:none; }
     #OvercoatConfigPage .ovcSaveDock { bottom:.5rem; }
+    #OvercoatConfigPage .ovcActionGrid { grid-template-columns:1fr; }
 }
 
 /* Recovery panel — vault health readout. Figures first, label under, so the numbers scan. */

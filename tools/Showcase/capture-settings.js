@@ -20,11 +20,9 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
   await page.locator('#OvercoatConfigPage').evaluate(el => { const shell=document.createElement('div'); shell.className='jellyfinViewport'; el.parentNode.insertBefore(shell,el); shell.appendChild(el); });
   await page.locator('#OvercoatConfigPage').evaluate(el => el.dispatchEvent(new Event('viewshow')));
   await page.waitForTimeout(350);
-  // Keep the capture deterministic even if a future config load rejects before the library mock
-  // resolves: the shell still shows clearly fictional, non-server library rows.
-  await page.locator('#OvercoatLibraries').evaluate(el => {
-    if (!el.querySelector('.ovcLibraryRow')) el.innerHTML = '<div class="ovcCard ovcLibraryRow"><h3>TV Shows <small>(mock)</small></h3><label><input type="checkbox" checked> Process library</label> &nbsp; <label><input type="checkbox" checked> Status banners</label><br><label><input type="checkbox" checked> Watch history</label> &nbsp; <label><input type="checkbox" checked> TMDB Trending</label> &nbsp; <label><input type="checkbox"> IMDb Top 250</label></div><div class="ovcCard ovcLibraryRow"><h3>Movies <small>(mock)</small></h3><label><input type="checkbox" checked> Process library</label><br><label><input type="checkbox"> Watch history</label> &nbsp; <label><input type="checkbox" checked> TMDB Trending</label> &nbsp; <label><input type="checkbox" checked> IMDb Top 250</label></div>';
-  });
+  // Wait for the real library-row builder to render the fictional API response. This exercises the
+  // same enable/collapse behavior as Jellyfin instead of replacing it with showcase-only markup.
+  await page.locator('#OvercoatLibraries .ovcLib').first().waitFor({state:'attached'});
   const captureTabs = process.env.SHOWCASE_CAPTURE_ALL === '1'
     ? ['banners','badges','apikeys','libraries','maintenance']
     : ['banners','badges','libraries'];
@@ -44,7 +42,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     }
     await page.locator('button[data-tab="banners"]').focus();
     await page.keyboard.press('ArrowRight');
-    if (await page.locator('button[data-tab="banners"]').getAttribute('aria-selected') !== 'true') {
+    if (await page.locator('button[data-tab="badges"]').getAttribute('aria-selected') !== 'true') {
       throw new Error('Keyboard tab navigation failed.');
     }
     await page.locator('button[data-tab="apikeys"]').click();
@@ -70,7 +68,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (state.mobile && !state.floating) throw new Error('Mobile floating preview did not appear after scrolling.');
     if (!state.mobile && (state.previewTop < 100 || state.previewTop > 600)) throw new Error(`Desktop preview is not sticky below the page chrome (top=${state.previewTop}).`);
     console.log(`scroll preview ok: ${state.mobile ? 'floating mobile' : 'sticky desktop'}`);
-    await page.locator('button[data-tab="banners"]').click();
+    await page.locator('button[data-tab="maintenance"]').click();
     const computed = await page.evaluate(() => ({
       form: document.querySelector('#OvercoatConfigForm').getBoundingClientRect().width,
       available: document.querySelector('.content-primary').getBoundingClientRect().width,
@@ -79,9 +77,17 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       details: document.querySelectorAll('[data-panel="banners"] details.ovcCard').length,
     }));
     if (computed.form < Math.min(1200, computed.available - 8)) throw new Error(`Jellyfin's 54em form cap was not overridden (${computed.form}px).`);
-    if (page.viewportSize().width >= 1200 && computed.minCard < 470) throw new Error(`General card is narrower than its 480px design minimum (${computed.minCard}px).`);
+    if (page.viewportSize().width >= 1200 && computed.minCard < 470) throw new Error(`Maintenance card is narrower than its 480px design minimum (${computed.minCard}px).`);
     if (computed.badgeOptions.join(',') !== 'left') throw new Error('Badge placement exposes an unsupported side.');
     if (computed.details < 3) throw new Error('Advanced banner controls are not accordions.');
+    if (await page.locator('#TrendingTimeWindow option[value="month"]').count() !== 1) throw new Error('Monthly TMDB trending choice is missing.');
+    await page.locator('button[data-tab="libraries"]').click();
+    const library = page.locator('.ovcLib').first();
+    const libraryEnabled = library.locator('.ovcEnabled');
+    if (await libraryEnabled.isChecked()) await libraryEnabled.click();
+    if (await library.locator('.ovcLibOpts').getAttribute('hidden') === null) throw new Error('Disabled library options did not collapse.');
+    await libraryEnabled.click();
+    if (await library.locator('.ovcLibOpts').getAttribute('hidden') !== null) throw new Error('Enabled library options did not expand.');
     await page.locator('button[data-tab="banners"]').click();
     await page.locator('[data-panel="banners"] .ovcSourceBtn[data-source="random"]').click();
     const posterKey = new URL(await page.locator('#BannerPreview').getAttribute('src')).searchParams.get('previewKey');
@@ -98,7 +104,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     const wasOpen = await dateDetails.getAttribute('open');
     await dateDetails.locator('summary').click();
     if ((await dateDetails.getAttribute('open')) === wasOpen) throw new Error('Banner accordion did not toggle.');
-    await page.locator('button[data-tab="banners"]').click();
+    await page.locator('button[data-tab="maintenance"]').click();
     await page.locator('#CacheEnabled').click();
     await page.locator('#CacheEnabled').dispatchEvent('input');
     const dirtyText = await page.locator('#OvercoatSaveState').textContent();

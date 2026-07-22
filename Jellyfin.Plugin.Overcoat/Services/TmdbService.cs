@@ -247,14 +247,27 @@ public sealed class TmdbService
         }
     }
 
-    /// <summary>Trending TMDB ids. <paramref name="mediaType"/> is "tv" or "movie"; window "day"/"week".</summary>
+    /// <summary>
+    /// Trending TMDB ids. Day/week use TMDB's native trending feed. Month uses the first page of
+    /// popularity-sorted releases from the last 30 days because TMDB has no native monthly feed.
+    /// </summary>
     public async Task<IdSetResult> GetTrendingIdsAsync(string mediaType, string window, CancellationToken ct)
     {
         var ids = new HashSet<int>();
         try
         {
-            var w = window == "day" ? "day" : "week";
-            var url = $"{Base}/trending/{mediaType}/{w}?api_key={_apiKey}";
+            string url;
+            if (string.Equals(window, "month", StringComparison.Ordinal))
+            {
+                var cutoff = DateTime.UtcNow.Date.AddDays(-30).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                var dateField = string.Equals(mediaType, "movie", StringComparison.Ordinal) ? "primary_release_date.gte" : "first_air_date.gte";
+                url = $"{Base}/discover/{mediaType}?api_key={_apiKey}&language=en-US&sort_by=popularity.desc&{dateField}={cutoff}&include_adult=false&page=1";
+            }
+            else
+            {
+                var nativeWindow = string.Equals(window, "day", StringComparison.Ordinal) ? "day" : "week";
+                url = $"{Base}/trending/{mediaType}/{nativeWindow}?api_key={_apiKey}";
+            }
             var (doc, outcome) = await FetchJsonAsync(url, ct).ConfigureAwait(false);
             if (doc is null)
             {

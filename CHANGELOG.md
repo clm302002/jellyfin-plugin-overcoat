@@ -13,6 +13,10 @@ All notable changes to Overcoat are documented here. Format follows
   failure case, including the one people don't expect: the saved copies survive uninstalling the
   plugin, so a forgotten restore is fixed by reinstalling and running it then.
 
+### Added
+- **A rolling "month" option for the TMDB trending badge**, alongside day and week. TMDB has no
+  native monthly feed, so this uses the most popular titles released in the last 30 days.
+
 ### Changed
 - **The General tab is gone.** Its two settings — run behaviour and the schedule — moved to
   **Maintenance**, which is where the rest of the "how it runs" controls already lived. The page now

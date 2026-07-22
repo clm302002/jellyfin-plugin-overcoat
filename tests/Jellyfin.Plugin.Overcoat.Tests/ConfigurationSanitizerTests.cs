@@ -108,4 +108,17 @@ public sealed class ConfigurationSanitizerTests
         Assert.Equal(scale, c.BannerFontScale);
         Assert.Equal(colour, c.ColorNew);
     }
+
+    [Theory]
+    [InlineData("day", "day")]
+    [InlineData("week", "week")]
+    [InlineData("month", "month")]
+    [InlineData("year", "week")]
+    [InlineData(null, "week")]
+    public void TrendingWindow_IsLimitedToImplementedChoices(string? input, string expected)
+    {
+        var c = new PluginConfiguration { TrendingTimeWindow = input! };
+        ConfigurationSanitizer.Normalize(c);
+        Assert.Equal(expected, c.TrendingTimeWindow);
+    }
 }

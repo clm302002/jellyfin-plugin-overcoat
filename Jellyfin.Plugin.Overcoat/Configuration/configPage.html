@@ -25,8 +25,8 @@
                     <div class="ovcTabs" role="tablist" aria-label="Overcoat settings">
                         <button type="button" class="ovcTab ovcActive" data-tab="banners" role="tab"><span class="ovcIcon" aria-hidden="true">view_stream</span><span class="ovcTabLabel">Banners</span></button>
                         <button type="button" class="ovcTab" data-tab="badges" role="tab"><span class="ovcIcon" aria-hidden="true">bookmark</span><span class="ovcTabLabel">Badges</span></button>
-                        <button type="button" class="ovcTab" data-tab="apikeys" role="tab"><span class="ovcIcon" aria-hidden="true">key</span><span class="ovcTabLabel">TMDB API</span></button>
                         <button type="button" class="ovcTab" data-tab="libraries" role="tab"><span class="ovcIcon" aria-hidden="true">video_library</span><span class="ovcTabLabel">Libraries</span></button>
+                        <button type="button" class="ovcTab" data-tab="apikeys" role="tab"><span class="ovcIcon" aria-hidden="true">key</span><span class="ovcTabLabel">TMDB API</span></button>
                         <button type="button" class="ovcTab" data-tab="maintenance" role="tab"><span class="ovcIcon" aria-hidden="true">build</span><span class="ovcTabLabel">Maintenance</span></button>
                     </div>
                 </header>
@@ -39,13 +39,6 @@
                             <div class="fieldDescription">These controls apply to every enabled library. Overcoat settings are never assigned to individual titles.</div>
                         </div>
                         <div class="ovcBannerControls ovcControlGrid">
-                            <div class="ovcCard ovcIntroCard">
-                                <h3>Status banner look</h3>
-                                <p class="fieldDescription">
-                                    Controls the NEW / AIRING / RETURNING / ENDED / CANCELED banner drawn on TV posters.
-                                </p>
-                            </div>
-
                             <div class="ovcCard ovcDenseCard">
                             <h3>Style &amp; typography</h3>
                             <div class="selectContainer">
@@ -150,7 +143,7 @@
                             </div>
                             </div></details>
 
-                            <details class="ovcCard">
+                            <details class="ovcCard" open>
                             <summary>Status dates</summary><div class="ovcDetailsBody ovcFieldGrid">
                             <p class="fieldDescription ovcCardLead">AIRING shows the next episode in the chosen format, always (no "within" window). RETURNING shows the upcoming episode/season date only when it's within the chosen window. (Turn AIRING off in the Statuses group and an airing show falls back to RETURNING.)</p>
                             <div class="selectContainer">
@@ -182,7 +175,7 @@
                             </div>
                             </div></details>
 
-                            <details class="ovcCard">
+                            <details class="ovcCard" open>
                             <summary>Colours &amp; labels</summary><div class="ovcDetailsBody">
                             <div>
                                 <label class="inputLabel inputLabelUnfocused">Status colours</label>
@@ -252,13 +245,15 @@
                                     <select is="emby-select" id="TrendingTimeWindow">
                                         <option value="day">Day</option>
                                         <option value="week">Week</option>
+                                        <option value="month">Month</option>
                                     </select>
-                                    <div class="fieldDescription">Chooses the TMDB list used by the Trending badge.</div>
+                                    <div class="fieldDescription">Month uses TMDB's most popular releases from the last 30 days because its native trending feed only provides day and week.</div>
                                 </div>
                             </div>
 
                             <div class="ovcCard">
                                 <h3>Watch History badge</h3>
+                                <div class="ovcFormStack">
                                 <div class="inputContainer">
                                     <label class="inputLabel inputLabelUnfocused" for="WatchHistoryDays">Look-back period (days)</label>
                                     <input is="emby-input" type="number" id="WatchHistoryDays" min="1" />
@@ -277,6 +272,7 @@
                                     <label class="inputLabel inputLabelUnfocused" for="WatchHistoryMaxScan">Scan cap per user</label>
                                     <input is="emby-input" type="number" id="WatchHistoryMaxScan" min="500" step="500" />
                                     <div class="fieldDescription">Safety limit for recent plays scanned per user. Most libraries can keep the default.</div>
+                                </div>
                                 </div>
                             </div>
 
@@ -374,7 +370,7 @@
 
                 <!-- ===================== LIBRARIES ===================== -->
                 <div class="ovcPanel" data-panel="libraries">
-                    <div class="ovcCard">
+                    <div class="ovcCard ovcWide">
                         <h3>Libraries</h3>
                         <p class="fieldDescription">
                             Your TV &amp; movie libraries, detected automatically. Tick the ones Overcoat should
@@ -387,6 +383,10 @@
 
                 <!-- ===================== MAINTENANCE ===================== -->
                 <div class="ovcPanel" data-panel="maintenance">
+                    <div class="ovcSectionHeading ovcWide">
+                        <h3>Automation</h3>
+                        <div class="fieldDescription">Control how Overcoat processes posters and when its scheduled task runs.</div>
+                    </div>
                     <div class="ovcCard">
                         <h3>Behaviour</h3>
                         <div class="ovcCheck">
@@ -432,27 +432,27 @@
                             </div>
                         </div>
                         <div class="fieldDescription" id="ScheduleSummary"></div>
+                    </div>
 
+                    <div class="ovcSectionHeading ovcWide">
+                        <h3>Run &amp; restore</h3>
+                        <div class="fieldDescription">These actions save the settings on every tab before starting their scheduled task.</div>
+                    </div>
                     <div class="ovcCard ovcWide ovcCaution">
-                        <h3>Apply or restore poster artwork</h3>
-                        <p class="fieldDescription">
-                            Heads-up: clicking either button <strong>saves your current settings first</strong>, then
-                            runs — so if you changed anything on the other tabs, just hit Run (no need to Save separately).
-                        </p>
-                        <div class="ovcRowButtons">
-                            <button is="emby-button" type="button" id="OvercoatRunNow" class="raised">
-                                <span>▶ Apply Overcoat Overlays now</span>
-                            </button>
-                            <button is="emby-button" type="button" id="OvercoatRestore" class="raised">
-                                <span>↩ Restore original posters</span>
-                            </button>
-                        </div>
-                        <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ForceRestore" /><span>Force restore over changed artwork</span></label>
-                            <div class="fieldDescription">
-                                Normally Restore skips any poster that was changed outside Overcoat — the saved copy is
-                                older, so overwriting would throw away newer art you or another plugin put there.
-                                Tick this only if you want Overcoat's saved original back regardless.
+                        <div class="ovcActionGrid">
+                            <div class="ovcActionTile">
+                                <h3>Apply overlays</h3>
+                                <p class="fieldDescription">Process enabled libraries now using the settings currently shown on this page.</p>
+                                <button is="emby-button" type="button" id="OvercoatRunNow" class="raised"><span>▶ Apply Overcoat Overlays now</span></button>
+                            </div>
+                            <div class="ovcActionTile ovcRestoreTile">
+                                <h3>Restore originals</h3>
+                                <p class="fieldDescription">Put back clean posters saved in Overcoat's originals vault.</p>
+                                <button is="emby-button" type="button" id="OvercoatRestore" class="raised"><span>↩ Restore original posters</span></button>
+                                <div class="ovcCheck">
+                                    <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ForceRestore" /><span>Force restore over changed artwork</span></label>
+                                    <div class="fieldDescription">Normally Restore protects artwork changed outside Overcoat. Enable this only when the vaulted copy should win regardless.</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -495,6 +495,10 @@
                         </details>
                     </div>
 
+                    <div class="ovcSectionHeading ovcWide">
+                        <h3>Targeting &amp; matching</h3>
+                        <div class="fieldDescription">Optional advanced filters for testing, exclusions, and correcting TMDB matches.</div>
+                    </div>
                     <div class="ovcCard">
                         <h3>Limit to specific shows/movies</h3>
                         <textarea is="emby-textarea" id="LimitToTitles" rows="4"></textarea>
@@ -784,6 +788,14 @@
                 row.querySelector('.ovcWatch').checked = saved.WatchHistoryBadge !== false;
                 row.querySelector('.ovcTrend').checked = saved.TrendingBadge !== false;
                 row.querySelector('.ovcTop250').checked = saved.ImdbTop250Badge !== false;
+                var enabled = row.querySelector('.ovcEnabled');
+                var options = row.querySelector('.ovcLibOpts');
+                function updateLibraryOptions() {
+                    options.hidden = !enabled.checked;
+                    options.setAttribute('aria-hidden', enabled.checked ? 'false' : 'true');
+                }
+                enabled.addEventListener('change', updateLibraryOptions);
+                updateLibraryOptions();
                 return row;
             }
 
