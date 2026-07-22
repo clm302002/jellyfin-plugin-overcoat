@@ -5,6 +5,11 @@
 
 **Smart poster overlays for Jellyfin.**
 
+[![Latest release](https://img.shields.io/github/v/release/clm302002/jellyfin-plugin-overcoat?label=latest&color=5EBD3E)](https://github.com/clm302002/jellyfin-plugin-overcoat/releases/latest)
+[![CI](https://github.com/clm302002/jellyfin-plugin-overcoat/actions/workflows/ci.yml/badge.svg)](https://github.com/clm302002/jellyfin-plugin-overcoat/actions/workflows/ci.yml)
+[![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11.x-00A4DC)](https://jellyfin.org/)
+[![License](https://img.shields.io/github/license/clm302002/jellyfin-plugin-overcoat?color=blue)](LICENSE)
+
 Overcoat adds clean status banners and badges directly to your Jellyfin posters — so your library can show what is **new**, **airing**, **returning**, **ended**, **canceled**, trending, ranked, or worth noticing at a glance.
 
 Inspired by **Kometa**, built specifically for **Jellyfin**.
@@ -152,8 +157,25 @@ Schedule** (default 03:00 server time) — pick a quiet hour, since a full run o
 a while. Prefer to drive it yourself? Untick **Run automatically every day** and Overcoat will leave
 the triggers in **Dashboard → Scheduled Tasks** alone, so you can use intervals or several run times.
 
-> ✅ Live now — `v0.2.0` is published, so the repository URL above works. (Prefer building it
-> yourself? See **Build from source** below.)
+> ✅ Live now — the repository URL above works. (Prefer building it yourself? See **Build from
+> source** below.)
+
+### Beta channel (optional)
+
+Pre-release builds are published to a separate repository URL. Add it *alongside* the stable one:
+
+```
+https://github.com/clm302002/jellyfin-plugin-overcoat/releases/download/beta/manifest.json
+```
+
+Betas never reach the stable URL, so adding this is opt-in and reversible. With both added, the
+plugin catalogue lists every published build and you can move between them from the version
+dropdown — including rolling back if a release misbehaves.
+
+Beta versions carry the beta number in the fourth part (`0.7.0.1` = first beta of 0.7.0) while
+stable is always `.0` (`0.7.0.0`). That means a beta sorts *above* the matching stable, so when the
+stable ships you select it from the dropdown rather than being offered it as an update. Expect rough
+edges on betas, and keep the stable repository added.
 
 ---
 

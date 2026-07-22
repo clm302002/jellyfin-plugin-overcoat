@@ -22,3 +22,7 @@ audit.md
 
 # Local staging bundle + backups (built artifacts, not source)
 dist/
+
+# Python bytecode (scripts/)
+__pycache__/
+*.pyc

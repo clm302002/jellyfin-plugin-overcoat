@@ -1,0 +1,49 @@
+name: CI
+
+# Runs on every push to main/dev and on every PR. There is no unit-test suite (see CONTRIBUTING),
+# so this is deliberately about the two things that have actually broken in practice: the plugin
+# failing to compile, and the hand-edited settings page shipping with a syntax error or a dangling
+# element id. Both are cheap to check and neither is visible without checking.
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build + settings page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore
+        run: dotnet restore Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj
+
+      # -warnaserror: the project builds clean today and should stay that way. A warning here is
+      # nearly always a real mistake (an unused variable has already flagged a dead code path once).
+      - name: Build
+        run: dotnet build Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release --no-restore -warnaserror
+
+      - name: Check the settings page
+        run: node scripts/check_config_page.js
+
+      # Proves the release packaging still works before a tag depends on it — the version and
+      # changelog here are throwaway.
+      - name: Smoke-test release packaging
+        run: |
+          dotnet publish Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release -o publish
+          TAG=v0.0.0-ci PLUGIN_VER=0.0.0.0 python3 scripts/package_release.py
+          python3 -c "
+          import json
+          m = json.load(open('artifacts/manifest.json'))
+          assert m[0]['guid'] == '604f4e22-a0a1-490d-b383-d60336318eaa', 'GUID changed!'
+          assert m[0]['versions'], 'manifest has no versions'
+          print('manifest ok:', [v['version'] for v in m[0]['versions']])
+          "

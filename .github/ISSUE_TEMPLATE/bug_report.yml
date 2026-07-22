@@ -2,6 +2,12 @@ name: Bug report
 description: Something isn't working as expected
 labels: ["bug"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        **The most useful thing you can attach is Overcoat's own log.** It is a separate file from
+        the main Jellyfin log: **Dashboard → Logs → `Overcoat_<date>.log`**. It usually identifies
+        the cause outright.
   - type: textarea
     id: what-happened
     attributes:
@@ -36,6 +42,24 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: Relevant logs
-      description: Jellyfin log lines mentioning "Overcoat" (redact anything sensitive).
+      label: Overcoat log
+      description: |
+        Paste or attach `Overcoat_<date>.log` from **Dashboard → Logs** (redact anything sensitive).
+        These lines matter most:
+        `re-baselining` · `restored clean original` · `TMDB unavailable` · `badge data incomplete` · `Done —`
       render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: other-poster-tools
+    attributes:
+      label: What else touches your posters?
+      description: |
+        This matters far more than it sounds, and it is the usual answer when overlays keep
+        disappearing. Kometa, other poster plugins, a scheduled **Scan Media Library** or metadata
+        refresh, or "save artwork into media folders" being enabled will all rewrite posters behind
+        Overcoat's back.
+
+        If overlays vanish on a daily rhythm, please say roughly **what time** your library scan
+        runs — lining that up against Overcoat's run time usually explains it immediately.
+      placeholder: "Library scan runs daily at 15:16. No other poster tools installed."

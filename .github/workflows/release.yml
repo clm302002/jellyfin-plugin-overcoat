@@ -1,9 +1,23 @@
 name: Release plugin
 
-# On a pushed tag (v*), builds the plugin, packages a Jellyfin plugin .zip + repository
-# manifest.json (via scripts/package_release.py — no jprm), and publishes them as assets on a
-# GitHub Release. Users add the manifest URL in Jellyfin:
-#   https://github.com/clm302002/jellyfin-plugin-overcoat/releases/latest/download/manifest.json
+# Builds the plugin on a pushed tag, packages a Jellyfin plugin .zip + repository manifest.json
+# (via scripts/package_release.py — no jprm), and publishes them on a GitHub Release.
+#
+# TWO CHANNELS, decided by the tag shape:
+#
+#   v0.7.0          -> STABLE. A normal release. Because GitHub's "latest" deliberately skips
+#                      prereleases, the stable manifest URL can never serve a beta:
+#                        https://github.com/<repo>/releases/latest/download/manifest.json
+#
+#   v0.7.0-beta.1   -> BETA. Published as a prerelease AND its manifest is mirrored onto a fixed,
+#                      rolling release tagged `beta`, so the beta channel has a stable URL too:
+#                        https://github.com/<repo>/releases/download/beta/manifest.json
+#
+# Add both URLs in Jellyfin and you can move between channels from the plugin catalogue — no SSH,
+# no copying DLLs into the plugins folder by hand.
+#
+# Each channel keeps its own manifest history (the previous manifest is downloaded and merged), so
+# Jellyfin's version dropdown can offer older builds to roll back to.
 
 on:
   push:
@@ -12,7 +26,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to (re)build a release for, e.g. v0.1.0'
+        description: 'Tag to (re)build a release for, e.g. v0.1.0 or v0.7.0-beta.1'
         required: true
 
 permissions:
@@ -23,45 +37,144 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Resolve version
+      - name: Resolve version and channel
         id: ver
         run: |
           TAG="${GITHUB_REF_NAME}"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then TAG="${{ github.event.inputs.tag }}"; fi
-          PLUGIN_VER="${TAG#v}"
-          case "$PLUGIN_VER" in
-            *.*.*.*) ;;            # already 4-part
-            *.*.*)  PLUGIN_VER="${PLUGIN_VER}.0" ;;
-            *.*)    PLUGIN_VER="${PLUGIN_VER}.0.0" ;;
+
+          # Strip the leading v, then split off any prerelease suffix (-beta.1, -rc.2, ...).
+          RAW="${TAG#v}"
+          BASE="${RAW%%-*}"
+          if [ "$RAW" != "$BASE" ]; then CHANNEL=beta; else CHANNEL=stable; fi
+
+          # Normalise BASE to exactly three parts, then append a fourth.
+          case "$BASE" in
+            *.*.*.*) BASE="${BASE%.*}" ;;   # 4-part tag: drop the extra
+            *.*.*)   ;;                     # already 3-part
+            *.*)     BASE="${BASE}.0" ;;
+            *)       BASE="${BASE}.0.0" ;;
           esac
+
+          # Jellyfin versions are plain 4-part numbers with no notion of a prerelease, so the
+          # channel lives in the fourth part: stable is always .0, a beta carries its beta number.
+          # Consequence worth knowing: 0.7.0.1 (beta) sorts ABOVE 0.7.0.0 (stable), so when the
+          # stable of the same number ships, beta testers pick it from the version dropdown rather
+          # than being offered it as an update. Keeping manifest history is what makes that possible.
+          if [ "$CHANNEL" = "beta" ]; then
+            N="$(printf '%s' "${RAW#*-}" | tr -dc '0-9')"
+            [ -n "$N" ] || N=1
+            PLUGIN_VER="${BASE}.${N}"
+          else
+            PLUGIN_VER="${BASE}.0"
+          fi
+
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "plugin_ver=$PLUGIN_VER" >> "$GITHUB_OUTPUT"
-          echo "Releasing $TAG (plugin version $PLUGIN_VER)"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "Releasing $TAG on the $CHANNEL channel (plugin version $PLUGIN_VER)"
 
       - name: Publish
         run: dotnet publish Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release -o publish
+
+      - name: Fetch the channel's existing manifest (for version history)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHANNEL: ${{ steps.ver.outputs.channel }}
+        run: |
+          # Merging the previous manifest is what keeps older versions selectable in Jellyfin.
+          # Never fail the release over it — package_release.py logs loudly if history is lost.
+          if [ "$CHANNEL" = "beta" ]; then
+            gh release download beta --pattern manifest.json --output prev-manifest.json 2>/dev/null \
+              || echo "No existing beta manifest (first beta release?)"
+          else
+            gh release download --pattern manifest.json --output prev-manifest.json 2>/dev/null \
+              || echo "No existing stable manifest (first release?)"
+          fi
+          [ -f prev-manifest.json ] && echo "Found previous manifest" || true
 
       - name: Package zip + manifest
         env:
           TAG: ${{ steps.ver.outputs.tag }}
           PLUGIN_VER: ${{ steps.ver.outputs.plugin_ver }}
           REPO: ${{ github.repository }}
-          CHANGELOG: "See CHANGELOG.md for ${{ steps.ver.outputs.tag }}."
+          PREV_MANIFEST: prev-manifest.json
+          CHANGELOG_FILE: CHANGELOG.md
         run: python3 scripts/package_release.py
+
+      - name: Build the release notes
+        id: notes
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+          CHANNEL: ${{ steps.ver.outputs.channel }}
+        run: |
+          # The notes people actually read are the ones on the release page, so put the real
+          # changelog there rather than a pointer to a file they have to go open.
+          python3 - <<'PY' > RELEASE_NOTES.md
+          import os, sys
+          sys.path.insert(0, "scripts")
+          from package_release import extract_changelog
+          tag = os.environ["TAG"]
+          channel = os.environ["CHANNEL"]
+          body = extract_changelog("CHANGELOG.md", tag)
+          if channel == "beta":
+              print("> **Pre-release build.** Add the beta repository in Jellyfin to install it:")
+              print("> `https://github.com/%s/releases/download/beta/manifest.json`" % os.environ.get("GITHUB_REPOSITORY", ""))
+              print()
+          print(body)
+          print()
+          print("---")
+          print()
+          print("### Install")
+          print()
+          print("Jellyfin → Dashboard → Plugins → Repositories → **+**, then add:")
+          print()
+          print("```")
+          print("https://github.com/%s/releases/latest/download/manifest.json" % os.environ.get("GITHUB_REPOSITORY", ""))
+          print("```")
+          print()
+          print("Then Catalog → Overcoat → Install, and restart Jellyfin. Existing installs can update from the same page.")
+          PY
+          echo "Wrote RELEASE_NOTES.md"
 
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.ver.outputs.tag }}
+          CHANNEL: ${{ steps.ver.outputs.channel }}
         run: |
+          PRERELEASE=""
+          [ "$CHANNEL" = "beta" ] && PRERELEASE="--prerelease"
+
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" artifacts/overcoat_*.zip artifacts/manifest.json --clobber
+            gh release edit "$TAG" --notes-file RELEASE_NOTES.md
           else
             gh release create "$TAG" artifacts/overcoat_*.zip artifacts/manifest.json \
-              --title "Overcoat $TAG" --notes "Install: add the repository manifest in Jellyfin — see the README. Changes: see CHANGELOG.md."
+              --title "Overcoat $TAG" --notes-file RELEASE_NOTES.md $PRERELEASE
+          fi
+
+      - name: Mirror the beta manifest onto the rolling `beta` release
+        if: steps.ver.outputs.channel == 'beta'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Betas need a URL that doesn't move, and `releases/latest` deliberately excludes
+          # prereleases. A fixed `beta` release gives the beta channel its own stable manifest URL.
+          if ! gh release view beta >/dev/null 2>&1; then
+            gh release create beta artifacts/manifest.json \
+              --title "Overcoat beta channel" --prerelease \
+              --notes "Rolling manifest for the beta channel. Add this URL in Jellyfin to receive pre-release builds:
+          \`https://github.com/${GITHUB_REPOSITORY}/releases/download/beta/manifest.json\`
+
+          Betas are for testing — expect rough edges, and keep the stable repository added too."
+          else
+            gh release upload beta artifacts/manifest.json --clobber
           fi
