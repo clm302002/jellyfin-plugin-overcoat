@@ -6,6 +6,10 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.7.0] — 2026-07-22
+
 Findings from an independent deep audit. Every item was re-verified before being changed, and the
 theme is the same one as 0.6.0/0.6.1: **an unknown must never be treated as an answer.**
 
@@ -68,6 +72,8 @@ theme is the same one as 0.6.0/0.6.1: **an unknown must never be treated as an a
   overlay-loss bug so far has lived in. Runs in CI on every push and pull request.
 - CI also matrix-builds against the minimum supported Jellyfin version, and Dependabot now watches
   Actions and NuGet.
+- **The beta channel now carries stable releases too**, so subscribing to the beta repository alone
+  is a complete "always newest" channel rather than one that silently misses stable-only releases.
 
 ## [0.6.1] — 2026-07-21
 

@@ -173,6 +173,11 @@ Betas never reach the stable URL, so adding this is opt-in and reversible. With 
 plugin catalogue lists every published build and you can move between them from the version
 dropdown — including rolling back if a release misbehaves.
 
+**To stay on beta permanently, add the beta URL and remove the stable one.** The beta channel is a
+superset: every stable release is published to it as well, so a beta-only subscriber still receives
+stable builds — just alongside the pre-release ones. Keeping both URLs is equally fine and simply
+lists everything twice.
+
 Beta versions carry the beta number in the fourth part (`0.7.0.1` = first beta of 0.7.0) while
 stable is always `.0` (`0.7.0.0`). That means a beta sorts *above* the matching stable, so when the
 stable ships you select it from the dropdown rather than being offered it as an update. Expect rough

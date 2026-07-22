@@ -137,30 +137,42 @@ jobs:
           print(f"OK: DLL carries {want}")
           PY
 
-      - name: Fetch the channel's existing manifest (for version history)
+      - name: Fetch both channels' existing manifests (for version history)
         env:
           GH_TOKEN: ${{ github.token }}
-          CHANNEL: ${{ steps.ver.outputs.channel }}
         run: |
-          # Merging the previous manifest is what keeps older versions selectable in Jellyfin.
-          # Never fail the release over it — package_release.py logs loudly if history is lost.
-          if [ "$CHANNEL" = "beta" ]; then
-            gh release download beta --pattern manifest.json --output prev-manifest.json 2>/dev/null \
-              || echo "No existing beta manifest (first beta release?)"
-          else
-            gh release download --pattern manifest.json --output prev-manifest.json 2>/dev/null \
-              || echo "No existing stable manifest (first release?)"
-          fi
-          [ -f prev-manifest.json ] && echo "Found previous manifest" || true
+          # Each channel keeps its own history, so both are merged independently below. Never fail
+          # the release over a missing one — package_release.py says loudly if history is lost.
+          gh release download --pattern manifest.json --output prev-stable.json 2>/dev/null \
+            || echo "No existing stable manifest (first stable release?)"
+          gh release download beta --pattern manifest.json --output prev-beta.json 2>/dev/null \
+            || echo "No existing beta manifest (first beta release?)"
 
-      - name: Package zip + manifest
+      - name: Package zip + manifest for this release
         env:
           TAG: ${{ steps.ver.outputs.tag }}
           PLUGIN_VER: ${{ steps.ver.outputs.plugin_ver }}
           REPO: ${{ github.repository }}
-          PREV_MANIFEST: prev-manifest.json
+          # A beta's own release page carries beta history; a stable's carries stable history.
+          PREV_MANIFEST: ${{ steps.ver.outputs.channel == 'beta' && 'prev-beta.json' || 'prev-stable.json' }}
           CHANGELOG_FILE: CHANGELOG.md
         run: python3 scripts/package_release.py
+
+      - name: Package the beta-channel manifest
+        if: steps.ver.outputs.channel == 'stable'
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+          PLUGIN_VER: ${{ steps.ver.outputs.plugin_ver }}
+          REPO: ${{ github.repository }}
+          PREV_MANIFEST: prev-beta.json
+          OUTPUT_DIR: artifacts-beta
+          CHANGELOG_FILE: CHANGELOG.md
+        run: |
+          # The beta channel is a SUPERSET, not a parallel track: someone who subscribes only to the
+          # beta URL to "always get the newest build" must still receive stable releases, or they
+          # silently fall behind the moment a stable ships without a beta before it. So every stable
+          # release is merged into the beta manifest too, pointing at the same .zip.
+          python3 scripts/package_release.py
 
       - name: Build the release notes
         id: notes
@@ -214,20 +226,24 @@ jobs:
               --title "Overcoat $TAG" --notes-file RELEASE_NOTES.md $PRERELEASE
           fi
 
-      - name: Mirror the beta manifest onto the rolling `beta` release
-        if: steps.ver.outputs.channel == 'beta'
+      - name: Publish the beta channel manifest
         env:
           GH_TOKEN: ${{ github.token }}
+          CHANNEL: ${{ steps.ver.outputs.channel }}
         run: |
           # Betas need a URL that doesn't move, and `releases/latest` deliberately excludes
           # prereleases. A fixed `beta` release gives the beta channel its own stable manifest URL.
+          # Runs for stable releases too — see the packaging step above for why.
+          MANIFEST=artifacts/manifest.json
+          [ "$CHANNEL" = "stable" ] && MANIFEST=artifacts-beta/manifest.json
+
           if ! gh release view beta >/dev/null 2>&1; then
-            gh release create beta artifacts/manifest.json \
+            gh release create beta "$MANIFEST" \
               --title "Overcoat beta channel" --prerelease \
               --notes "Rolling manifest for the beta channel. Add this URL in Jellyfin to receive pre-release builds:
           \`https://github.com/${GITHUB_REPOSITORY}/releases/download/beta/manifest.json\`
 
           Betas are for testing — expect rough edges, and keep the stable repository added too."
           else
-            gh release upload beta artifacts/manifest.json --clobber
+            gh release upload beta "$MANIFEST" --clobber
           fi
