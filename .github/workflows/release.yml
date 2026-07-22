@@ -90,16 +90,25 @@ jobs:
           esac
 
           # Jellyfin versions are plain 4-part numbers with no notion of a prerelease, so the
-          # channel lives in the fourth part: stable is always .0, a beta carries its beta number.
-          # Consequence worth knowing: 0.7.0.1 (beta) sorts ABOVE 0.7.0.0 (stable), so when the
-          # stable of the same number ships, beta testers pick it from the version dropdown rather
-          # than being offered it as an update. Keeping manifest history is what makes that possible.
+          # channel lives in the FOURTH part:
+          #
+          #     0.7.0-beta.1  -> 0.7.0.1     beta builds count up from 1
+          #     0.7.0-beta.2  -> 0.7.0.2
+          #     0.7.0         -> 0.7.0.500   the release sits ABOVE every beta of the same version
+          #     0.8.0-beta.1  -> 0.8.0.1     the next line starts over, higher because the minor moved
+          #
+          # 500 is arbitrary but deliberate: it leaves room for ~499 betas and still sorts under the
+          # next version. The obvious choice of .0 for a release is WRONG here — it puts the finished
+          # build BELOW every beta of that version, so anyone who tested beta.2 would never be offered
+          # the release containing the fixes their testing produced. They'd sit on the older build,
+          # which Jellyfin considers newer, until the next version's first beta.
           if [ "$CHANNEL" = "beta" ]; then
             N="$(printf '%s' "${RAW#*-}" | tr -dc '0-9')"
             [ -n "$N" ] || N=1
+            [ "$N" -ge 500 ] && { echo "::error::Beta number $N must stay below 500"; exit 1; }
             PLUGIN_VER="${BASE}.${N}"
           else
-            PLUGIN_VER="${BASE}.0"
+            PLUGIN_VER="${BASE}.500"
           fi
 
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"

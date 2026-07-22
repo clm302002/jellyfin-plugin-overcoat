@@ -6,7 +6,8 @@ pills and badges onto posters.
 ## Prerequisites
 
 - **.NET 9 SDK** (the plugin targets `net9.0` to match Jellyfin 10.11.x).
-- A Jellyfin **10.11.x** test server (Docker is easiest).
+- A Jellyfin **10.11.9+** test server (Docker is easiest). 10.11.0–10.11.8 lack user-manager
+  APIs the plugin uses and cannot load it; CI enforces that floor.
 - A TMDB API key for testing the metadata paths.
 
 ## Build
@@ -66,6 +67,11 @@ changing the look — and update the parity notes.
   pixel-diff them.
 - **Metadata:** use `tools/TmdbTest` (`TMDB_API_KEY=… dotnet run`) to confirm TMDB id resolution and
   the status→banner mapping against live data.
+- **Automated:** `dotnet test tests/Jellyfin.Plugin.Overcoat.Tests/` — the skip cache, originals
+  vault, atomic writes and recovery, image-format detection and config clamping. Run it before
+  changing `ProcessingState` or `OverlayTask`; that state machine is where every overlay-loss bug in
+  this project has lived.
+- **Settings page:** `node scripts/check_config_page.js` — nothing else compiles that file.
 - **End-to-end:** install the built DLL on a test Jellyfin, run the **Apply Overcoat Overlays** task
   on a small/limited library, and confirm posters update.
 
@@ -78,15 +84,26 @@ changing the look — and update the parity notes.
 
 Releases are cut by pushing a tag; **pushing to a branch publishes nothing.**
 
-| Tag | Channel | Where it lands |
-|---|---|---|
-| `v0.7.0` | stable | `releases/latest/download/manifest.json` |
-| `v0.7.0-beta.1` | beta | `releases/download/beta/manifest.json` |
+| Tag | Version | Channel | Where it lands |
+|---|---|---|---|
+| `v0.7.0-beta.1` | `0.7.0.1` | beta | `releases/download/beta/manifest.json` |
+| `v0.7.0-beta.2` | `0.7.0.2` | beta | " |
+| `v0.7.0` | `0.7.0.500` | stable | `releases/latest/download/manifest.json` |
+| `v0.8.0-beta.1` | `0.8.0.1` | beta | next line starts over |
 
-GitHub's "latest" excludes prereleases, so a beta can never appear on the stable URL. Each channel
-keeps its own manifest history, so older builds stay installable from Jellyfin's version dropdown.
+GitHub's "latest" excludes prereleases, so a beta can never appear on the stable URL. The beta channel
+is a **superset** — stable releases are published there too — so subscribing to the beta URL alone is
+a complete "always newest" channel. Each channel keeps its own manifest history, so older builds stay
+installable from Jellyfin's version dropdown.
 
-Beta versions put the beta number in the fourth part (`0.7.0.1`); stable is always `.0` (`0.7.0.0`).
+**Why stable is `.500` and not `.0`.** Jellyfin versions are 4-part numbers with no concept of a
+prerelease, so the channel lives in the fourth part. Numbering the release `.0` would put it *below*
+every beta of that version — a tester who ran `beta.2` would never be offered the release containing
+the fixes their own testing produced. `.500` keeps the ordering monotonic and leaves room for betas.
+
+**A beta is a release candidate for one version, not a parallel version line.** It never gets ahead of
+stable and is never promoted by renumbering; `v0.7.0-beta.N` simply becomes `v0.7.0`. If betas are
+reaching a version number the release won't have, they're numbered wrong.
 
 Cutting a release:
 
@@ -103,6 +120,6 @@ both extracted from that `## [x.y.z]` section automatically — so write it for 
 - Branch off `dev`, keep PRs focused, describe what you changed and how you tested it.
 - Match the surrounding code style. Keep new Jellyfin API calls timeout/cancellation aware.
 - Update `CHANGELOG.md` under `## [Unreleased]` for any user-visible change.
-- CI runs the Release build with `-warnaserror` plus `scripts/check_config_page.js`; run both locally
-  first. Note that a clean build proves very little here — several fixes in this project have
+- CI runs the Release build with `-warnaserror`, the test suite, `scripts/check_config_page.js`, and a
+  matrix build against the minimum supported Jellyfin; run them locally first. Note that a clean build proves very little here — several fixes in this project have
   compiled perfectly while doing nothing at all, so test against a real library.
