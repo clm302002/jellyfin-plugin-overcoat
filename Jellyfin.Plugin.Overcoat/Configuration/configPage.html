@@ -363,8 +363,16 @@
                                 <button type="button" class="ovcChip" data-status="ENDED">ENDED</button>
                                 <button type="button" class="ovcChip" data-status="CANCELED">CANCELED</button>
                             </div>
+                            <div class="ovcStatusSwitch">
+                                <button type="button" class="ovcChip ovcSourceBtn ovcChipActive" data-source="placeholder">Sample poster</button>
+                                <button type="button" class="ovcChip ovcSourceBtn" data-source="random">🎲 Random from my library</button>
+                            </div>
                             <img id="BannerPreview" alt="Banner preview" />
-                            <div class="ovcMuted" style="margin-top:.5em;">Updates instantly — no run needed.</div>
+                            <div class="ovcMuted" style="margin-top:.5em;">
+                                Updates instantly — no run needed. Random picks a clean poster from your own
+                                library (click again for another); it never uses one Overcoat has already
+                                overlaid, so what you see is what a real run would produce.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -414,6 +422,10 @@
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="watch_history">Watch</button>
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="tmdb_trending">Trending</button>
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="imdb_top250">Top 250</button>
+                            </div>
+                            <div class="ovcStatusSwitch">
+                                <button type="button" class="ovcChip ovcSourceBtn ovcChipActive" data-source="placeholder">Sample poster</button>
+                                <button type="button" class="ovcChip ovcSourceBtn" data-source="random">🎲 Random from my library</button>
                             </div>
                             <img id="BadgePreview" alt="Badge preview" />
                             <div class="ovcMuted" style="margin-top:.5em;">Shows your saved banner + the toggled badges. Updates instantly.</div>
@@ -543,6 +555,20 @@
             }
 
             // Build the badge preview URL: saved banner + the toggled badges with live placement.
+            // Which poster the previews draw on. Shared by both studios so switching tabs doesn't
+            // silently change what you're looking at. 'placeholder' is the built-in sample; 'random'
+            // asks the server for a clean poster out of the user's own library.
+            var previewSource = 'placeholder';
+
+            function setPreviewSource(next) {
+                previewSource = next;
+                page.querySelectorAll('.ovcSourceBtn').forEach(function (b) {
+                    b.classList.toggle('ovcChipActive', b.getAttribute('data-source') === next);
+                });
+                refreshBannerPreview();
+                refreshBadgePreview();
+            }
+
             function badgePreviewUrl() {
                 var keys = [];
                 page.querySelectorAll('#OvercoatPreviewBadges .ovcChip.ovcChipActive').forEach(function (b) {
@@ -554,6 +580,7 @@
                     'vertical=' + encodeURIComponent(val('BadgeVertical')),
                     'scale=' + encodeURIComponent(val('BadgeScale') || '100'),
                     'gap=' + encodeURIComponent(val('BadgeGapPercent') || '1'),
+                    'source=' + encodeURIComponent(previewSource),
                     'api_key=' + encodeURIComponent(ApiClient.accessToken()),
                     '_=' + new Date().getTime()
                 ].join('&');
@@ -608,6 +635,7 @@
                     'glassBlur=' + encodeURIComponent(val('GlassBlur') || '50'),
                     'neonGlow=' + encodeURIComponent(val('NeonGlow') || '60'),
                     'font=' + encodeURIComponent(val('BannerFont')),
+                    'source=' + encodeURIComponent(previewSource),
                     'api_key=' + encodeURIComponent(ApiClient.accessToken()),
                     '_=' + new Date().getTime()
                 ].join('&');
@@ -986,6 +1014,13 @@
                         el.addEventListener('input', refreshBannerPreview);
                     });
                     page.querySelector('#BannerStyle').addEventListener('change', updateStyleOptions);
+                    // Clicking "Random" again re-rolls: the handler always refreshes, and the
+                    // cache-buster in the URL means the server picks a new poster each time.
+                    page.querySelectorAll('.ovcSourceBtn').forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            setPreviewSource(btn.getAttribute('data-source'));
+                        });
+                    });
                     page.querySelectorAll('#OvercoatPreviewStatuses .ovcChip').forEach(function (btn) {
                         btn.addEventListener('click', function () {
                             previewStatus = btn.getAttribute('data-status');

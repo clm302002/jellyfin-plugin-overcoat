@@ -6,7 +6,15 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+- **Preview on your own posters.** The Banners and Badges preview studios now have a
+  **🎲 Random from my library** button alongside the built-in sample. A banner reads very differently
+  over a dark poster than a bright one, so previewing on real art tells you far more than a synthetic
+  one does. Click again for another poster.
+
+  It only ever uses **clean** art: the saved original if Overcoat has one for that item, otherwise a
+  poster Overcoat has never touched. It will not pick something already overlaid, which would show a
+  banner drawn on top of a banner and make the preview misleading.
 
 ## [0.7.0] — 2026-07-22
 
