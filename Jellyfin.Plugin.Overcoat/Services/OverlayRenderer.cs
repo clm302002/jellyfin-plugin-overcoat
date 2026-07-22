@@ -18,6 +18,16 @@ namespace Jellyfin.Plugin.Overcoat.Services;
 /// </summary>
 public sealed class OverlayRenderer : IDisposable
 {
+    /// <summary>
+    /// Bumped whenever this renderer's output changes for identical settings — a geometry tweak, a
+    /// font change, new or redrawn badge art.
+    ///
+    /// It is folded into the skip cache's appearance key, so incrementing it is what makes existing
+    /// posters re-render. Without that, a rendering fix reaches only items that happened to change
+    /// for some other reason, and everything else silently keeps the old art forever.
+    /// </summary>
+    public const int RendererRevision = 1;
+
     /// <summary>Status → pill colour. Mirrors <c>OverlayProcessor.BANNER_COLORS</c>.</summary>
     public static readonly IReadOnlyDictionary<string, string> BannerColors = new Dictionary<string, string>
     {

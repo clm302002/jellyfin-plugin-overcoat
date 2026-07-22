@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The plugin marks Jellyfin.Controller PrivateAssets=all so the server's assemblies are not
+      shipped inside the plugin .zip. That also means they are not copied to a referencing project's
+      output, so tests touching any Jellyfin type fail at runtime with a FileNotFoundException.
+      Referencing it here (without PrivateAssets) puts them in the TEST output only; the packaged
+      plugin is unaffected. Keep the version in step with the plugin's.
+    -->
+    <PackageReference Include="Jellyfin.Controller" Version="10.11.11" />
+  </ItemGroup>
+
+</Project>

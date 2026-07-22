@@ -30,11 +30,16 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     public override string Name => "Overcoat";
 
     /// <inheritdoc />
+    // Shown on the plugin's page in the dashboard. Kept to a couple of plain sentences: this sits
+    // above the revision history in a narrow column, so anything longer becomes a wall of text, and
+    // shouting in it (the previous version used "!!!") reads as broken rather than important.
+    // The uninstall note stays because losing it costs users their original posters — but as a
+    // normal sentence, and the Maintenance tab repeats it where the button actually is.
     public override string Description =>
-        "Applies status overlays (NEW/AIRING/RETURNING/ENDED/CANCELED) and watch/trending/IMDB Top 250 " +
-        "badges to TV and movie posters, in-process. Successor to the Kometa-Jellyfin (jellymeta) script. " +
-        "!!! BEFORE UNINSTALLING: your posters are NOT reverted automatically. Open Overcoat's Settings " +
-        "→ Maintenance and run \"Restore original posters\" first, then uninstall. !!!";
+        "Adds status banners (NEW, AIRING, RETURNING, ENDED and CANCELED) and badges for trending, " +
+        "IMDb Top 250 and recently watched titles directly onto your TV and movie posters. " +
+        "Before uninstalling, run Settings → Maintenance → Restore original posters: uninstalling on " +
+        "its own leaves the overlays in place.";
 
     // Stable, unique id for this plugin. Generated once; never change it.
     public override Guid Id => Guid.Parse("604f4e22-a0a1-490d-b383-d60336318eaa");

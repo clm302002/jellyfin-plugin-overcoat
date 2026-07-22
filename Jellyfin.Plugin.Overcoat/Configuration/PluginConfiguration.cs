@@ -22,8 +22,11 @@ public class PluginConfiguration : BasePluginConfiguration
     // makes the run time editable from the plugin page instead of only from Dashboard → Scheduled Tasks.
 
     /// <summary>
-    /// Gets or sets a value indicating whether Overcoat manages its own schedule. Turn this off to
-    /// hand control back to Dashboard → Scheduled Tasks (Overcoat then leaves the triggers alone).
+    /// Gets or sets a value indicating whether Overcoat manages the task's trigger.
+    ///
+    /// NOTE this is "who owns the schedule", NOT "is the task automatic". Turning it off makes
+    /// Overcoat stop writing the trigger; whatever trigger already exists keeps firing. Stopping
+    /// automatic runs entirely means removing the triggers in Dashboard → Scheduled Tasks. (A-26)
     /// </summary>
     public bool ScheduleEnabled { get; set; } = true;
 
@@ -55,6 +58,15 @@ public class PluginConfiguration : BasePluginConfiguration
     // (that is what makes Restore possible), and orphan pruning was never implemented. They were
     // removed in v0.6.1 rather than left lying to users. XmlSerializer ignores the now-unknown
     // elements in existing config files, so no migration is needed.
+
+    /// <summary>
+    /// Gets or sets a value indicating whether Restore overwrites posters it did not produce.
+    ///
+    /// Off (default), Restore skips any item whose current art doesn't match what Overcoat last
+    /// wrote — the vaulted copy is older by definition, so writing it over newer artwork installed by
+    /// the user or another provider would destroy that artwork. On, the vaulted original wins.
+    /// </summary>
+    public bool ForceRestore { get; set; }
 
     /// <summary>Gets or sets a value indicating whether the task computes overlays but skips saving (diagnostics).</summary>
     public bool DryRun { get; set; }
@@ -297,6 +309,89 @@ public class PluginConfiguration : BasePluginConfiguration
 }
 
 /// <summary>Per-library configuration. Mirrors a normalized entry from the old <c>jellyfin.libraries</c>.</summary>
+/// <summary>
+/// Clamps configuration to usable ranges.
+///
+/// Every value here is reachable three ways — the settings page, the preview endpoint, and a
+/// hand-edited XML file — and only the first has any client-side limits. Nothing downstream
+/// re-checks them, so a font scale of 500 or a negative badge size reaches the renderer directly and
+/// either produces nonsense or burns CPU drawing something enormous. Clamping in one place, called
+/// at the start of every run and every preview, means the rest of the code can trust these. (A-24)
+/// </summary>
+public static class ConfigurationSanitizer
+{
+    /// <summary>Clamps every bounded value in-place. Safe to call repeatedly.</summary>
+    public static void Normalize(PluginConfiguration c)
+    {
+        c.BannerFontScale = Math.Clamp(double.IsFinite(c.BannerFontScale) ? c.BannerFontScale : 1.0, 0.2, 3.0);
+        c.BannerShadowStrength = Math.Clamp(c.BannerShadowStrength, 0, 100);
+        c.GlassTintStrength = Math.Clamp(c.GlassTintStrength, 0, 100);
+        c.GlassBlur = Math.Clamp(c.GlassBlur, 0, 100);
+        c.NeonGlow = Math.Clamp(c.NeonGlow, 0, 100);
+
+        c.BadgeScale = Math.Clamp(c.BadgeScale, 10, 300);
+        c.BadgeGapPercent = Math.Clamp(c.BadgeGapPercent, 0, 50);
+
+        // -1 means "never show the date"; anything beyond a decade is effectively "always".
+        c.ReturningDateWindowDays = Math.Clamp(c.ReturningDateWindowDays, -1, 3650);
+
+        c.WatchHistoryDays = Math.Clamp(c.WatchHistoryDays, 1, 3650);
+        c.WatchHistoryMaxScan = Math.Clamp(c.WatchHistoryMaxScan, 500, 1_000_000);
+        c.ScheduleHour = Math.Clamp(c.ScheduleHour, 0, 23);
+        c.ScheduleMinute = Math.Clamp(c.ScheduleMinute, 0, 59);
+
+        c.ColorNew = SafeColor(c.ColorNew, "#5EBD3E");
+        c.ColorAiring = SafeColor(c.ColorAiring, "#149BDA");
+        c.ColorReturning = SafeColor(c.ColorReturning, "#A020F0");
+        c.ColorEnded = SafeColor(c.ColorEnded, "#424242");
+        c.ColorCanceled = SafeColor(c.ColorCanceled, "#D32F2F");
+        c.GlassTint = SafeColor(c.GlassTint, "#0E1018");
+
+        c.LabelNew = SafeLabel(c.LabelNew, "NEW");
+        c.LabelAiring = SafeLabel(c.LabelAiring, "AIRING");
+        c.LabelReturning = SafeLabel(c.LabelReturning, "RETURNING");
+        c.LabelEnded = SafeLabel(c.LabelEnded, "ENDED");
+        c.LabelCanceled = SafeLabel(c.LabelCanceled, "CANCELED");
+    }
+
+    /// <summary>A #RGB / #RRGGBB / #AARRGGBB value, or the supplied default.</summary>
+    public static string SafeColor(string? value, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return fallback;
+        }
+
+        var v = value.Trim();
+        if (v.Length is not (4 or 7 or 9) || v[0] != '#')
+        {
+            return fallback;
+        }
+
+        for (var i = 1; i < v.Length; i++)
+        {
+            if (!Uri.IsHexDigit(v[i]))
+            {
+                return fallback;
+            }
+        }
+
+        return v;
+    }
+
+    /// <summary>Banner text, capped so an absurd label can't be handed to the renderer.</summary>
+    public static string SafeLabel(string? value, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return fallback;
+        }
+
+        var v = value.Trim();
+        return v.Length > 40 ? v[..40] : v;
+    }
+}
+
 public class LibraryConfig
 {
     /// <summary>Gets or sets the Jellyfin library (virtual folder) display name.</summary>

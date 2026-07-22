@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Package Overcoat into a Jellyfin plugin .zip + repository manifest.json.
 
-Reproducible, no jprm. Used by .github/workflows/release.yml and runnable locally:
+Used by .github/workflows/release.yml and runnable locally:
 
   dotnet publish Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release -o publish
   TAG=v0.1.0 PLUGIN_VER=0.1.0.0 python3 scripts/package_release.py
+
+Note: the .zip is NOT byte-reproducible — archive member timestamps are not normalised, so two runs
+over identical inputs produce different checksums. The manifest records the checksum of the archive
+actually published, so this affects reproducing a build, not verifying a download.
 
 Two things here are load-bearing and easy to break:
 
@@ -15,7 +19,8 @@ Two things here are load-bearing and easy to break:
   workflow downloads it first and the log says which happened.
 * **The changelog text ends up inside Jellyfin.** The `changelog` field is rendered in the plugin
   catalogue, so it should be the actual notes for this version, not a pointer to a file the user
-  would have to go find. `--changelog-from` extracts the matching section out of CHANGELOG.md.
+  would have to go find. `extract_changelog()` pulls the matching `## [x.y.z]` section out of the
+  file named by `CHANGELOG_FILE`; set `CHANGELOG` to override it with literal text.
 
 Env:
   TAG            git tag, e.g. v0.1.0 or v0.7.0-beta.1  (required)
@@ -33,7 +38,12 @@ import os, json, zipfile, hashlib, datetime, sys, re
 GUID = "604f4e22-a0a1-490d-b383-d60336318eaa"
 NAME = "Overcoat"
 OWNER = "clm302002"
-TARGET_ABI = "10.11.0.0"
+# Jellyfin uses targetAbi to decide whether to offer a build to a server, so it must reflect the
+# OLDEST version the DLL actually loads on — not the oldest we'd like to support. Verified by matrix
+# build 2026-07-22: IUserManager.GetUsers / GetFirstUser (Services/WatchHistory.cs) do not exist
+# before 10.11.9, so 10.11.0–10.11.8 fail to compile and would fail to load. Claiming 10.11.0.0 here
+# offered those servers a plugin that cannot start. CI locks the floor with a matrix build.
+TARGET_ABI = "10.11.9.0"
 OVERVIEW = "Overlays status banners and badges onto your Jellyfin posters."
 DESCRIPTION = (
     "Overcoat decorates your Jellyfin posters with useful info at a glance — status banners like "
@@ -44,27 +54,77 @@ DESCRIPTION = (
 )
 
 
-def extract_changelog(path, tag):
-    """Pull the '## [x.y.z] — date' section for this tag out of a Keep-a-Changelog file.
+def extract_section(text, heading):
+    """Body of a '## [heading] ...' section, up to the next '## ' heading. Empty if absent."""
+    pattern = rf"^##\s*\[{re.escape(heading)}\][^\n]*\n(.*?)(?=^##\s|\Z)"
+    m = re.search(pattern, text, re.MULTILINE | re.DOTALL)
+    if not m:
+        return ""
+    body = m.group(1).strip()
+    return "" if body.lower().startswith("_nothing yet") else body
 
-    Falls back to a one-liner rather than failing the release: a missing heading should not block
-    shipping, but the generic text is a signal the CHANGELOG wasn't updated.
+
+def extract_changelog(path, tag, max_chars=None):
+    """Release notes for a tag.
+
+    Betas of one version all reduce to the same base number, so keying purely off that made every
+    beta of 0.7.0 advertise the identical 5,000-character 0.7.0 section — the plugin page's revision
+    history then showed the same wall of text four times over, which is worse than showing nothing.
+
+    So a prerelease prefers the '## [Unreleased]' section, which is where work that has not shipped
+    yet is recorded and therefore changes between betas, and is labelled with its beta number so two
+    entries are never indistinguishable. A stable release uses its own '## [x.y.z]' section.
     """
-    version = tag.lstrip("v").split("-")[0]
+    raw = tag.lstrip("v")
+    base = raw.split("-")[0]
+    prerelease = "-" in raw
+
     try:
         with open(path, encoding="utf-8") as f:
             text = f.read()
     except OSError:
         return f"Overcoat {tag}."
 
-    # Match '## [0.6.1]' (any trailing date/text), up to the next '## ' heading.
-    pattern = rf"^##\s*\[{re.escape(version)}\][^\n]*\n(.*?)(?=^##\s|\Z)"
-    m = re.search(pattern, text, re.MULTILINE | re.DOTALL)
-    if not m:
-        return f"Overcoat {tag}."
+    if prerelease:
+        suffix = raw.split("-", 1)[1]
+        body = extract_section(text, "Unreleased") or extract_section(text, base)
+        header = f"Pre-release ({suffix}) of {base}. Expect rough edges."
+        body = f"{header}\n\n{body}" if body else header
+    else:
+        body = extract_section(text, base) or f"Overcoat {tag}."
 
-    body = m.group(1).strip()
-    return body if body else f"Overcoat {tag}."
+    return truncate_changelog(body, max_chars)
+
+
+def truncate_changelog(body, max_chars):
+    """Trim to a readable length for the manifest — it renders in a narrow dashboard panel."""
+    if not max_chars or len(body) <= max_chars:
+        return body
+
+    cut = body[:max_chars]
+    # Prefer breaking at a line boundary so a bullet is not sliced mid-word.
+    nl = cut.rfind("\n")
+    if nl > max_chars * 0.6:
+        cut = cut[:nl]
+    return cut.rstrip() + "\n\n… see the full notes on the release page."
+
+
+def tidy_historical_changelog(version, changelog):
+    """Shorten a carried-over entry so the plugin page's revision history stays readable.
+
+    Superseded prereleases are collapsed to a one-line label. Builds published before the notes were
+    per-beta all carried the same multi-thousand-character section, so the panel showed the identical
+    wall of text once per beta — the label is both shorter and more accurate about what that entry is.
+    Stable entries keep their notes and are only length-capped.
+    """
+    parts = version.split(".")
+    if len(parts) == 4 and parts[3].isdigit():
+        build = int(parts[3])
+        if 1 <= build < 500:
+            base = ".".join(parts[:3])
+            return f"Pre-release (build {build}) of {base}. Superseded — see the release page for details."
+
+    return truncate_changelog(changelog, 900)
 
 
 def load_previous_versions(path, current_version):
@@ -81,11 +141,20 @@ def load_previous_versions(path, current_version):
             data = json.load(f)
         versions = data[0].get("versions", []) if isinstance(data, list) and data else []
         kept = [v for v in versions if v.get("version") != current_version]
+        for v in kept:
+            v["changelog"] = tidy_historical_changelog(v.get("version", ""), v.get("changelog", ""))
         print(f"history:  {len(kept)} previous version(s) carried over from {path}")
         return kept
     except (OSError, ValueError, KeyError, IndexError) as exc:
         print(f"history:  WARNING could not read {path} ({exc}) — publishing without history")
         return []
+
+
+# Jellyfin skips a plugin entirely when working out available updates if its installed meta.json
+# says autoUpdate false (InstallationManager.GetAvailablePluginUpdates). Shipping false therefore
+# does not mean "let the user choose" — it means the Plugins page never offers an update at all and
+# the "Update Plugins" task ignores the plugin, so users silently sit on whatever they first
+# installed. Jellyfin's own default is true; matching it is what makes the repository URL useful.
 
 
 def main():
@@ -97,8 +166,12 @@ def main():
     prev_manifest = os.environ.get("PREV_MANIFEST", "")
     ts = os.environ.get("TIMESTAMP") or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    # The manifest's changelog renders inside Jellyfin's plugin page, in a narrow column stacked
+    # once per version — long entries there are unreadable. The GitHub release body keeps the full
+    # text (the workflow calls extract_changelog separately without a cap).
+    MANIFEST_CHANGELOG_LIMIT = 900
     changelog = os.environ.get("CHANGELOG") or extract_changelog(
-        os.environ.get("CHANGELOG_FILE", "CHANGELOG.md"), tag)
+        os.environ.get("CHANGELOG_FILE", "CHANGELOG.md"), tag, max_chars=MANIFEST_CHANGELOG_LIMIT)
 
     os.makedirs(out, exist_ok=True)
     dll = os.path.join(pub, "Jellyfin.Plugin.Overcoat.dll")
@@ -109,7 +182,7 @@ def main():
     meta = {
         "category": "Metadata", "guid": GUID, "name": NAME, "overview": OVERVIEW,
         "description": DESCRIPTION, "owner": OWNER, "targetAbi": TARGET_ABI,
-        "timestamp": ts, "version": ver, "status": "Active", "autoUpdate": False, "assemblies": [],
+        "timestamp": ts, "version": ver, "status": "Active", "autoUpdate": True, "assemblies": [],
     }
     meta_path = os.path.join(out, "meta.json")
     with open(meta_path, "w") as f:

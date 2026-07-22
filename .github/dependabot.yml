@@ -1,0 +1,27 @@
+version: 2
+
+updates:
+  # Actions are pinned to major tags (@v4), which are mutable — Dependabot at least makes movement
+  # visible as a PR rather than silent. Pinning to commit SHAs is the stronger fix and is still open.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: deps
+    # Jellyfin and SkiaSharp are ABI-sensitive: Jellyfin.Controller decides the minimum server
+    # version the plugin can load on, and SkiaSharp must match what the server ships. Neither can be
+    # merged on green CI alone — both need a compatibility decision, so they are grouped and
+    # deliberately left to be reviewed by hand.
+    groups:
+      jellyfin-abi:
+        patterns:
+          - "Jellyfin.*"
+          - "SkiaSharp*"

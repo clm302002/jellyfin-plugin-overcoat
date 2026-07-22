@@ -8,6 +8,106 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.7.0] — 2026-07-22
+
+Findings from an independent deep audit. Every item was re-verified before being changed, and the
+theme is the same one as 0.6.0/0.6.1: **an unknown must never be treated as an answer.**
+
+### Fixed
+- **Overcoat no longer offers itself to Jellyfin versions it cannot run on.** The published metadata
+  claimed compatibility with all of 10.11.x, but the plugin uses user-manager APIs added in
+  **10.11.9** — servers on 10.11.0–10.11.8 were offered a build that could not load. The declared
+  minimum is corrected and CI now matrix-builds against the floor so it can't drift again.
+- **A failing badge source no longer removes badges it can't vouch for.** 0.6.1 only protected items
+  that would lose *everything*; an item keeping its status banner still had the affected badge
+  stripped. Each source is now tracked separately, and a badge whose source couldn't be read keeps
+  whatever was last rendered.
+- **An unreadable poster is no longer mistaken for a replaced one.** The check had two outcomes, so
+  "couldn't read the file" fell through as "confirmed replaced" — which abandons the saved clean
+  original on the strength of an I/O error. It now has a third, and only a confirmed replacement
+  triggers anything destructive.
+- **A poster that disappears is now recovered instead of ignored forever.** The comparison skipped
+  items whose current image was missing, so an item whose art vanished was never restored.
+- **Restore no longer overwrites artwork Overcoat didn't create.** If you or another plugin changed a
+  poster after Overcoat's last run, Restore now leaves it alone and reports the conflict rather than
+  replacing it with an older saved copy. A **Force restore** option (Maintenance tab) overrides this.
+- **Apply and Restore can no longer run at the same time.** They previously could interleave and
+  leave a poster overlaid with its only clean copy deleted.
+- **Dry run no longer changes anything.** It was still writing cache entries and saved originals
+  despite promising otherwise.
+- **Saved originals and the state file are written atomically**, with a backup the plugin falls back
+  to if the state file is ever damaged — an interrupted write could previously truncate the only
+  recoverable copy of a poster.
+- **Restore sends the correct image type.** Saved originals are whatever format the source poster
+  was (mostly WebP and JPEG in practice), but every one was being handed to Jellyfin labelled PNG.
+- **Cancelling a run now stops it promptly** instead of being swallowed by error handling.
+- **Saving settings can no longer wipe your library configuration.** If the library list failed to
+  load, the page had no rows to read and Save wrote an empty list over your per-library settings.
+  The saved list is now preserved and the failure is explained on the page.
+- **Bad configuration values can't reach the renderer.** Font scale, badge size, blur, glow, scan
+  limits and colours are clamped server-side — the settings page only enforced them in the browser,
+  and the same values are reachable from a hand-edited config file.
+- **A malformed TMDB override is ignored instead of used.** A bad line parsed to TMDB id 0, and
+  every lookup for that title then failed permanently. Invalid lines are now skipped and logged.
+- **Changing the overlay artwork or drawing code now refreshes existing posters.** The skip cache
+  only tracked your settings, so a rendering change reached items that happened to change for some
+  other reason and silently left everything else on the old art.
+- **Updates now actually appear in Jellyfin.** The packaged metadata set `autoUpdate: false`, and
+  Jellyfin skips a plugin entirely when deciding which have updates available if that flag is off —
+  so the Plugins page never offered an update and the "Update Plugins" task ignored Overcoat. Anyone
+  who installed it stayed on that version indefinitely regardless of what the repository advertised.
+  To update an installation packaged before this fix, expand the version you want under **Revision
+  History** on the plugin's page and click Install.
+- **The settings page can no longer load a stale stylesheet after an update.** Its CSS was cached for
+  24 hours, so a version that changed the styling would render new markup against the previous
+  stylesheet — a settings page that looks broken, with nothing to suggest a hard refresh would fix it.
+  The stylesheet now revalidates against the plugin version, so it updates the moment the plugin does.
+- **Revision history no longer repeats itself.** Every pre-release of a version advertised the
+  identical multi-thousand-character release notes, so the plugin page showed the same wall of text
+  once per build. Pre-releases now carry their own notes and are labelled with their build number,
+  superseded ones collapse to a single line, and manifest entries are length-capped for the narrow
+  panel they render in. The full notes stay on the release page.
+- **Tidied the plugin's description** on the Jellyfin plugins page. It was a dense paragraph ending
+  in a shouted all-caps warning; it is now two plain sentences, with the uninstall caveat kept
+  because losing it costs people their original posters.
+
+### Changed
+- Releases now build with the exact version they publish, and fail if the two disagree — the
+  mismatch that could make Jellyfin show one version while logging another.
+- Manual release runs must check out the tag they claim to publish, and are rejected otherwise.
+- The preview endpoints behind the settings page now require an administrator, matching Jellyfin's
+  own plugin endpoints. Previously any signed-in user could reach them.
+- **"Run automatically every day" is now "Let Overcoat set the run time".** The old label promised
+  something it didn't do: turning it off only stops Overcoat *managing* the trigger — it never
+  stopped the task running. The setting now says so.
+- Added **THIRD_PARTY_NOTICES.md** and the attribution TMDB requires. It also records two unresolved
+  licensing items honestly: the bundled font has no recorded licence, and the watch-history badge art
+  is derived from the Jellyfin logo. Both need resolving before wider promotion.
+- **The settings page now uses the whole screen.** Related controls are grouped into responsive
+  cards across wide displays and collapse to one column on phones. Banner and badge previews stay
+  visible while editing (sticky on desktop, compact floating preview on mobile), tabs swipe on
+  narrow screens, and the TMDB API key is masked until explicitly revealed.
+- **Banner editing is denser on desktop.** Wide sections keep related controls together without
+  turning them into tall, narrow cards, and the preview rail sits below the page chrome. Badge
+  placement is temporarily locked to the supported left-side artwork; right-side support is WIP.
+
+### Added
+- **A test suite** (44 tests) covering the skip cache, the originals vault, atomic writes and state
+  recovery, image-format detection, and configuration clamping — the state machine every
+  overlay-loss bug so far has lived in. Runs in CI on every push and pull request.
+- CI also matrix-builds against the minimum supported Jellyfin version, and Dependabot now watches
+  Actions and NuGet.
+- **The beta channel now carries stable releases too**, so subscribing to the beta repository alone
+  is a complete "always newest" channel rather than one that silently misses stable-only releases.
+- **Preview on your own posters.** The Banners and Badges preview studios now have a
+  **🎲 Random from my library** button alongside the built-in sample. A banner reads very differently
+  over a dark poster than a bright one, so previewing on real art tells you far more than a synthetic
+  one does. Click again for another poster.
+
+  It only ever uses **clean** art: the saved original if Overcoat has one for that item, otherwise a
+  poster Overcoat has never touched. It will not pick something already overlaid, which would show a
+  banner drawn on top of a banner and make the preview misleading.
+
 ## [0.6.1] — 2026-07-21
 
 Follow-up to 0.6.0, same theme: **never take a destructive action on incomplete information.** 0.6.0

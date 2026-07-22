@@ -1,6 +1,9 @@
 using Jellyfin.Plugin.Overcoat.Services;
+using MediaBrowser.Common.Api;
+using MediaBrowser.Controller.Library;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using SkiaSharp;
 
 namespace Jellyfin.Plugin.Overcoat.Api;
@@ -12,11 +15,39 @@ namespace Jellyfin.Plugin.Overcoat.Api;
 /// matches production output exactly.
 /// </summary>
 [ApiController]
-[Authorize]
+// These endpoints exist solely to drive the admin settings page, and they render images from
+// caller-supplied parameters. Plain [Authorize] let any signed-in user reach them; matching
+// Jellyfin's own PluginsController and requiring elevation keeps them to administrators. (A-28)
+[Authorize(Policy = Policies.RequiresElevation)]
 [Route("Overcoat")]
 [Produces("image/png")]
 public class PreviewController : ControllerBase
 {
+    private readonly ILibraryManager _libraryManager;
+    private readonly ILogger<PreviewController> _logger;
+
+    public PreviewController(ILibraryManager libraryManager, ILogger<PreviewController> logger)
+    {
+        _libraryManager = libraryManager;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// The poster the preview draws on: the built-in placeholder, or a random clean one from the
+    /// library. Falls back to the placeholder whenever no clean poster can be found, so the preview
+    /// always renders something rather than erroring on a settings page.
+    /// </summary>
+    private async Task<SKBitmap> ResolveCanvasAsync(string? source, CancellationToken ct)
+    {
+        if (!string.Equals(source, "random", StringComparison.OrdinalIgnoreCase))
+        {
+            return BuildSamplePoster();
+        }
+
+        var picker = new PreviewPosterSource(_libraryManager, _logger);
+        return await picker.TryGetRandomAsync(ct).ConfigureAwait(false) ?? BuildSamplePoster();
+    }
+
     /// <summary>Renders the sample poster + banner as a PNG.</summary>
     /// <param name="style">solid | glass | neon.</param>
     /// <param name="shape">pill | square | drop.</param>
@@ -24,7 +55,7 @@ public class PreviewController : ControllerBase
     /// <param name="fontScale">Font-size multiplier.</param>
     /// <param name="status">Banner text to render (defaults to a RETURNING sample with a date).</param>
     [HttpGet("BannerPreview")]
-    public ActionResult GetBannerPreview(
+    public async Task<ActionResult> GetBannerPreview(
         [FromQuery] string? style,
         [FromQuery] string? shape,
         [FromQuery] string? position,
@@ -41,9 +72,11 @@ public class PreviewController : ControllerBase
         [FromQuery] int glassTintStrength = 49,
         [FromQuery] int glassBlur = 50,
         [FromQuery] int neonGlow = 60,
-        [FromQuery] string? font = null)
+        [FromQuery] string? font = null,
+        [FromQuery] string? source = null,
+        CancellationToken cancellationToken = default)
     {
-        using var bmp = BuildSamplePoster();
+        using var bmp = await ResolveCanvasAsync(source, cancellationToken).ConfigureAwait(false);
         using var renderer = new OverlayRenderer();
         renderer.DrawStatusBanner(bmp, status, new OverlayRenderer.BannerOptions
         {
@@ -78,14 +111,16 @@ public class PreviewController : ControllerBase
     /// <param name="scale">Badge size percent.</param>
     /// <param name="gap">Gap between stacked badges (percent of poster height).</param>
     [HttpGet("BadgePreview")]
-    public ActionResult GetBadgePreview(
+    public async Task<ActionResult> GetBadgePreview(
         [FromQuery] string? badges = null,
         [FromQuery] string? side = null,
         [FromQuery] string? vertical = null,
         [FromQuery] int scale = 100,
-        [FromQuery] int gap = 1)
+        [FromQuery] int gap = 1,
+        [FromQuery] string? source = null,
+        CancellationToken cancellationToken = default)
     {
-        using var bmp = BuildSamplePoster();
+        using var bmp = await ResolveCanvasAsync(source, cancellationToken).ConfigureAwait(false);
         using var renderer = new OverlayRenderer();
 
         var config = Plugin.Instance?.Configuration;

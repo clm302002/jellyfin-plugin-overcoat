@@ -39,6 +39,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # For workflow_dispatch the default checkout is the SELECTED BRANCH, not the tag typed in
+          # the input — so without the verification step below an operator could publish arbitrary
+          # branch content under any tag name. (A-18)
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', github.event.inputs.tag) || github.ref }}
+
+      - name: Verify the checkout is the requested tag
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then TAG="$INPUT_TAG"; fi
+
+          case "$TAG" in
+            v[0-9]*) ;;
+            *) echo "::error::Refusing to release '$TAG' — tags must look like v1.2.3 or v1.2.3-beta.1"; exit 1 ;;
+          esac
+
+          git rev-parse -q --verify "refs/tags/$TAG^{commit}" >/dev/null \
+            || { echo "::error::Tag $TAG does not exist"; exit 1; }
+
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse "refs/tags/$TAG^{commit}")" ]; then
+            echo "::error::HEAD is not the commit tagged $TAG — refusing to publish."
+            exit 1
+          fi
+          echo "Verified: HEAD == refs/tags/$TAG"
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -64,16 +90,25 @@ jobs:
           esac
 
           # Jellyfin versions are plain 4-part numbers with no notion of a prerelease, so the
-          # channel lives in the fourth part: stable is always .0, a beta carries its beta number.
-          # Consequence worth knowing: 0.7.0.1 (beta) sorts ABOVE 0.7.0.0 (stable), so when the
-          # stable of the same number ships, beta testers pick it from the version dropdown rather
-          # than being offered it as an update. Keeping manifest history is what makes that possible.
+          # channel lives in the FOURTH part:
+          #
+          #     0.7.0-beta.1  -> 0.7.0.1     beta builds count up from 1
+          #     0.7.0-beta.2  -> 0.7.0.2
+          #     0.7.0         -> 0.7.0.500   the release sits ABOVE every beta of the same version
+          #     0.8.0-beta.1  -> 0.8.0.1     the next line starts over, higher because the minor moved
+          #
+          # 500 is arbitrary but deliberate: it leaves room for ~499 betas and still sorts under the
+          # next version. The obvious choice of .0 for a release is WRONG here — it puts the finished
+          # build BELOW every beta of that version, so anyone who tested beta.2 would never be offered
+          # the release containing the fixes their testing produced. They'd sit on the older build,
+          # which Jellyfin considers newer, until the next version's first beta.
           if [ "$CHANNEL" = "beta" ]; then
             N="$(printf '%s' "${RAW#*-}" | tr -dc '0-9')"
             [ -n "$N" ] || N=1
+            [ "$N" -ge 500 ] && { echo "::error::Beta number $N must stay below 500"; exit 1; }
             PLUGIN_VER="${BASE}.${N}"
           else
-            PLUGIN_VER="${BASE}.0"
+            PLUGIN_VER="${BASE}.500"
           fi
 
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
@@ -81,33 +116,72 @@ jobs:
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
           echo "Releasing $TAG on the $CHANNEL channel (plugin version $PLUGIN_VER)"
 
+      # -p:Version pins the ASSEMBLY version to the same number the manifest will advertise. Without
+      # it the DLL keeps whatever is hardcoded in the csproj, and Jellyfin shows the assembly version
+      # while logging the meta.json one — the exact mismatch that suppresses the catalogue's update
+      # button and breaks the plugin card image. (A-30)
       - name: Publish
-        run: dotnet publish Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release -o publish
+        env:
+          PLUGIN_VER: ${{ steps.ver.outputs.plugin_ver }}
+        run: |
+          set -euo pipefail
+          dotnet publish Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release -o publish \
+            -p:Version="$PLUGIN_VER" -p:AssemblyVersion="$PLUGIN_VER" -p:FileVersion="$PLUGIN_VER"
 
-      - name: Fetch the channel's existing manifest (for version history)
+      - name: Assert the built DLL carries the release version
+        env:
+          PLUGIN_VER: ${{ steps.ver.outputs.plugin_ver }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, sys
+          want = os.environ["PLUGIN_VER"]
+          # Search the raw assembly bytes rather than shelling out to `strings`, so this does not
+          # depend on binutils being on the runner. Assembly version metadata is stored as UTF-16
+          # in the #Strings/#US heaps, hence checking both encodings.
+          data = open("publish/Jellyfin.Plugin.Overcoat.dll", "rb").read()
+          if want.encode("utf-8") not in data and want.encode("utf-16-le") not in data:
+              sys.exit(f"::error::Built DLL does not carry version {want} — "
+                       f"the -p:Version override did not take effect.")
+          print(f"OK: DLL carries {want}")
+          PY
+
+      - name: Fetch both channels' existing manifests (for version history)
         env:
           GH_TOKEN: ${{ github.token }}
-          CHANNEL: ${{ steps.ver.outputs.channel }}
         run: |
-          # Merging the previous manifest is what keeps older versions selectable in Jellyfin.
-          # Never fail the release over it — package_release.py logs loudly if history is lost.
-          if [ "$CHANNEL" = "beta" ]; then
-            gh release download beta --pattern manifest.json --output prev-manifest.json 2>/dev/null \
-              || echo "No existing beta manifest (first beta release?)"
-          else
-            gh release download --pattern manifest.json --output prev-manifest.json 2>/dev/null \
-              || echo "No existing stable manifest (first release?)"
-          fi
-          [ -f prev-manifest.json ] && echo "Found previous manifest" || true
+          # Each channel keeps its own history, so both are merged independently below. Never fail
+          # the release over a missing one — package_release.py says loudly if history is lost.
+          gh release download --pattern manifest.json --output prev-stable.json 2>/dev/null \
+            || echo "No existing stable manifest (first stable release?)"
+          gh release download beta --pattern manifest.json --output prev-beta.json 2>/dev/null \
+            || echo "No existing beta manifest (first beta release?)"
 
-      - name: Package zip + manifest
+      - name: Package zip + manifest for this release
         env:
           TAG: ${{ steps.ver.outputs.tag }}
           PLUGIN_VER: ${{ steps.ver.outputs.plugin_ver }}
           REPO: ${{ github.repository }}
-          PREV_MANIFEST: prev-manifest.json
+          # A beta's own release page carries beta history; a stable's carries stable history.
+          PREV_MANIFEST: ${{ steps.ver.outputs.channel == 'beta' && 'prev-beta.json' || 'prev-stable.json' }}
           CHANGELOG_FILE: CHANGELOG.md
         run: python3 scripts/package_release.py
+
+      - name: Package the beta-channel manifest
+        if: steps.ver.outputs.channel == 'stable'
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+          PLUGIN_VER: ${{ steps.ver.outputs.plugin_ver }}
+          REPO: ${{ github.repository }}
+          PREV_MANIFEST: prev-beta.json
+          OUTPUT_DIR: artifacts-beta
+          CHANGELOG_FILE: CHANGELOG.md
+        run: |
+          # The beta channel is a SUPERSET, not a parallel track: someone who subscribes only to the
+          # beta URL to "always get the newest build" must still receive stable releases, or they
+          # silently fall behind the moment a stable ships without a beta before it. So every stable
+          # release is merged into the beta manifest too, pointing at the same .zip.
+          python3 scripts/package_release.py
 
       - name: Build the release notes
         id: notes
@@ -161,20 +235,24 @@ jobs:
               --title "Overcoat $TAG" --notes-file RELEASE_NOTES.md $PRERELEASE
           fi
 
-      - name: Mirror the beta manifest onto the rolling `beta` release
-        if: steps.ver.outputs.channel == 'beta'
+      - name: Publish the beta channel manifest
         env:
           GH_TOKEN: ${{ github.token }}
+          CHANNEL: ${{ steps.ver.outputs.channel }}
         run: |
           # Betas need a URL that doesn't move, and `releases/latest` deliberately excludes
           # prereleases. A fixed `beta` release gives the beta channel its own stable manifest URL.
+          # Runs for stable releases too — see the packaging step above for why.
+          MANIFEST=artifacts/manifest.json
+          [ "$CHANNEL" = "stable" ] && MANIFEST=artifacts-beta/manifest.json
+
           if ! gh release view beta >/dev/null 2>&1; then
-            gh release create beta artifacts/manifest.json \
+            gh release create beta "$MANIFEST" \
               --title "Overcoat beta channel" --prerelease \
               --notes "Rolling manifest for the beta channel. Add this URL in Jellyfin to receive pre-release builds:
           \`https://github.com/${GITHUB_REPOSITORY}/releases/download/beta/manifest.json\`
 
           Betas are for testing — expect rough edges, and keep the stable repository added too."
           else
-            gh release upload beta artifacts/manifest.json --clobber
+            gh release upload beta "$MANIFEST" --clobber
           fi
