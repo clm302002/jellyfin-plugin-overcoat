@@ -32,6 +32,16 @@ and its approach to making media libraries more expressive and useful.
 
 ![Three posters demonstrating left-side watch-history and TMDB ribbons at top, middle, and bottom anchors, plus IMDb corner badges](assets/showcase-badges.png)
 
+### Wide home cards (0.8 beta)
+
+![Six 16:9 Series Thumb cards demonstrating status banners, watch-history and TMDB ribbons, and IMDb corner badges](assets/showcase-wide-cards.png)
+
+The optional 0.8 beta can apply the same overlays to a series' existing 16:9 **Thumb** artwork,
+which Jellyfin can show in **Next Up** and **Continue Watching**. This is a work in progress under
+live validation: only series Thumbs are eligible, series without a Thumb are skipped, and individual
+episode images and Backdrops are never modified. The Libraries tab also includes confirmed actions
+to make all current users inherit these wide cards, or return all current users to episode stills.
+
 ### What gets changed?
 
 - **Banners** show `NEW`, `AIRING <day>`, `RETURNING <date>`, `ENDED`, or `CANCELED` on TV posters.
@@ -127,6 +137,9 @@ users** reverses that preference. Neither action changes, overlays, or deletes e
 | Originals vault, dry run, restore task | Working for posters and managed series Thumbs |
 | Badge art/style selection | Planned |
 
+Current prerelease: **v0.8.0-beta.2** (`0.8.0.2`) on the optional beta channel. It contains the
+wide-card pipeline and the all-current-user artwork controls; live-library validation is in progress.
+
 A TMDB API key is required for status and TMDB-backed lists. Overcoat is tested against the pinned
 Jellyfin 10.11 API surface; newer Jellyfin releases may require a plugin update.
 
@@ -137,8 +150,9 @@ Jellyfin 10.11 API surface; newer Jellyfin releases may require a plugin update.
    scheduled task) and let it finish.
 3. Verify a few posters, then uninstall the plugin and restart Jellyfin.
 
-The originals vault and configuration live outside the versioned install directory and may survive
-an uninstall. That persistence is useful for recovery, but it is not a substitute for your backups.
+The poster vault (`originals/`), Series Thumb vault (`thumb-originals/`), their independent state
+files, and the configuration live outside the versioned install directory and may survive an
+uninstall. That persistence is useful for recovery, but it is not a substitute for your backups.
 
 <details>
 <summary><strong>Optional beta channel</strong></summary>
@@ -182,19 +196,19 @@ that touches posters when reporting disappearing or replaced overlays.
 
 ## If something goes wrong
 
-Overcoat saves a clean copy of every poster before it overlays it, and **those copies survive
-uninstalling the plugin** — they live outside the plugin's own folder. So most mistakes are
-recoverable.
+Overcoat saves a clean copy of every poster and Series Thumb before overlaying it, and **those copies
+survive uninstalling the plugin** — they live outside the versioned install folder. Poster and Thumb
+recovery are tracked independently, so restoring one image type cannot consume the other's backup.
 
-**Settings → Maintenance → Recovery** shows how many of your posters can still be put back, and
-flags any that have no saved copy.
+**Settings → Maintenance → Recovery** reports poster and wide-card backups separately and flags any
+managed image that has no saved copy.
 
 | Situation | What to do |
 | --- | --- |
 | One poster looks wrong | In Jellyfin, refresh that item's metadata with **Replace existing images**. Overcoat re-overlays it on the next run. |
-| You want your original posters back | **Settings → Maintenance → Restore original posters.** It skips anything whose art changed outside Overcoat, so it won't overwrite work you did yourself — tick *Force restore* if you want it to anyway. |
+| You want your original artwork back | Run **Restore Original Artwork (Overcoat)**. It restores both managed posters and Series Thumbs, skips either image when it changed outside Overcoat, and keeps that backup for retry. Use *Force restore* only when the vaulted copy should win. |
 | You uninstalled without restoring first | Reinstall Overcoat and run Restore. The saved copies are still there. |
-| Recovery says some posters have **no saved copy** | Restore can't help those. Refresh that library's metadata in Jellyfin with **Replace existing images** to pull fresh artwork from your metadata providers. |
+| Recovery says an image has **no saved copy** | Restore cannot recover that image. Refresh the affected artwork from your metadata provider; do not replace episode images merely to repair a Series Thumb. |
 
 ---
 
