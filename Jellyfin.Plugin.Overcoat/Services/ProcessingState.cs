@@ -63,9 +63,92 @@ public sealed class ProcessingState
     public static long Signature(BaseItem item)
         => item.GetImageInfo(ImageType.Primary, 0)?.DateModified.Ticks ?? 0;
 
-    /// <summary>Content hash of a PNG we produced, used to recognise our own output later.</summary>
+    /// <summary>
+    /// The real MIME type of an image, from its magic bytes.
+    ///
+    /// Vault files are all named <c>.png</c> because that is what the vault writes them as, but the
+    /// bytes are whatever the source poster was — on a real library that measured 372 WebP and 173
+    /// JPEG out of 545, and not one actual PNG. Declaring them all <c>image/png</c> to
+    /// <c>SaveImage</c> hands Jellyfin a content type that contradicts the payload; it currently
+    /// tolerates it, but the mismatch is not something to rely on.
+    /// </summary>
+    public static string DetectMimeType(byte[] bytes)
+    {
+        if (bytes.Length >= 8 && bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47)
+        {
+            return "image/png";
+        }
+
+        if (bytes.Length >= 3 && bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF)
+        {
+            return "image/jpeg";
+        }
+
+        if (bytes.Length >= 12
+            && bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46
+            && bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50)
+        {
+            return "image/webp";
+        }
+
+        // Unknown: PNG is what the vault has always claimed, so keep the historical behaviour rather
+        // than failing the restore outright.
+        return "image/png";
+    }
+
+    /// <summary>Content hash of an image we produced, used to recognise our own output later.</summary>
     public static string HashBytes(byte[] bytes)
         => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes));
+
+    /// <summary>
+    /// Reads an item's current primary image straight off disk, or null if there is none or it can't
+    /// be read. Null means <em>unknown</em>, never "different" — callers must not take a destructive
+    /// action on it. Shared by the apply and restore tasks so both judge "is this still ours?" the
+    /// same way.
+    /// </summary>
+    public static async Task<byte[]?> ReadPrimaryImageAsync(BaseItem item, ILogger logger, CancellationToken ct)
+    {
+        try
+        {
+            if (!item.HasImage(ImageType.Primary, 0))
+            {
+                return null;
+            }
+
+            var path = item.GetImagePath(ImageType.Primary, 0);
+            return File.Exists(path) ? await File.ReadAllBytesAsync(path, ct).ConfigureAwait(false) : null;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(ex, "Overcoat: could not read the current poster for '{Name}'.", item.Name ?? "?");
+            return null;
+        }
+    }
+
+    /// <summary>The signature we last recorded for an item, or 0 if we have no entry.</summary>
+    public long CachedSignature(string id)
+    {
+        lock (_gate)
+        {
+            return _cache.TryGetValue(id, out var e) ? e.PrimarySignature : 0;
+        }
+    }
+
+    /// <summary>
+    /// The badge set we last rendered for an item. Used to hold membership steady for a badge source
+    /// that failed this run — an outage must not read as "this item lost that badge".
+    /// </summary>
+    public IReadOnlyCollection<string> CachedBadgeSet(string id)
+    {
+        lock (_gate)
+        {
+            return _cache.TryGetValue(id, out var e) ? e.BadgeSet.ToList() : Array.Empty<string>();
+        }
+    }
 
     /// <summary>The hash we recorded for an item, or empty if unknown / never processed.</summary>
     public string ProducedHashFor(string id)
@@ -232,8 +315,41 @@ public sealed class ProcessingState
 
     public bool HasOriginal(string id) => File.Exists(OriginalPath(id));
 
-    public Task SaveOriginalAsync(string id, byte[] bytes, CancellationToken ct)
-        => File.WriteAllBytesAsync(OriginalPath(id), bytes, ct);
+    /// <summary>
+    /// Vaults the clean original. Written to a sibling temp file and then moved into place, so an
+    /// interruption mid-write cannot leave a truncated file where the only recoverable copy of the
+    /// poster used to be. A same-directory move is atomic on every filesystem we care about. (A-20)
+    /// </summary>
+    public async Task SaveOriginalAsync(string id, byte[] bytes, CancellationToken ct)
+    {
+        var final = OriginalPath(id);
+        var tmp = final + ".tmp";
+        try
+        {
+            await File.WriteAllBytesAsync(tmp, bytes, ct).ConfigureAwait(false);
+            File.Move(tmp, final, overwrite: true);
+        }
+        catch
+        {
+            TryDelete(tmp);
+            throw;
+        }
+    }
+
+    private void TryDelete(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Overcoat: could not remove temp file {Path}", path);
+        }
+    }
 
     public async Task<byte[]?> ReadOriginalAsync(string id, CancellationToken ct)
     {
@@ -288,19 +404,39 @@ public sealed class ProcessingState
 
     private Dictionary<string, Entry> Load()
     {
-        try
+        // Try the live file, then the backup Flush leaves behind. Starting fresh is the worst
+        // outcome available here: every item then looks new, gets re-processed, and — worse — items
+        // whose overlays should be reverted are no longer known about at all. Losing one run's
+        // changes to the .bak is far cheaper than losing the whole map. (A-20)
+        foreach (var (path, label) in new[] { (_statePath, "state.json"), (_statePath + ".bak", "state.json.bak") })
         {
-            if (File.Exists(_statePath))
+            if (!File.Exists(path))
             {
-                return JsonSerializer.Deserialize<Dictionary<string, Entry>>(File.ReadAllText(_statePath))
-                       ?? new Dictionary<string, Entry>();
+                continue;
+            }
+
+            try
+            {
+                var loaded = JsonSerializer.Deserialize<Dictionary<string, Entry>>(File.ReadAllText(path));
+                if (loaded is not null)
+                {
+                    if (path != _statePath)
+                    {
+                        _logger.LogWarning(
+                            "Overcoat: state.json was unreadable; recovered {Count} entries from the backup.",
+                            loaded.Count);
+                    }
+
+                    return loaded;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Overcoat: couldn't read {File}.", label);
             }
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Overcoat: couldn't read state.json — starting fresh.");
-        }
 
+        _logger.LogWarning("Overcoat: no usable state found — starting fresh. Existing overlays will be re-evaluated.");
         return new Dictionary<string, Entry>();
     }
 
@@ -318,13 +454,27 @@ public sealed class ProcessingState
             _dirty = false;
         }
 
+        // Temp file + atomic move, with the previous state kept as .bak. Writing state.json in place
+        // meant an interruption could leave it truncated — and it is the record of which posters we
+        // overlaid and which vault file belongs to which item. (A-20)
+        var tmp = _statePath + ".tmp";
         try
         {
-            File.WriteAllText(_statePath, json);
+            File.WriteAllText(tmp, json);
+
+            if (File.Exists(_statePath))
+            {
+                File.Replace(tmp, _statePath, _statePath + ".bak", ignoreMetadataErrors: true);
+            }
+            else
+            {
+                File.Move(tmp, _statePath);
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Overcoat: failed to write state.json.");
+            TryDelete(tmp);
             lock (_gate)
             {
                 _dirty = true;

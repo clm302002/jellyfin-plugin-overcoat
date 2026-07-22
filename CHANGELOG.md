@@ -6,7 +6,42 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+Findings from an independent deep audit. Every item was re-verified before being changed, and the
+theme is the same one as 0.6.0/0.6.1: **an unknown must never be treated as an answer.**
+
+### Fixed
+- **Overcoat no longer offers itself to Jellyfin versions it cannot run on.** The published metadata
+  claimed compatibility with all of 10.11.x, but the plugin uses user-manager APIs added in
+  **10.11.9** — servers on 10.11.0–10.11.8 were offered a build that could not load. The declared
+  minimum is corrected and CI now matrix-builds against the floor so it can't drift again.
+- **A failing badge source no longer removes badges it can't vouch for.** 0.6.1 only protected items
+  that would lose *everything*; an item keeping its status banner still had the affected badge
+  stripped. Each source is now tracked separately, and a badge whose source couldn't be read keeps
+  whatever was last rendered.
+- **An unreadable poster is no longer mistaken for a replaced one.** The check had two outcomes, so
+  "couldn't read the file" fell through as "confirmed replaced" — which abandons the saved clean
+  original on the strength of an I/O error. It now has a third, and only a confirmed replacement
+  triggers anything destructive.
+- **A poster that disappears is now recovered instead of ignored forever.** The comparison skipped
+  items whose current image was missing, so an item whose art vanished was never restored.
+- **Restore no longer overwrites artwork Overcoat didn't create.** If you or another plugin changed a
+  poster after Overcoat's last run, Restore now leaves it alone and reports the conflict rather than
+  replacing it with an older saved copy. A **Force restore** option (Maintenance tab) overrides this.
+- **Apply and Restore can no longer run at the same time.** They previously could interleave and
+  leave a poster overlaid with its only clean copy deleted.
+- **Dry run no longer changes anything.** It was still writing cache entries and saved originals
+  despite promising otherwise.
+- **Saved originals and the state file are written atomically**, with a backup the plugin falls back
+  to if the state file is ever damaged — an interrupted write could previously truncate the only
+  recoverable copy of a poster.
+- **Restore sends the correct image type.** Saved originals are whatever format the source poster
+  was (mostly WebP and JPEG in practice), but every one was being handed to Jellyfin labelled PNG.
+- **Cancelling a run now stops it promptly** instead of being swallowed by error handling.
+
+### Changed
+- Releases now build with the exact version they publish, and fail if the two disagree — the
+  mismatch that could make Jellyfin show one version while logging another.
+- Manual release runs must check out the tag they claim to publish, and are rejected otherwise.
 
 ## [0.6.1] — 2026-07-21
 

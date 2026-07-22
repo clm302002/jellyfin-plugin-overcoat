@@ -101,6 +101,10 @@ public sealed class TmdbService
                 return results[0].GetProperty("id").GetInt32();
             }
         }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "TMDB find {Source}={Id} failed", source, externalId);
@@ -136,6 +140,10 @@ public sealed class TmdbService
             }
 
             return results[0].GetProperty("id").GetInt32();
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -227,6 +235,10 @@ public sealed class TmdbService
             }
 
             return await resp.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {

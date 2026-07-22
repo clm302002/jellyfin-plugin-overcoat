@@ -56,6 +56,15 @@ public class PluginConfiguration : BasePluginConfiguration
     // removed in v0.6.1 rather than left lying to users. XmlSerializer ignores the now-unknown
     // elements in existing config files, so no migration is needed.
 
+    /// <summary>
+    /// Gets or sets a value indicating whether Restore overwrites posters it did not produce.
+    ///
+    /// Off (default), Restore skips any item whose current art doesn't match what Overcoat last
+    /// wrote — the vaulted copy is older by definition, so writing it over newer artwork installed by
+    /// the user or another provider would destroy that artwork. On, the vaulted original wins.
+    /// </summary>
+    public bool ForceRestore { get; set; }
+
     /// <summary>Gets or sets a value indicating whether the task computes overlays but skips saving (diagnostics).</summary>
     public bool DryRun { get; set; }
 

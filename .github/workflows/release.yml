@@ -39,6 +39,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # For workflow_dispatch the default checkout is the SELECTED BRANCH, not the tag typed in
+          # the input — so without the verification step below an operator could publish arbitrary
+          # branch content under any tag name. (A-18)
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', github.event.inputs.tag) || github.ref }}
+
+      - name: Verify the checkout is the requested tag
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then TAG="$INPUT_TAG"; fi
+
+          case "$TAG" in
+            v[0-9]*) ;;
+            *) echo "::error::Refusing to release '$TAG' — tags must look like v1.2.3 or v1.2.3-beta.1"; exit 1 ;;
+          esac
+
+          git rev-parse -q --verify "refs/tags/$TAG^{commit}" >/dev/null \
+            || { echo "::error::Tag $TAG does not exist"; exit 1; }
+
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse "refs/tags/$TAG^{commit}")" ]; then
+            echo "::error::HEAD is not the commit tagged $TAG — refusing to publish."
+            exit 1
+          fi
+          echo "Verified: HEAD == refs/tags/$TAG"
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -81,8 +107,35 @@ jobs:
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
           echo "Releasing $TAG on the $CHANNEL channel (plugin version $PLUGIN_VER)"
 
+      # -p:Version pins the ASSEMBLY version to the same number the manifest will advertise. Without
+      # it the DLL keeps whatever is hardcoded in the csproj, and Jellyfin shows the assembly version
+      # while logging the meta.json one — the exact mismatch that suppresses the catalogue's update
+      # button and breaks the plugin card image. (A-30)
       - name: Publish
-        run: dotnet publish Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release -o publish
+        env:
+          PLUGIN_VER: ${{ steps.ver.outputs.plugin_ver }}
+        run: |
+          set -euo pipefail
+          dotnet publish Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release -o publish \
+            -p:Version="$PLUGIN_VER" -p:AssemblyVersion="$PLUGIN_VER" -p:FileVersion="$PLUGIN_VER"
+
+      - name: Assert the built DLL carries the release version
+        env:
+          PLUGIN_VER: ${{ steps.ver.outputs.plugin_ver }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, sys
+          want = os.environ["PLUGIN_VER"]
+          # Search the raw assembly bytes rather than shelling out to `strings`, so this does not
+          # depend on binutils being on the runner. Assembly version metadata is stored as UTF-16
+          # in the #Strings/#US heaps, hence checking both encodings.
+          data = open("publish/Jellyfin.Plugin.Overcoat.dll", "rb").read()
+          if want.encode("utf-8") not in data and want.encode("utf-16-le") not in data:
+              sys.exit(f"::error::Built DLL does not carry version {want} — "
+                       f"the -p:Version override did not take effect.")
+          print(f"OK: DLL carries {want}")
+          PY
 
       - name: Fetch the channel's existing manifest (for version history)
         env:

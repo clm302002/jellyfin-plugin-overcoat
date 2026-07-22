@@ -47,6 +47,16 @@ public class RestoreOriginalsTask : IScheduledTask
     /// <inheritdoc />
     public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
     {
+        var config = Plugin.Instance?.Configuration;
+        if (config is null)
+        {
+            _logger.LogError("Overcoat: no configuration available.");
+            return;
+        }
+
+        // Same lease the apply task takes — the two must never interleave over the vault. (A-17)
+        using var lease = await TaskLease.AcquireAsync(cancellationToken).ConfigureAwait(false);
+
         var state = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger);
         using var file = new FileLog(_appPaths.LogDirectoryPath);
         var ids = state.VaultedIds().ToList();
@@ -64,6 +74,7 @@ public class RestoreOriginalsTask : IScheduledTask
         int restored = 0;
         int orphaned = 0;
         int failed = 0;
+        int conflicts = 0;
         foreach (var id in ids)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -72,11 +83,44 @@ public class RestoreOriginalsTask : IScheduledTask
                 var bytes = await state.ReadOriginalAsync(id, cancellationToken).ConfigureAwait(false);
                 var item = Guid.TryParse(id, out var g) ? _libraryManager.GetItemById(g) : null;
 
+                // Only restore over art we put there. If the user, another plugin, or a metadata
+                // provider has replaced the poster since our last pass, blindly writing the vault copy
+                // would silently destroy their newer artwork — the vault is older by definition.
+                // Skipping is the safe default; -Force is offered via the config page for the case
+                // where the user genuinely wants Overcoat's original back.
+                if (bytes is not null && item is not null && !config.ForceRestore)
+                {
+                    var expected = state.ProducedHashFor(id);
+                    if (expected.Length > 0)
+                    {
+                        var current = await ProcessingState.ReadPrimaryImageAsync(item, _logger, cancellationToken).ConfigureAwait(false);
+                        if (current is null)
+                        {
+                            conflicts++;
+                            _logger.LogWarning(
+                                "Overcoat: could not read the current poster for '{Name}'; not restoring over it. State and vault kept.",
+                                item.Name ?? "?");
+                            file.Error("Skipped " + (item.Name ?? id) + " — current poster unreadable; nothing overwritten");
+                            continue;
+                        }
+
+                        if (!string.Equals(ProcessingState.HashBytes(current), expected, StringComparison.Ordinal))
+                        {
+                            conflicts++;
+                            _logger.LogWarning(
+                                "Overcoat: '{Name}' has artwork Overcoat did not produce — leaving it alone. Enable \"Force restore\" to overwrite it with the vaulted original.",
+                                item.Name ?? "?");
+                            file.Info((item.Name ?? "?") + " → skipped; poster was replaced outside Overcoat (use Force restore to override)");
+                            continue;
+                        }
+                    }
+                }
+
                 if (bytes is not null && item is not null)
                 {
                     using var ms = new MemoryStream(bytes);
                     await _providerManager
-                        .SaveImage(item, ms, "image/png", ImageType.Primary, null, cancellationToken)
+                        .SaveImage(item, ms, ProcessingState.DetectMimeType(bytes), ImageType.Primary, null, cancellationToken)
                         .ConfigureAwait(false);
                     await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
                     restored++;
@@ -108,6 +152,10 @@ public class RestoreOriginalsTask : IScheduledTask
                     file.Error("Could not read vaulted original for " + (item.Name ?? id) + " — kept for retry");
                 }
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 // Left in the vault deliberately: a failed restore must stay retryable.
@@ -124,12 +172,17 @@ public class RestoreOriginalsTask : IScheduledTask
 
         state.Flush();
         _logger.LogInformation(
-            "Overcoat: restore done. {Restored}/{Count} poster(s) restored ({Orphaned} removed item(s) dropped, {Failed} failed and kept for retry).",
+            "Overcoat: restore done. {Restored}/{Count} poster(s) restored ({Orphaned} removed item(s) dropped, {Conflicts} skipped as externally changed, {Failed} failed and kept for retry).",
             restored,
             ids.Count,
             orphaned,
+            conflicts,
             failed);
-        file.Info($"Restore done — {restored}/{ids.Count} poster(s) restored; {orphaned} removed item(s) dropped; {failed} failed and kept for retry.");
+        file.Info($"Restore done — {restored}/{ids.Count} poster(s) restored; {orphaned} removed item(s) dropped; {conflicts} skipped (art changed outside Overcoat); {failed} failed and kept for retry.");
+        if (conflicts > 0)
+        {
+            file.Info($"{conflicts} poster(s) were left alone because their art was replaced outside Overcoat. Their vaulted originals are kept — enable \"Force restore\" on the settings page if you want Overcoat's originals put back regardless.");
+        }
         if (failed > 0)
         {
             file.Error($"{failed} poster(s) could not be restored. Their clean originals are still vaulted — re-run this task to retry.");

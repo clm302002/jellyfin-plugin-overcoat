@@ -473,6 +473,14 @@
                                 <span>↩ Restore original posters</span>
                             </button>
                         </div>
+                        <div class="ovcCheck">
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ForceRestore" /><span>Force restore over changed artwork</span></label>
+                            <div class="fieldDescription">
+                                Normally Restore skips any poster that was changed outside Overcoat — the saved copy is
+                                older, so overwriting would throw away newer art you or another plugin put there.
+                                Tick this only if you want Overcoat's saved original back regardless.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="ovcCard">
@@ -776,6 +784,7 @@
                     page.querySelector('#BadgesEnabled').checked = config.BadgesEnabled !== false;
                     page.querySelector('#CacheEnabled').checked = config.CacheEnabled !== false;
                     page.querySelector('#DryRun').checked = !!config.DryRun;
+                    page.querySelector('#ForceRestore').checked = !!config.ForceRestore;
                     fillHours();
                     page.querySelector('#ScheduleEnabled').checked = config.ScheduleEnabled !== false;
                     page.querySelector('#ScheduleHour').value = String(config.ScheduleHour != null ? config.ScheduleHour : 3);
@@ -897,6 +906,7 @@
                 if (isNaN(config.ScheduleHour)) { config.ScheduleHour = 3; }
                 config.ScheduleMinute = parseInt(page.querySelector('#ScheduleMinute').value, 10);
                 if (isNaN(config.ScheduleMinute)) { config.ScheduleMinute = 0; }
+                config.ForceRestore = page.querySelector('#ForceRestore').checked;
                 config.Libraries = collectLibraries();
                 config.LimitToTitles = linesToList(page.querySelector('#LimitToTitles').value);
                 config.IgnoreTitles = linesToList(page.querySelector('#IgnoreTitles').value);

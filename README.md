@@ -7,7 +7,7 @@
 
 [![Latest release](https://img.shields.io/github/v/release/clm302002/jellyfin-plugin-overcoat?label=latest&color=5EBD3E)](https://github.com/clm302002/jellyfin-plugin-overcoat/releases/latest)
 [![CI](https://github.com/clm302002/jellyfin-plugin-overcoat/actions/workflows/ci.yml/badge.svg)](https://github.com/clm302002/jellyfin-plugin-overcoat/actions/workflows/ci.yml)
-[![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11.x-00A4DC)](https://jellyfin.org/)
+[![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11.9%2B-00A4DC)](https://jellyfin.org/)
 [![License](https://img.shields.io/github/license/clm302002/jellyfin-plugin-overcoat?color=blue)](LICENSE)
 
 Overcoat adds clean status banners and badges directly to your Jellyfin posters — so your library can show what is **new**, **airing**, **returning**, **ended**, **canceled**, trending, ranked, or worth noticing at a glance.
@@ -124,7 +124,7 @@ The current focus is TV status overlays, with badges and movie overlays being ac
 
 ## Requirements
 
-* Jellyfin **10.11.x**
+* Jellyfin **10.11.9 or newer** (10.11.0–10.11.8 are not supported — the plugin uses user-manager APIs added in 10.11.9 and will not load on older builds)
 * **.NET 9**
 * A free **TMDB API key**
 

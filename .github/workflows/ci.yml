@@ -12,7 +12,45 @@ on:
     branches: [main, dev]
   workflow_dispatch:
 
+# Read-only by default; the release workflow asks for write separately.
+permissions:
+  contents: read
+
 jobs:
+  abi-floor:
+    # The manifest's targetAbi decides which servers are offered the plugin, so it has to match the
+    # oldest Jellyfin the code actually compiles against. A matrix build is the only thing that keeps
+    # the two honest: it caught targetAbi claiming 10.11.0 while the code needed 10.11.9 APIs, which
+    # would have handed 10.11.0–10.11.8 users a DLL that cannot load.
+    name: ABI floor (${{ matrix.jellyfin }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - jellyfin: '10.11.9'   # declared floor — MUST build
+            expect: pass
+          - jellyfin: '10.11.11'  # current — MUST build
+            expect: pass
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Build against Jellyfin.Controller ${{ matrix.jellyfin }}
+        run: |
+          set -euo pipefail
+          sed -i 's|<PackageReference Include="Jellyfin.Controller" Version="[^"]*">|<PackageReference Include="Jellyfin.Controller" Version="${{ matrix.jellyfin }}">|' \
+            Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj
+          dotnet build Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release
+      - name: Confirm the declared targetAbi matches the floor
+        if: matrix.jellyfin == '10.11.9'
+        run: |
+          set -euo pipefail
+          grep -q 'TARGET_ABI = "10.11.9.0"' scripts/package_release.py \
+            || { echo "::error::scripts/package_release.py TARGET_ABI no longer matches the tested floor"; exit 1; }
+
+
   build:
     name: Build + settings page
     runs-on: ubuntu-latest

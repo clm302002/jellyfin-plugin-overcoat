@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Package Overcoat into a Jellyfin plugin .zip + repository manifest.json.
 
-Reproducible, no jprm. Used by .github/workflows/release.yml and runnable locally:
+Used by .github/workflows/release.yml and runnable locally:
 
   dotnet publish Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release -o publish
   TAG=v0.1.0 PLUGIN_VER=0.1.0.0 python3 scripts/package_release.py
+
+Note: the .zip is NOT byte-reproducible — archive member timestamps are not normalised, so two runs
+over identical inputs produce different checksums. The manifest records the checksum of the archive
+actually published, so this affects reproducing a build, not verifying a download.
 
 Two things here are load-bearing and easy to break:
 
@@ -15,7 +19,8 @@ Two things here are load-bearing and easy to break:
   workflow downloads it first and the log says which happened.
 * **The changelog text ends up inside Jellyfin.** The `changelog` field is rendered in the plugin
   catalogue, so it should be the actual notes for this version, not a pointer to a file the user
-  would have to go find. `--changelog-from` extracts the matching section out of CHANGELOG.md.
+  would have to go find. `extract_changelog()` pulls the matching `## [x.y.z]` section out of the
+  file named by `CHANGELOG_FILE`; set `CHANGELOG` to override it with literal text.
 
 Env:
   TAG            git tag, e.g. v0.1.0 or v0.7.0-beta.1  (required)
@@ -33,7 +38,12 @@ import os, json, zipfile, hashlib, datetime, sys, re
 GUID = "604f4e22-a0a1-490d-b383-d60336318eaa"
 NAME = "Overcoat"
 OWNER = "clm302002"
-TARGET_ABI = "10.11.0.0"
+# Jellyfin uses targetAbi to decide whether to offer a build to a server, so it must reflect the
+# OLDEST version the DLL actually loads on — not the oldest we'd like to support. Verified by matrix
+# build 2026-07-22: IUserManager.GetUsers / GetFirstUser (Services/WatchHistory.cs) do not exist
+# before 10.11.9, so 10.11.0–10.11.8 fail to compile and would fail to load. Claiming 10.11.0.0 here
+# offered those servers a plugin that cannot start. CI locks the floor with a matrix build.
+TARGET_ABI = "10.11.9.0"
 OVERVIEW = "Overlays status banners and badges onto your Jellyfin posters."
 DESCRIPTION = (
     "Overcoat decorates your Jellyfin posters with useful info at a glance — status banners like "
