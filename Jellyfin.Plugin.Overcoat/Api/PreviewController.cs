@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.Overcoat.Services;
+using System.Collections.Concurrent;
 using MediaBrowser.Common.Api;
 using MediaBrowser.Controller.Library;
 using Microsoft.AspNetCore.Authorization;
@@ -23,6 +24,9 @@ namespace Jellyfin.Plugin.Overcoat.Api;
 [Produces("image/png")]
 public class PreviewController : ControllerBase
 {
+    private static readonly ConcurrentDictionary<string, byte[]> PreviewPosters = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> PreviewLocks = new(StringComparer.Ordinal);
+    private const int MaxPreviewPosters = 48;
     private readonly ILibraryManager _libraryManager;
     private readonly ILogger<PreviewController> _logger;
 
@@ -37,15 +41,61 @@ public class PreviewController : ControllerBase
     /// library. Falls back to the placeholder whenever no clean poster can be found, so the preview
     /// always renders something rather than erroring on a settings page.
     /// </summary>
-    private async Task<SKBitmap> ResolveCanvasAsync(string? source, CancellationToken ct)
+    private async Task<SKBitmap> ResolveCanvasAsync(string? source, string? previewKey, CancellationToken ct)
     {
         if (!string.Equals(source, "random", StringComparison.OrdinalIgnoreCase))
         {
             return BuildSamplePoster();
         }
 
-        var picker = new PreviewPosterSource(_libraryManager, _logger);
-        return await picker.TryGetRandomAsync(ct).ConfigureAwait(false) ?? BuildSamplePoster();
+        // The browser creates a new opaque key only when Random is clicked. Every subsequent
+        // banner/badge render reuses the clean poster cached under that key, so changing controls or
+        // switching studios cannot silently reroll the artwork.
+        if (string.IsNullOrWhiteSpace(previewKey)
+            || previewKey.Length > 64
+            || previewKey.Any(c => !char.IsAsciiLetterOrDigit(c) && c != '-' && c != '_'))
+        {
+            return BuildSamplePoster();
+        }
+
+        if (PreviewPosters.TryGetValue(previewKey, out var cached))
+        {
+            return OverlayRenderer.Decode(cached) ?? BuildSamplePoster();
+        }
+
+        var gate = PreviewLocks.GetOrAdd(previewKey, _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            if (PreviewPosters.TryGetValue(previewKey, out cached))
+            {
+                return OverlayRenderer.Decode(cached) ?? BuildSamplePoster();
+            }
+
+            var picker = new PreviewPosterSource(_libraryManager, _logger);
+            var selected = await picker.TryGetRandomAsync(ct).ConfigureAwait(false);
+            if (selected is null)
+            {
+                return BuildSamplePoster();
+            }
+
+            PreviewPosters[previewKey] = OverlayRenderer.EncodePng(selected);
+            while (PreviewPosters.Count > MaxPreviewPosters)
+            {
+                var oldest = PreviewPosters.Keys.FirstOrDefault(k => !string.Equals(k, previewKey, StringComparison.Ordinal));
+                if (oldest is null || !PreviewPosters.TryRemove(oldest, out _))
+                {
+                    break;
+                }
+            }
+
+            return selected;
+        }
+        finally
+        {
+            gate.Release();
+            PreviewLocks.TryRemove(previewKey, out _);
+        }
     }
 
     /// <summary>Renders the sample poster + banner as a PNG.</summary>
@@ -74,9 +124,10 @@ public class PreviewController : ControllerBase
         [FromQuery] int neonGlow = 60,
         [FromQuery] string? font = null,
         [FromQuery] string? source = null,
+        [FromQuery] string? previewKey = null,
         CancellationToken cancellationToken = default)
     {
-        using var bmp = await ResolveCanvasAsync(source, cancellationToken).ConfigureAwait(false);
+        using var bmp = await ResolveCanvasAsync(source, previewKey, cancellationToken).ConfigureAwait(false);
         using var renderer = new OverlayRenderer();
         renderer.DrawStatusBanner(bmp, status, new OverlayRenderer.BannerOptions
         {
@@ -118,9 +169,10 @@ public class PreviewController : ControllerBase
         [FromQuery] int scale = 100,
         [FromQuery] int gap = 1,
         [FromQuery] string? source = null,
+        [FromQuery] string? previewKey = null,
         CancellationToken cancellationToken = default)
     {
-        using var bmp = await ResolveCanvasAsync(source, cancellationToken).ConfigureAwait(false);
+        using var bmp = await ResolveCanvasAsync(source, previewKey, cancellationToken).ConfigureAwait(false);
         using var renderer = new OverlayRenderer();
 
         var config = Plugin.Instance?.Configuration;

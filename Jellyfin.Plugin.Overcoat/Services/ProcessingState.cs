@@ -315,6 +315,21 @@ public sealed class ProcessingState
 
     public bool HasOriginal(string id) => File.Exists(OriginalPath(id));
 
+    /// <summary>Size on disk of a vaulted original, or null if it isn't there.</summary>
+    public long? OriginalSize(string id)
+    {
+        try
+        {
+            var info = new FileInfo(OriginalPath(id));
+            return info.Exists ? info.Length : null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Overcoat: could not stat vaulted original for {Id}", id);
+            return null;
+        }
+    }
+
     /// <summary>
     /// Vaults the clean original. Written to a sibling temp file and then moved into place, so an
     /// interruption mid-write cannot leave a truncated file where the only recoverable copy of the

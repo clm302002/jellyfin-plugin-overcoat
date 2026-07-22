@@ -121,3 +121,65 @@
     #OvercoatConfigPage .ovcTabLabel { display:none; }
     #OvercoatConfigPage .ovcSaveDock { bottom:.5rem; }
 }
+
+/* Recovery panel — vault health readout. Figures first, label under, so the numbers scan. */
+#OvercoatConfigPage .ovcVaultStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1rem;
+}
+
+#OvercoatConfigPage .ovcStat {
+  flex: 1 1 8.5rem;
+  min-width: 8.5rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.55rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+#OvercoatConfigPage .ovcStatValue {
+  display: block;
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+#OvercoatConfigPage .ovcStatLabel {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+/* Only the two states that carry meaning get colour: restorable, and at-risk. */
+#OvercoatConfigPage .ovcStatGood {
+  border-color: rgba(94, 189, 62, 0.5);
+  background: rgba(94, 189, 62, 0.08);
+}
+
+#OvercoatConfigPage .ovcStatWarn {
+  border-color: rgba(211, 47, 47, 0.55);
+  background: rgba(211, 47, 47, 0.1);
+}
+
+#OvercoatConfigPage .ovcRecoveryHelp {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+#OvercoatConfigPage .ovcRecoveryHelp summary {
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+#OvercoatConfigPage .ovcRecoveryHelp ul {
+  margin: 0.6rem 0 0;
+  padding-left: 1.2rem;
+  line-height: 1.55;
+}
+
+#OvercoatConfigPage .ovcRecoveryHelp li + li {
+  margin-top: 0.45rem;
+}

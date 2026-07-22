@@ -26,7 +26,7 @@
                         <button type="button" class="ovcTab ovcActive" data-tab="general" role="tab"><span class="ovcIcon" aria-hidden="true">tune</span><span class="ovcTabLabel">General</span></button>
                         <button type="button" class="ovcTab" data-tab="banners" role="tab"><span class="ovcIcon" aria-hidden="true">view_stream</span><span class="ovcTabLabel">Banners</span></button>
                         <button type="button" class="ovcTab" data-tab="badges" role="tab"><span class="ovcIcon" aria-hidden="true">bookmark</span><span class="ovcTabLabel">Badges</span></button>
-                        <button type="button" class="ovcTab" data-tab="apikeys" role="tab"><span class="ovcIcon" aria-hidden="true">key</span><span class="ovcTabLabel">API &amp; Lists</span></button>
+                        <button type="button" class="ovcTab" data-tab="apikeys" role="tab"><span class="ovcIcon" aria-hidden="true">key</span><span class="ovcTabLabel">TMDB API</span></button>
                         <button type="button" class="ovcTab" data-tab="libraries" role="tab"><span class="ovcIcon" aria-hidden="true">video_library</span><span class="ovcTabLabel">Libraries</span></button>
                         <button type="button" class="ovcTab" data-tab="maintenance" role="tab"><span class="ovcIcon" aria-hidden="true">build</span><span class="ovcTabLabel">Maintenance</span></button>
                     </div>
@@ -34,41 +34,6 @@
 
                 <!-- ===================== GENERAL ===================== -->
                 <div class="ovcPanel ovcActive" data-panel="general">
-
-                    <div class="ovcCard">
-                        <h3>Overlays &amp; badges</h3>
-                        <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BadgesEnabled" /><span>Enable badges</span></label>
-                            <div class="fieldDescription">Master switch for the side/corner badges. Turn off to use status banners only.</div>
-                        </div>
-                        <div class="selectContainer">
-                            <label class="selectLabel" for="TrendingTimeWindow">TMDB trending window</label>
-                            <select is="emby-select" id="TrendingTimeWindow">
-                                <option value="day">Day</option>
-                                <option value="week">Week</option>
-                            </select>
-                            <div class="fieldDescription">Which TMDB trending list the Trending badge is based on.</div>
-                        </div>
-                        <div class="inputContainer">
-                            <label class="inputLabel inputLabelUnfocused" for="WatchHistoryDays">Watch-history look-back (days)</label>
-                            <input is="emby-input" type="number" id="WatchHistoryDays" min="1" />
-                            <div class="fieldDescription">An item earns the watch-history badge if it was played within this many days.</div>
-                        </div>
-                        <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="WatchHistoryAllUsers" /><span>Count all users' plays</span></label>
-                            <div class="fieldDescription">On: a play by any user counts. Off: only the chosen user's plays count.</div>
-                        </div>
-                        <div class="selectContainer" id="WatchHistoryUserRow">
-                            <label class="selectLabel" for="WatchHistoryUserId">Whose plays count</label>
-                            <select is="emby-select" id="WatchHistoryUserId"></select>
-                            <div class="fieldDescription">Only used when "Count all users' plays" is off. "(First admin)" uses whichever account Jellyfin lists first.</div>
-                        </div>
-                        <div class="inputContainer">
-                            <label class="inputLabel inputLabelUnfocused" for="WatchHistoryMaxScan">Watch-history scan cap (per user)</label>
-                            <input is="emby-input" type="number" id="WatchHistoryMaxScan" min="500" step="500" />
-                            <div class="fieldDescription">Safety limit on how many recent plays are scanned per user. The scan already stops at the look-back window, so only raise this if a very heavy watcher's older in-window plays go missing.</div>
-                        </div>
-                    </div>
 
                     <div class="ovcCard">
                         <h3>Behaviour</h3>
@@ -327,12 +292,68 @@
                             <strong>Global badge design</strong>
                             <div class="fieldDescription">Layout applies to enabled libraries; each library independently chooses which badge sources are active.</div>
                         </div>
-                        <div class="ovcCard ovcBannerControls">
+                        <div class="ovcBannerControls">
+                            <div class="ovcCard">
+                                <h3>Badge sources</h3>
+                                <div class="ovcCheck">
+                                    <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BadgesEnabled" /><span>Enable badges globally</span></label>
+                                    <div class="fieldDescription">Master switch for all badge sources. Individual sources are enabled per library on the Libraries tab.</div>
+                                </div>
+                                <div class="selectContainer">
+                                    <label class="selectLabel" for="TrendingTimeWindow">TMDB Trending window</label>
+                                    <select is="emby-select" id="TrendingTimeWindow">
+                                        <option value="day">Day</option>
+                                        <option value="week">Week</option>
+                                    </select>
+                                    <div class="fieldDescription">Chooses the TMDB list used by the Trending badge.</div>
+                                </div>
+                            </div>
+
+                            <div class="ovcCard">
+                                <h3>Watch History badge</h3>
+                                <div class="inputContainer">
+                                    <label class="inputLabel inputLabelUnfocused" for="WatchHistoryDays">Look-back period (days)</label>
+                                    <input is="emby-input" type="number" id="WatchHistoryDays" min="1" />
+                                    <div class="fieldDescription">An item earns this badge if it was played within this many days.</div>
+                                </div>
+                                <div class="ovcCheck">
+                                    <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="WatchHistoryAllUsers" /><span>Count all users' plays</span></label>
+                                    <div class="fieldDescription">Turn off to count only the selected user's plays.</div>
+                                </div>
+                                <div class="selectContainer" id="WatchHistoryUserRow">
+                                    <label class="selectLabel" for="WatchHistoryUserId">Whose plays count</label>
+                                    <select is="emby-select" id="WatchHistoryUserId"></select>
+                                    <div class="fieldDescription">“First admin” uses whichever administrator Jellyfin lists first.</div>
+                                </div>
+                                <div class="inputContainer">
+                                    <label class="inputLabel inputLabelUnfocused" for="WatchHistoryMaxScan">Scan cap per user</label>
+                                    <input is="emby-input" type="number" id="WatchHistoryMaxScan" min="500" step="500" />
+                                    <div class="fieldDescription">Safety limit for recent plays scanned per user. Most libraries can keep the default.</div>
+                                </div>
+                            </div>
+
+                            <details class="ovcCard">
+                                <summary>IMDb Top 250 source lists</summary>
+                                <div class="ovcDetailsBody ovcFieldGrid">
+                                    <div class="inputContainer">
+                                        <label class="inputLabel inputLabelUnfocused" for="ImdbTop250TvListId">TV list ID</label>
+                                        <input is="emby-input" type="text" id="ImdbTop250TvListId" />
+                                        <div class="fieldDescription">TMDB list mirroring IMDb's Top 250 TV shows.</div>
+                                    </div>
+                                    <div class="inputContainer">
+                                        <label class="inputLabel inputLabelUnfocused" for="ImdbTop250MovieListId">Movie list ID</label>
+                                        <input is="emby-input" type="text" id="ImdbTop250MovieListId" />
+                                        <div class="fieldDescription">TMDB list mirroring IMDb's Top 250 movies.</div>
+                                    </div>
+                                </div>
+                            </details>
+
+                            <div class="ovcCard ovcWide">
                             <h3>Badge layout</h3>
                             <p class="fieldDescription">
                                 Placement of the side badges (watch-history &amp; TMDB-trending). The IMDb Top 250 badge
                                 is a baked corner ribbon and isn't affected by these. Which badges actually appear is
-                                still set per library (Libraries tab) and the global badge switch (General tab).
+                                still set per library (Libraries tab) and the global switch above.
                             </p>
                             <div class="ovcFieldGrid">
                             <div class="selectContainer">
@@ -364,6 +385,7 @@
                             </div>
                             </div>
                         </div>
+                        </div>
 
                         <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="badge">
                             <h3>Live preview</h3>
@@ -383,10 +405,10 @@
                     </div>
                 </div>
 
-                <!-- ===================== API & LISTS ===================== -->
+                <!-- ===================== TMDB API ===================== -->
                 <div class="ovcPanel" data-panel="apikeys">
                     <div class="ovcCard">
-                        <h3>API keys</h3>
+                        <h3>TMDB connection</h3>
                         <div class="ovcSecretRow">
                             <div class="inputContainer">
                                 <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">TMDB API Key</label>
@@ -400,19 +422,6 @@
                         </div>
                     </div>
 
-                    <div class="ovcCard">
-                        <h3>Lists</h3>
-                        <div class="inputContainer">
-                            <label class="inputLabel inputLabelUnfocused" for="ImdbTop250TvListId">IMDB Top 250 — TMDB TV list id</label>
-                            <input is="emby-input" type="text" id="ImdbTop250TvListId" />
-                            <div class="fieldDescription">A community TMDB list mirroring the IMDb Top 250 TV shows (default <code>8647022</code>).</div>
-                        </div>
-                        <div class="inputContainer">
-                            <label class="inputLabel inputLabelUnfocused" for="ImdbTop250MovieListId">IMDB Top 250 — TMDB movie list id</label>
-                            <input is="emby-input" type="text" id="ImdbTop250MovieListId" />
-                            <div class="fieldDescription">A community TMDB list mirroring the IMDb Top 250 movies (default <code>10265</code>).</div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- ===================== LIBRARIES ===================== -->
@@ -452,6 +461,39 @@
                                 Tick this only if you want Overcoat's saved original back regardless.
                             </div>
                         </div>
+                    </div>
+
+                    <div class="ovcCard ovcWide">
+                        <h3>Recovery</h3>
+                        <p class="fieldDescription">
+                            Overcoat keeps a clean copy of every poster before it overlays it. This is what
+                            <strong>Restore original posters</strong> puts back, and it survives uninstalling the
+                            plugin — so a forgotten restore is recoverable by reinstalling and running it then.
+                        </p>
+                        <div class="ovcVaultStats" id="OvercoatVaultStats">
+                            <p class="ovcMuted">Checking…</p>
+                        </div>
+                        <div class="ovcRowButtons">
+                            <button is="emby-button" type="button" id="OvercoatVaultRefresh" class="raised">
+                                <span>⭯ Recheck</span>
+                            </button>
+                        </div>
+                        <details class="ovcRecoveryHelp">
+                            <summary>If something looks wrong</summary>
+                            <ul>
+                                <li><strong>One poster is wrong.</strong> In Jellyfin, open the item &rarr; Edit images,
+                                    or refresh its metadata with <em>Replace existing images</em>. Overcoat will re-overlay
+                                    it on the next run.</li>
+                                <li><strong>You want your original posters back.</strong> Run
+                                    <em>Restore original posters</em> above. It skips anything whose art was changed
+                                    outside Overcoat, so it won't overwrite work you did yourself.</li>
+                                <li><strong>You uninstalled without restoring.</strong> Reinstall Overcoat and run
+                                    Restore — the saved copies are kept outside the plugin folder and are still there.</li>
+                                <li><strong>No saved copy exists</strong> (the count above is not zero). Restore cannot
+                                    help those. Refresh the library's metadata in Jellyfin with
+                                    <em>Replace existing images</em> to pull fresh artwork from your metadata providers.</li>
+                            </ul>
+                        </details>
                     </div>
 
                     <div class="ovcCard">
@@ -574,14 +616,21 @@
             // silently change what you're looking at. 'placeholder' is the built-in sample; 'random'
             // asks the server for a clean poster out of the user's own library.
             var previewSource = 'placeholder';
+            var previewKey = '';
+
+            function newPreviewKey() {
+                if (window.crypto && window.crypto.randomUUID) { return window.crypto.randomUUID(); }
+                return String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+            }
 
             function setPreviewSource(next) {
                 previewSource = next;
+                if (next === 'random') { previewKey = newPreviewKey(); }
                 page.querySelectorAll('.ovcSourceBtn').forEach(function (b) {
                     b.classList.toggle('ovcChipActive', b.getAttribute('data-source') === next);
                 });
-                refreshBannerPreview();
-                refreshBadgePreview();
+                if (activeTab === 'badges') { refreshBadgePreview(); }
+                else { refreshBannerPreview(); }
             }
 
             function badgePreviewUrl() {
@@ -596,6 +645,7 @@
                     'scale=' + encodeURIComponent(val('BadgeScale') || '100'),
                     'gap=' + encodeURIComponent(val('BadgeGapPercent') || '1'),
                     'source=' + encodeURIComponent(previewSource),
+                    'previewKey=' + encodeURIComponent(previewKey),
                     'api_key=' + encodeURIComponent(ApiClient.accessToken()),
                     '_=' + new Date().getTime()
                 ].join('&');
@@ -651,6 +701,7 @@
                     'neonGlow=' + encodeURIComponent(val('NeonGlow') || '60'),
                     'font=' + encodeURIComponent(val('BannerFont')),
                     'source=' + encodeURIComponent(previewSource),
+                    'previewKey=' + encodeURIComponent(previewKey),
                     'api_key=' + encodeURIComponent(ApiClient.accessToken()),
                     '_=' + new Date().getTime()
                 ].join('&');
@@ -884,6 +935,48 @@
                 summary.textContent = 'Runs daily at ' + hint + ' (server time). Takes effect as soon as you save.';
             }
 
+            // Recovery panel. Read-only: it answers "can I still get my posters back?" and never
+            // changes anything, so it is safe to refresh whenever and never blocks the page.
+            function renderVaultStats(h) {
+                var el = page.querySelector('#OvercoatVaultStats');
+                if (!el) { return; }
+                el.textContent = '';
+
+                function stat(label, value, tone) {
+                    var d = document.createElement('div');
+                    d.className = 'ovcStat' + (tone ? ' ' + tone : '');
+                    var v = document.createElement('span');
+                    v.className = 'ovcStatValue';
+                    v.textContent = value;
+                    var l = document.createElement('span');
+                    l.className = 'ovcStatLabel';
+                    l.textContent = label;
+                    d.appendChild(v); d.appendChild(l);
+                    el.appendChild(d);
+                }
+
+                stat('posters Overcoat manages', h.TrackedItems);
+                stat('can be restored', h.TrackedWithOriginal, h.TrackedWithOriginal ? 'ovcStatGood' : '');
+                // The only figure that represents actual risk: overlaid, with no clean copy saved.
+                stat('no saved copy', h.TrackedWithoutOriginal, h.TrackedWithoutOriginal ? 'ovcStatWarn' : '');
+                stat('saved copies on disk', h.VaultSizeDisplay);
+                if (h.OrphanedOriginals) {
+                    stat('for items no longer in your library', h.OrphanedOriginals);
+                }
+            }
+
+            function refreshVaultStats() {
+                var el = page.querySelector('#OvercoatVaultStats');
+                if (!el) { return Promise.resolve(); }
+                return ApiClient.getJSON(ApiClient.getUrl('Overcoat/VaultHealth')).then(renderVaultStats, function () {
+                    el.textContent = '';
+                    var p = document.createElement('p');
+                    p.className = 'ovcMuted';
+                    p.textContent = 'Could not read the saved-poster status.';
+                    el.appendChild(p);
+                });
+            }
+
             function load() {
                 loading = true;
                 Dashboard.showLoadingMsg();
@@ -950,6 +1043,7 @@
                     page.querySelector('#TmdbOverrides').value = (config.TmdbOverrides || []).map(function (o) {
                         return o.Name + ' | ' + (o.Year || 0) + ' | ' + (o.TmdbId || 0);
                     }).join('\n');
+                    refreshVaultStats();
                     Promise.all([loadUsers(config), loadLibraries(config)]).then(function () {
                         updateUserRowVisibility();
                         refreshBannerPreview();
@@ -1071,6 +1165,7 @@
                         if (overflow === 'auto' || overflow === 'scroll') { ancestor.addEventListener('scroll', updateFloatingPreview, { passive: true }); }
                         ancestor = ancestor.parentElement;
                     }
+                    page.querySelector('#OvercoatVaultRefresh').addEventListener('click', refreshVaultStats);
                     page.querySelector('#OvercoatRunNow').addEventListener('click', function () { runTask('OvercoatApply', 'Apply Overcoat Overlays'); });
                     page.querySelector('#OvercoatRestore').addEventListener('click', function () {
                         Dashboard.confirm('Restore the original (un-overlaid) posters Overcoat saved?', 'Restore originals', function (ok) {

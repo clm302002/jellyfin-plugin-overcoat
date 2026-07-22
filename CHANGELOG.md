@@ -6,7 +6,12 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+- **Recovery panel** (Settings → Maintenance). Shows how many posters Overcoat can still put back,
+  how much disk the saved copies use, and — the number that actually matters — how many posters are
+  overlaid with **no** saved copy, which Restore cannot help with. Also spells out what to do in each
+  failure case, including the one people don't expect: the saved copies survive uninstalling the
+  plugin, so a forgotten restore is fixed by reinstalling and running it then.
 
 ## [0.7.0] — 2026-07-22
 

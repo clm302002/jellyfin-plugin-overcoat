@@ -161,6 +161,24 @@ Issues, overlay designs, documentation fixes, and pull requests are welcome. Sta
 [CONTRIBUTING.md](CONTRIBUTING.md). Please include the Overcoat log and mention any other software
 that touches posters when reporting disappearing or replaced overlays.
 
+## If something goes wrong
+
+Overcoat saves a clean copy of every poster before it overlays it, and **those copies survive
+uninstalling the plugin** — they live outside the plugin's own folder. So most mistakes are
+recoverable.
+
+**Settings → Maintenance → Recovery** shows how many of your posters can still be put back, and
+flags any that have no saved copy.
+
+| Situation | What to do |
+| --- | --- |
+| One poster looks wrong | In Jellyfin, refresh that item's metadata with **Replace existing images**. Overcoat re-overlays it on the next run. |
+| You want your original posters back | **Settings → Maintenance → Restore original posters.** It skips anything whose art changed outside Overcoat, so it won't overwrite work you did yourself — tick *Force restore* if you want it to anyway. |
+| You uninstalled without restoring first | Reinstall Overcoat and run Restore. The saved copies are still there. |
+| Recovery says some posters have **no saved copy** | Restore can't help those. Refresh that library's metadata in Jellyfin with **Replace existing images** to pull fresh artwork from your metadata providers. |
+
+---
+
 ## Attribution and license
 
 Showcase poster artwork is sourced from TVDB and remains copyright its respective studios and

@@ -72,6 +72,7 @@ const requiredPatterns = [
   ['external stylesheet is linked', /id="OvercoatStylesheet"[^>]*configPage\.css/],
   ['descriptions toggle exists', /id="OvercoatDescriptions"/],
   ['save dock exposes status feedback', /id="OvercoatSaveState"[^>]*role="status"/],
+  ['preview requests carry a stable poster key', /previewKey=' \+ encodeURIComponent\(previewKey\)/],
 ];
 for (const [label, pattern] of requiredPatterns) {
   if (!pattern.test(html)) {
@@ -79,6 +80,15 @@ for (const [label, pattern] of requiredPatterns) {
     failures++;
   } else {
     console.log(`ok   ${label}`);
+  }
+}
+
+const generalMarkup = html.slice(html.indexOf('data-panel="general"'), html.indexOf('data-panel="banners"'));
+const badgeMarkup = html.slice(html.indexOf('data-panel="badges"'), html.indexOf('data-panel="apikeys"'));
+for (const id of ['BadgesEnabled', 'TrendingTimeWindow', 'WatchHistoryDays', 'WatchHistoryAllUsers', 'ImdbTop250TvListId']) {
+  if (generalMarkup.includes(`id="${id}"`) || !badgeMarkup.includes(`id="${id}"`)) {
+    console.error(`FAIL badge setting ${id} is not grouped exclusively on the Badges tab`);
+    failures++;
   }
 }
 
