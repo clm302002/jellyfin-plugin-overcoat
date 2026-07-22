@@ -343,6 +343,21 @@ public class OverlayTask : IScheduledTask
         // metadata write is mistaken for someone replacing the art, and the re-baseline below
         // re-overlays an already-overlaid poster.
         var contentConfirmedDifferent = false;
+
+        // Upgrade path: an entry from <=0.6.0 whose file is demonstrably untouched since we wrote it
+        // (its recorded mtime still matches) gets its hash backfilled here. Nothing else in the run
+        // would do it — a settled library re-renders nothing, so no hash would ever be written and
+        // the content check below would stay permanently inert. One cheap read per item, once.
+        if (state.NeedsHashBackfill(id, currentSig))
+        {
+            var settledBytes = await ReadPrimaryImageAsync(item, ct).ConfigureAwait(false);
+            if (settledBytes is not null)
+            {
+                state.SetProducedHash(id, ProcessingState.HashBytes(settledBytes));
+                _logger.LogDebug("Overcoat: recorded a content hash for '{Name}' (upgraded entry).", item.Name ?? "?");
+            }
+        }
+
         if (state.SignatureChanged(id, currentSig))
         {
             var knownHash = state.ProducedHashFor(id);

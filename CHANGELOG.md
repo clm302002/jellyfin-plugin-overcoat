@@ -38,6 +38,9 @@ un-overlaid poster.
   records a hash of what it wrote and confirms the content actually changed before re-baselining.
 - **The clean original is never deleted before its replacement exists.** Re-baselining used to delete
   the vaulted file first; if fetching the new art then failed, the only clean copy was already gone.
+- Existing items get their content hash recorded on the first run after upgrading. Without this the
+  content check above would never engage on a settled library — nothing re-renders, so no hash would
+  ever be written — and every item would stay exposed to the very false positive this release fixes.
 
 ### Changed
 - TMDB and watch-history failures now log at `Warning` (they were `Debug`, i.e. invisible by

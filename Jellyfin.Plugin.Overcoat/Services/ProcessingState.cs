@@ -77,6 +77,40 @@ public sealed class ProcessingState
     }
 
     /// <summary>
+    /// True when we have an entry whose recorded mtime still matches the file on disk — proving it is
+    /// untouched since we wrote it — but which carries no content hash (written by &lt;=0.6.0).
+    ///
+    /// Without this, upgrading is a no-op for a settled library: nothing re-renders, so no hash is
+    /// ever recorded, so the content check never engages and every item stays vulnerable to a
+    /// timestamp-only false positive. Backfilling from an unchanged file is safe precisely because
+    /// the matching signature means the bytes are still ours.
+    /// </summary>
+    public bool NeedsHashBackfill(string id, long currentSignature)
+    {
+        lock (_gate)
+        {
+            return _cache.TryGetValue(id, out var e)
+                && e.ProducedHash.Length == 0
+                && e.PrimarySignature != 0
+                && currentSignature != 0
+                && e.PrimarySignature == currentSignature;
+        }
+    }
+
+    /// <summary>Records a content hash for an existing entry without otherwise touching it.</summary>
+    public void SetProducedHash(string id, string hash)
+    {
+        lock (_gate)
+        {
+            if (_cache.TryGetValue(id, out var e) && !string.Equals(e.ProducedHash, hash, StringComparison.Ordinal))
+            {
+                e.ProducedHash = hash;
+                _dirty = true;
+            }
+        }
+    }
+
+    /// <summary>
     /// Records a new mtime signature for an item whose content we've confirmed is still ours, so the
     /// cheap mtime pre-check passes on subsequent runs instead of re-hashing every time.
     /// </summary>
