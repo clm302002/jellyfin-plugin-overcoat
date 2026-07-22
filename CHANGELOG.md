@@ -11,9 +11,8 @@ All notable changes to Overcoat are documented here. Format follows
   Jellyfin skips a plugin entirely when deciding which have updates available if that flag is off —
   so the Plugins page never offered an update and the "Update Plugins" task ignored Overcoat. Anyone
   who installed it stayed on that version indefinitely regardless of what the repository advertised.
-- **Settings → Maintenance now has a Check for updates button.** It shows the installed and newest
-  available versions and installs the newer one. It does not rely on the flag above, so it can also
-  rescue an installation Jellyfin has stopped offering updates for.
+  To update an installation packaged before this fix, expand the version you want under **Revision
+  History** on the plugin's page and click Install.
 - **Revision history no longer repeats itself.** Every pre-release of a version advertised the
   identical multi-thousand-character release notes, so the plugin page showed the same wall of text
   once per build. Pre-releases now carry their own notes and are labelled with their build number,

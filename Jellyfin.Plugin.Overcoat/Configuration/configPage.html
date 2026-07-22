@@ -9,194 +9,28 @@
      data-role="page"
      class="page type-interior pluginConfigurationPage"
      data-require="emby-input,emby-button,emby-select,emby-checkbox,emby-textarea">
-    <style>
-        /* Scoped + kept inside the page div (Jellyfin strips the document <head>). */
-        #OvercoatConfigPage .ovcTabs { display: flex; flex-wrap: wrap; gap: .5em; margin: 1.2em 0; }
-        #OvercoatConfigPage .ovcTab {
-            border-radius: 2em; padding: .55em 1.4em; cursor: pointer; font-size: 1em;
-            border: 1px solid rgba(255,255,255,.25); background: transparent; color: inherit;
-            transition: background .15s, color .15s, border-color .15s;
-        }
-        #OvercoatConfigPage .ovcTab:hover { border-color: #00a4dc; }
-        #OvercoatConfigPage .ovcTab.ovcActive { background: #00a4dc; border-color: #00a4dc; color: #fff; }
-        #OvercoatConfigPage .ovcPanel { display: none; }
-        #OvercoatConfigPage .ovcPanel.ovcActive { display: block; }
-
-        #OvercoatConfigPage .ovcCard {
-            border: 1px solid rgba(255,255,255,.14); border-radius: .8em;
-            padding: 1.1em 1.3em 1.25em; margin: 0 0 1.2em; background: rgba(22,22,22,.94);
-            box-shadow: 0 8px 24px rgba(0,0,0,.12);
-        }
-        #OvercoatConfigPage .ovcCard > h3 {
-            margin: -.1em 0 .9em; padding: 0 0 .65em; font-size: 1.15em;
-            border-bottom: 1px solid rgba(255,255,255,.1);
-        }
-
-        /* Wide inputs by default (text/number/select/textarea — not checkboxes). */
-        #OvercoatConfigPage input[type="text"],
-        #OvercoatConfigPage input[type="password"],
-        #OvercoatConfigPage input[type="number"],
-        #OvercoatConfigPage select,
-        #OvercoatConfigPage textarea { width: 100%; box-sizing: border-box; }
-        #OvercoatConfigPage textarea { min-height: 6.5em; resize: vertical; }
-
-        #OvercoatConfigPage .ovcCheck { margin: .3em 0 1em; }
-        #OvercoatConfigPage .ovcCheck .fieldDescription { margin: .1em 0 0 1.9em; }
-
-        /* Libraries: responsive columns — multi-column wide, single column narrow/mobile. */
-        #OvercoatConfigPage .ovcGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 1em; }
-        #OvercoatConfigPage .ovcLib { border: 1px solid rgba(255,255,255,.18); border-radius: .6em; padding: .8em 1em; background: rgba(255,255,255,.02); }
-        #OvercoatConfigPage .ovcLib h4 { margin: 0 0 .6em; }
-        #OvercoatConfigPage .ovcLibOpts { display: flex; flex-direction: column; gap: .25em; }
-        #OvercoatConfigPage .ovcLibOpts .checkboxContainer { margin: 0; }
-
-        /* Banners tab: controls left, preview right. */
-        #OvercoatConfigPage .ovcBannerLayout { display: flex; gap: 1.2em; flex-wrap: wrap; align-items: flex-start; }
-        #OvercoatConfigPage .ovcBannerControls { flex: 1 1 340px; }
-        #OvercoatConfigPage .ovcBannerPreview { flex: 1 1 300px; text-align: center; }
-        #OvercoatConfigPage .ovcBannerPreview img {
-            width: 260px; max-width: 92%; border-radius: .6em; display: inline-block;
-            box-shadow: 0 4px 18px rgba(0,0,0,.45); background: rgba(255,255,255,.04);
-        }
-        #OvercoatConfigPage .ovcStatusSwitch { display: flex; flex-wrap: wrap; gap: .4em; justify-content: center; margin-bottom: 1em; }
-        #OvercoatConfigPage .ovcChip {
-            border-radius: 1.4em; padding: .3em 1em; cursor: pointer; font-size: .85em;
-            border: 1px solid rgba(255,255,255,.25); background: transparent; color: inherit;
-        }
-        #OvercoatConfigPage .ovcChip:hover { border-color: #00a4dc; }
-        #OvercoatConfigPage .ovcChip.ovcChipActive { background: #00a4dc; border-color: #00a4dc; color: #fff; }
-        #OvercoatConfigPage .ovcColors { display: flex; flex-wrap: wrap; gap: .9em; margin: .5em 0; }
-        #OvercoatConfigPage .ovcColors label { display: flex; flex-direction: column; align-items: center; gap: .25em; font-size: .82em; opacity: .9; }
-        #OvercoatConfigPage .ovcColors input[type="color"] {
-            width: 46px; height: 34px; border: none; border-radius: .4em; background: transparent; cursor: pointer; padding: 0;
-        }
-        #OvercoatConfigPage .ovcSubGroup {
-            margin-top: 1em; padding: .8em 1em; border-radius: .5em;
-            border: 1px solid rgba(0,164,220,.35); background: rgba(0,164,220,.06);
-        }
-        #OvercoatConfigPage .ovcGroup {
-            margin: 1.5em 0 .6em; font-size: .82em; font-weight: 600; letter-spacing: .05em;
-            text-transform: uppercase; opacity: .7; border-bottom: 1px solid rgba(255,255,255,.12); padding-bottom: .3em;
-        }
-        #OvercoatConfigPage .ovcGroup.ovcGroupFirst { margin-top: .4em; }
-        #OvercoatConfigPage .ovcStatusRows { display: flex; flex-direction: column; gap: .55em; margin: .5em 0; }
-        #OvercoatConfigPage .ovcStatusRow { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: .8em; }
-        #OvercoatConfigPage .ovcStatusRow .checkboxContainer { margin: 0; }
-        #OvercoatConfigPage .ovcStatusRow input[type="text"] { width: 100%; box-sizing: border-box; min-width: 0; }
-        #OvercoatConfigPage .ovcMuted { opacity: .7; font-size: .9em; }
-        #OvercoatConfigPage .ovcRowButtons { display: flex; flex-wrap: wrap; gap: 1em; margin: .4em 0 1em; }
-        #OvercoatConfigPage .ovcRow { display: flex; flex-wrap: wrap; gap: 1em; align-items: flex-end; }
-        #OvercoatConfigPage .ovcRow .selectContainer { flex: 0 1 11em; }
-        #OvercoatConfigPage .ovcRow[hidden] { display: none; }
-
-        /* Responsive workspace: Jellyfin's default content-primary is intentionally narrow. */
-        #OvercoatConfigPage .content-primary {
-            width: min(1500px, calc(100% - 2.5em)); max-width: none; margin: 0 auto;
-        }
-        #OvercoatConfigPage .ovcPanel.ovcActive {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
-            gap: 1.2em; align-items: start;
-        }
-        #OvercoatConfigPage .ovcCard { margin: 0; min-width: 0; }
-        #OvercoatConfigPage .ovcWide { grid-column: 1 / -1; }
-        #OvercoatConfigPage .ovcBannerLayout {
-            display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 370px);
-            grid-template-areas: "controls preview"; gap: 1.2em; align-items: start;
-        }
-        #OvercoatConfigPage [data-panel="banners"].ovcActive,
-        #OvercoatConfigPage [data-panel="badges"].ovcActive { display: block; }
-        #OvercoatConfigPage .ovcBannerControls { grid-area: controls; min-width: 0; }
-        #OvercoatConfigPage .ovcControlGrid {
-            display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em;
-        }
-        #OvercoatConfigPage .ovcIntroCard {
-            background: linear-gradient(120deg, rgba(0,164,220,.13), rgba(22,22,22,.94) 55%);
-            border-left: 3px solid #00a4dc;
-        }
-        #OvercoatConfigPage .ovcDenseCard {
-            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-            column-gap: 1.35em; row-gap: 1em;
-        }
-        #OvercoatConfigPage .ovcDenseCard > h3,
-        #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column: 1 / -1; }
-        #OvercoatConfigPage .ovcDenseCard > * { min-width: 0; margin-top: 0 !important; }
-        #OvercoatConfigPage .ovcDenseCard.ovcLayoutCard { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        #OvercoatConfigPage .ovcDenseCard.ovcLayoutCard .ovcCheck { align-self: end; }
-        #OvercoatConfigPage .ovcBannerPreview { grid-area: preview; align-self: start; }
-        #OvercoatConfigPage .ovcPreviewRail { position: sticky; top: clamp(4.5em, 10vh, 7em); }
-        #OvercoatConfigPage [data-panel="banners"] .ovcPreviewRail { margin-top: 7.2em; }
-        #OvercoatConfigPage .ovcFieldGrid {
-            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1em;
-        }
-        #OvercoatConfigPage .ovcFieldGrid > * { margin-top: 0 !important; min-width: 0; }
-        #OvercoatConfigPage .ovcSecretRow { display: flex; gap: .65em; align-items: flex-end; }
-        #OvercoatConfigPage .ovcSecretRow .inputContainer { flex: 1 1 auto; min-width: 0; }
-        #OvercoatConfigPage .ovcSecretToggle { flex: 0 0 auto; margin-bottom: .15em; }
-        #OvercoatConfigPage .ovcWipNote {
-            margin-top: .75em; padding: .65em .8em; border-radius: .5em;
-            border-left: 3px solid #00a4dc; background: rgba(0,164,220,.08);
-            font-size: .9em;
-        }
-        #OvercoatConfigPage .ovcFloatingPreview {
-            display: none; position: fixed; z-index: 1100; right: max(.75em, env(safe-area-inset-right));
-            bottom: max(.75em, env(safe-area-inset-bottom)); width: 118px; padding: .45em;
-            border: 1px solid rgba(255,255,255,.24); border-radius: .7em;
-            background: rgba(15,18,24,.94); box-shadow: 0 8px 28px rgba(0,0,0,.65);
-            text-align: center; pointer-events: none;
-        }
-        #OvercoatConfigPage .ovcFloatingPreview img { display: block; width: 100%; border-radius: .45em; }
-        #OvercoatConfigPage .ovcFloatingPreview span { display: block; margin-top: .3em; font-size: .72em; opacity: .8; }
-
-        @media (max-width: 1199px) {
-            #OvercoatConfigPage .ovcBannerLayout { grid-template-columns: minmax(0, 1fr) minmax(280px, 320px); }
-            #OvercoatConfigPage .ovcDenseCard,
-            #OvercoatConfigPage .ovcDenseCard.ovcLayoutCard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-        @media (max-width: 739px) {
-            #OvercoatConfigPage .content-primary { width: calc(100% - 1.2em); }
-            #OvercoatConfigPage .ovcTabs {
-                flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-inline: contain;
-                scrollbar-width: thin; padding-bottom: .35em;
-            }
-            #OvercoatConfigPage .ovcTab { flex: 0 0 auto; padding: .5em 1.05em; }
-            #OvercoatConfigPage .ovcPanel.ovcActive { grid-template-columns: 1fr; }
-            #OvercoatConfigPage .ovcBannerLayout {
-                grid-template-columns: 1fr; grid-template-areas: "preview" "controls";
-            }
-            #OvercoatConfigPage .ovcPreviewRail { position: static; }
-            #OvercoatConfigPage [data-panel="banners"] .ovcPreviewRail { margin-top: 0; }
-            #OvercoatConfigPage .ovcDenseCard,
-            #OvercoatConfigPage .ovcDenseCard.ovcLayoutCard { grid-template-columns: 1fr; }
-            #OvercoatConfigPage .ovcDenseCard > h3,
-            #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column: auto; }
-            #OvercoatConfigPage .ovcFieldGrid { grid-template-columns: 1fr; }
-            #OvercoatConfigPage .ovcGrid { grid-template-columns: 1fr; }
-            #OvercoatConfigPage .ovcStatusRow { grid-template-columns: minmax(105px, 38%) minmax(0, 1fr); gap: .5em; }
-            #OvercoatConfigPage .ovcSecretRow { align-items: stretch; flex-direction: column; }
-            #OvercoatConfigPage .ovcSecretToggle { align-self: flex-start; }
-            #OvercoatConfigPage .ovcFloatingPreview.ovcVisible { display: block; }
-        }
-    </style>
+    <link id="OvercoatStylesheet" rel="stylesheet" href="Overcoat/Configuration/configPage.css" />
     <div data-role="content">
         <div class="content-primary">
             <form id="OvercoatConfigForm">
 
-                <div class="verticalSection">
-                    <h2 class="sectionTitle">Overcoat</h2>
-                    <p class="fieldDescription">
-                        Status overlays &amp; badges for your Jellyfin posters. Configure below, click Save, then
-                        run from the Maintenance tab (or Dashboard&nbsp;&rarr;&nbsp;Scheduled&nbsp;Tasks).
-                    </p>
-                </div>
-
-                <div class="ovcTabs">
-                    <button type="button" class="ovcTab ovcActive" data-tab="general">General</button>
-                    <button type="button" class="ovcTab" data-tab="banners">Banners</button>
-                    <button type="button" class="ovcTab" data-tab="badges">Badges</button>
-                    <button type="button" class="ovcTab" data-tab="apikeys">API &amp; Lists</button>
-                    <button type="button" class="ovcTab" data-tab="libraries">Libraries</button>
-                    <button type="button" class="ovcTab" data-tab="maintenance">Maintenance</button>
-                </div>
+                <header class="ovcHeader">
+                    <div class="ovcHeaderTop">
+                        <div>
+                            <h2 class="ovcTitle">Overcoat</h2>
+                            <p class="ovcSubtitle fieldDescription">Configure poster banners and badges, then run Overcoat from Maintenance or Scheduled Tasks.</p>
+                        </div>
+                        <button is="emby-button" type="button" id="OvercoatDescriptions" class="raised ovcDescriptionToggle" aria-pressed="true"><span class="ovcIcon" aria-hidden="true">notes</span> Descriptions On</button>
+                    </div>
+                    <div class="ovcTabs" role="tablist" aria-label="Overcoat settings">
+                        <button type="button" class="ovcTab ovcActive" data-tab="general" role="tab"><span class="ovcIcon" aria-hidden="true">tune</span><span class="ovcTabLabel">General</span></button>
+                        <button type="button" class="ovcTab" data-tab="banners" role="tab"><span class="ovcIcon" aria-hidden="true">view_stream</span><span class="ovcTabLabel">Banners</span></button>
+                        <button type="button" class="ovcTab" data-tab="badges" role="tab"><span class="ovcIcon" aria-hidden="true">bookmark</span><span class="ovcTabLabel">Badges</span></button>
+                        <button type="button" class="ovcTab" data-tab="apikeys" role="tab"><span class="ovcIcon" aria-hidden="true">key</span><span class="ovcTabLabel">API &amp; Lists</span></button>
+                        <button type="button" class="ovcTab" data-tab="libraries" role="tab"><span class="ovcIcon" aria-hidden="true">video_library</span><span class="ovcTabLabel">Libraries</span></button>
+                        <button type="button" class="ovcTab" data-tab="maintenance" role="tab"><span class="ovcIcon" aria-hidden="true">build</span><span class="ovcTabLabel">Maintenance</span></button>
+                    </div>
+                </header>
 
                 <!-- ===================== GENERAL ===================== -->
                 <div class="ovcPanel ovcActive" data-panel="general">
@@ -215,12 +49,12 @@
                             </select>
                             <div class="fieldDescription">Which TMDB trending list the Trending badge is based on.</div>
                         </div>
-                        <div class="inputContainer" style="margin-top:1em;">
+                        <div class="inputContainer">
                             <label class="inputLabel inputLabelUnfocused" for="WatchHistoryDays">Watch-history look-back (days)</label>
                             <input is="emby-input" type="number" id="WatchHistoryDays" min="1" />
                             <div class="fieldDescription">An item earns the watch-history badge if it was played within this many days.</div>
                         </div>
-                        <div class="ovcCheck" style="margin-top:1em;">
+                        <div class="ovcCheck">
                             <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="WatchHistoryAllUsers" /><span>Count all users' plays</span></label>
                             <div class="fieldDescription">On: a play by any user counts. Off: only the chosen user's plays count.</div>
                         </div>
@@ -229,7 +63,7 @@
                             <select is="emby-select" id="WatchHistoryUserId"></select>
                             <div class="fieldDescription">Only used when "Count all users' plays" is off. "(First admin)" uses whichever account Jellyfin lists first.</div>
                         </div>
-                        <div class="inputContainer" style="margin-top:1em;">
+                        <div class="inputContainer">
                             <label class="inputLabel inputLabelUnfocused" for="WatchHistoryMaxScan">Watch-history scan cap (per user)</label>
                             <input is="emby-input" type="number" id="WatchHistoryMaxScan" min="500" step="500" />
                             <div class="fieldDescription">Safety limit on how many recent plays are scanned per user. The scan already stops at the look-back window, so only raise this if a very heavy watcher's older in-window plays go missing.</div>
@@ -287,6 +121,10 @@
                 <!-- ===================== BANNERS ===================== -->
                 <div class="ovcPanel" data-panel="banners">
                     <div class="ovcBannerLayout">
+                        <div class="ovcCard ovcNotice ovcStudioNotice">
+                            <strong>Global banner design</strong>
+                            <div class="fieldDescription">These controls apply to every enabled library. Overcoat settings are never assigned to individual titles.</div>
+                        </div>
                         <div class="ovcBannerControls ovcControlGrid">
                             <div class="ovcCard ovcIntroCard">
                                 <h3>Status banner look</h3>
@@ -313,11 +151,11 @@
                                     <label class="inputLabel inputLabelUnfocused">Frost tint</label>
                                     <div class="ovcColors"><label><input type="color" id="GlassTint" /><span>Tint</span></label></div>
                                 </div>
-                                <div class="inputContainer" style="margin-top:.4em;">
+                                <div class="inputContainer">
                                     <label class="inputLabel inputLabelUnfocused" for="GlassTintStrength">Tint strength (%)</label>
                                     <input is="emby-input" type="number" id="GlassTintStrength" min="0" max="100" step="1" />
                                 </div>
-                                <div class="inputContainer" style="margin-top:.6em;">
+                                <div class="inputContainer">
                                     <label class="inputLabel inputLabelUnfocused" for="GlassBlur">Frost blur (%)</label>
                                     <input is="emby-input" type="number" id="GlassBlur" min="0" max="100" step="1" />
                                 </div>
@@ -332,7 +170,7 @@
                                 </div>
                             </div>
 
-                            <div class="selectContainer" style="margin-top:1em;">
+                            <div class="selectContainer">
                                 <label class="selectLabel" for="BannerFont">Font</label>
                                 <select is="emby-select" id="BannerFont">
                                     <option value="default">Display (bundled)</option>
@@ -346,7 +184,7 @@
 
                             <div class="ovcCard ovcDenseCard ovcLayoutCard">
                             <h3>Shape &amp; layout</h3>
-                            <div class="selectContainer" style="margin-top:1em;">
+                            <div class="selectContainer">
                                 <label class="selectLabel" for="BannerShape">Shape</label>
                                 <select is="emby-select" id="BannerShape">
                                     <option value="pill">Pill (fully rounded)</option>
@@ -355,7 +193,7 @@
                                 </select>
                                 <div class="fieldDescription">"Drop" sits flush against the chosen edge with only the inner corners rounded — like a tab.</div>
                             </div>
-                            <div class="selectContainer" style="margin-top:1em;">
+                            <div class="selectContainer">
                                 <label class="selectLabel" for="BannerPosition">Position</label>
                                 <select is="emby-select" id="BannerPosition">
                                     <option value="top">Top</option>
@@ -363,7 +201,7 @@
                                 </select>
                                 <div class="fieldDescription">Which edge of the poster the banner sits against.</div>
                             </div>
-                            <div class="selectContainer" style="margin-top:1em;">
+                            <div class="selectContainer">
                                 <label class="selectLabel" for="BannerAlign">Alignment</label>
                                 <select is="emby-select" id="BannerAlign">
                                     <option value="left">Left</option>
@@ -372,24 +210,24 @@
                                 </select>
                                 <div class="fieldDescription">Horizontal placement. With Full-width on, this positions the text within the band.</div>
                             </div>
-                            <div class="ovcCheck" style="margin-top:1em;">
+                            <div class="ovcCheck">
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerFullWidth" /><span>Full-width band</span></label>
                                 <div class="fieldDescription">Stretch the banner edge-to-edge across the poster (a ribbon).</div>
                             </div>
-                            <div class="inputContainer" style="margin-top:1em;">
+                            <div class="inputContainer">
                                 <label class="inputLabel inputLabelUnfocused" for="BannerFontScale">Text size</label>
                                 <input is="emby-input" type="number" id="BannerFontScale" min="0.5" max="2" step="0.05" />
                                 <div class="fieldDescription">Multiplier on the calibrated size. 1.0 = default, 1.2 = 20% bigger, 0.8 = smaller.</div>
                             </div>
                             </div>
 
-                            <div class="ovcCard ovcDenseCard">
-                            <h3>Effects</h3>
-                            <div class="ovcCheck" style="margin-top:1em;">
+                            <details class="ovcCard" open>
+                            <summary>Effects</summary><div class="ovcDetailsBody ovcFieldGrid">
+                            <div class="ovcCheck">
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerIcons" /><span>Show status icons</span></label>
                                 <div class="fieldDescription">Draw the ★ / ⟳ / ✓ icon beside the banner text. Off = text only.</div>
                             </div>
-                            <div class="ovcCheck" style="margin-top:1em;">
+                            <div class="ovcCheck">
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerShadow" /><span>Drop shadow</span></label>
                                 <div class="fieldDescription">Soft shadow under the banner so it lifts off the poster.</div>
                             </div>
@@ -397,12 +235,12 @@
                                 <label class="inputLabel inputLabelUnfocused" for="BannerShadowStrength">Shadow strength (%)</label>
                                 <input is="emby-input" type="number" id="BannerShadowStrength" min="0" max="100" step="1" />
                             </div>
-                            </div>
+                            </div></details>
 
-                            <div class="ovcCard ovcDenseCard">
-                            <h3>Status dates</h3>
-                            <p class="fieldDescription ovcCardLead" style="margin-top:0;">AIRING shows the next episode in the chosen format, always (no "within" window). RETURNING shows the upcoming episode/season date only when it's within the chosen window. (Turn AIRING off in the Statuses group and an airing show falls back to RETURNING.)</p>
-                            <div class="selectContainer" style="margin-top:.6em;">
+                            <details class="ovcCard">
+                            <summary>Status dates</summary><div class="ovcDetailsBody ovcFieldGrid">
+                            <p class="fieldDescription ovcCardLead">AIRING shows the next episode in the chosen format, always (no "within" window). RETURNING shows the upcoming episode/season date only when it's within the chosen window. (Turn AIRING off in the Statuses group and an airing show falls back to RETURNING.)</p>
+                            <div class="selectContainer">
                                 <label class="selectLabel" for="AiringDateFormat">Airing — format</label>
                                 <select is="emby-select" id="AiringDateFormat">
                                     <option value="date">Date (6/28)</option>
@@ -410,7 +248,7 @@
                                     <option value="countdown">Countdown (3d)</option>
                                 </select>
                             </div>
-                            <div class="selectContainer" style="margin-top:.6em;">
+                            <div class="selectContainer">
                                 <label class="selectLabel" for="ReturningDateFormat">Returning — format</label>
                                 <select is="emby-select" id="ReturningDateFormat">
                                     <option value="date">Date (7/14)</option>
@@ -418,7 +256,7 @@
                                     <option value="countdown">Countdown (21d)</option>
                                 </select>
                             </div>
-                            <div class="selectContainer" style="margin-top:.6em;">
+                            <div class="selectContainer">
                                 <label class="selectLabel" for="ReturningDateWindowDays">Returning — show date when within</label>
                                 <select is="emby-select" id="ReturningDateWindowDays">
                                     <option value="-1">Never</option>
@@ -429,11 +267,11 @@
                                 </select>
                                 <div class="fieldDescription">The window can't be shown in the preview (it depends on real air dates) — only the format is previewed.</div>
                             </div>
-                            </div>
+                            </div></details>
 
-                            <div class="ovcCard">
-                            <h3>Colours</h3>
-                            <div style="margin-top:.4em;">
+                            <details class="ovcCard">
+                            <summary>Colours &amp; labels</summary><div class="ovcDetailsBody">
+                            <div>
                                 <label class="inputLabel inputLabelUnfocused">Status colours</label>
                                 <div class="ovcColors">
                                     <label><input type="color" id="ColorNew" /><span>New</span></label>
@@ -445,10 +283,8 @@
                                 <div class="fieldDescription">Tap a swatch to recolour that status. Switch the preview to that status to see it.</div>
                             </div>
                             </div>
-
-                            <div class="ovcCard">
-                            <h3>Statuses &amp; labels</h3>
-                            <div style="margin-top:.4em;">
+                            <h4>Statuses &amp; labels</h4>
+                            <div>
                                 <label class="inputLabel inputLabelUnfocused">Per-status: show &amp; label</label>
                                 <div class="ovcStatusRows">
                                     <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowNew" /><span>New</span></label><input is="emby-input" type="text" id="LabelNew" /></div>
@@ -458,8 +294,7 @@
                                     <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowCanceled" /><span>Canceled</span></label><input is="emby-input" type="text" id="LabelCanceled" /></div>
                                 </div>
                                 <div class="fieldDescription">Untick to skip a status entirely; edit the text to rename it (e.g. RETURNING → RETURNS).</div>
-                            </div>
-                            </div>
+                            </div></details>
                         </div>
 
                         <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="banner">
@@ -476,7 +311,7 @@
                                 <button type="button" class="ovcChip ovcSourceBtn" data-source="random">🎲 Random from my library</button>
                             </div>
                             <img id="BannerPreview" alt="Banner preview" />
-                            <div class="ovcMuted" style="margin-top:.5em;">
+                            <div class="ovcMuted">
                                 Updates instantly — no run needed. Random picks a clean poster from your own
                                 library (click again for another); it never uses one Overcoat has already
                                 overlaid, so what you see is what a real run would produce.
@@ -488,6 +323,10 @@
                 <!-- ===================== BADGES ===================== -->
                 <div class="ovcPanel" data-panel="badges">
                     <div class="ovcBannerLayout">
+                        <div class="ovcCard ovcNotice ovcStudioNotice">
+                            <strong>Global badge design</strong>
+                            <div class="fieldDescription">Layout applies to enabled libraries; each library independently chooses which badge sources are active.</div>
+                        </div>
                         <div class="ovcCard ovcBannerControls">
                             <h3>Badge layout</h3>
                             <p class="fieldDescription">
@@ -497,14 +336,14 @@
                             </p>
                             <div class="ovcFieldGrid">
                             <div class="selectContainer">
-                                <label class="selectLabel" for="BadgeSide">Side</label>
+                                <label class="selectLabel" for="BadgeSide">Side <span class="ovcWip">WIP</span></label>
                                 <select is="emby-select" id="BadgeSide" disabled aria-describedby="BadgeSideNote">
                                     <option value="left">Left</option>
                                 </select>
                                 <div class="fieldDescription">Badges currently use their designed left-edge placement.</div>
-                                <div class="ovcWipNote" id="BadgeSideNote"><strong>Future update:</strong> right-side artwork and placement are still a work in progress.</div>
+                                <div class="fieldDescription" id="BadgeSideNote">Right-side artwork and placement are still in development.</div>
                             </div>
-                            <div class="selectContainer" style="margin-top:1em;">
+                            <div class="selectContainer">
                                 <label class="selectLabel" for="BadgeVertical">Vertical anchor</label>
                                 <select is="emby-select" id="BadgeVertical">
                                     <option value="top">Top</option>
@@ -513,12 +352,12 @@
                                 </select>
                                 <div class="fieldDescription">Where the stack sits vertically. "Top" sits below a top banner; "Bottom" rises from the bottom edge.</div>
                             </div>
-                            <div class="inputContainer" style="margin-top:1em;">
+                            <div class="inputContainer">
                                 <label class="inputLabel inputLabelUnfocused" for="BadgeScale">Badge size (%)</label>
                                 <input is="emby-input" type="number" id="BadgeScale" min="50" max="200" step="5" />
                                 <div class="fieldDescription">Size relative to the calibrated default. 100 = default.</div>
                             </div>
-                            <div class="inputContainer" style="margin-top:1em;">
+                            <div class="inputContainer">
                                 <label class="inputLabel inputLabelUnfocused" for="BadgeGapPercent">Gap between badges (%)</label>
                                 <input is="emby-input" type="number" id="BadgeGapPercent" min="0" max="10" step="1" />
                                 <div class="fieldDescription">Vertical spacing between stacked badges, as a percent of poster height.</div>
@@ -529,16 +368,17 @@
                         <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="badge">
                             <h3>Live preview</h3>
                             <div class="ovcStatusSwitch" id="OvercoatPreviewBadges">
-                                <button type="button" class="ovcChip ovcChipActive" data-badge="watch_history">Watch</button>
-                                <button type="button" class="ovcChip ovcChipActive" data-badge="tmdb_trending">Trending</button>
-                                <button type="button" class="ovcChip ovcChipActive" data-badge="imdb_top250">Top 250</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-badge="watch_history" aria-pressed="true">Watch History</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-badge="tmdb_trending" aria-pressed="true">TMDB Trending</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-badge="imdb_top250" aria-pressed="true">IMDb Top 250</button>
                             </div>
+                            <div class="fieldDescription">Independent preview toggles — show any one badge or any combination.</div>
                             <div class="ovcStatusSwitch">
                                 <button type="button" class="ovcChip ovcSourceBtn ovcChipActive" data-source="placeholder">Sample poster</button>
                                 <button type="button" class="ovcChip ovcSourceBtn" data-source="random">🎲 Random from my library</button>
                             </div>
                             <img id="BadgePreview" alt="Badge preview" />
-                            <div class="ovcMuted" style="margin-top:.5em;">Shows your saved banner + the toggled badges. Updates instantly.</div>
+                            <div class="ovcMuted">Shows your saved banner + the toggled badges. Updates instantly.</div>
                         </div>
                     </div>
                 </div>
@@ -567,7 +407,7 @@
                             <input is="emby-input" type="text" id="ImdbTop250TvListId" />
                             <div class="fieldDescription">A community TMDB list mirroring the IMDb Top 250 TV shows (default <code>8647022</code>).</div>
                         </div>
-                        <div class="inputContainer" style="margin-top:1em;">
+                        <div class="inputContainer">
                             <label class="inputLabel inputLabelUnfocused" for="ImdbTop250MovieListId">IMDB Top 250 — TMDB movie list id</label>
                             <input is="emby-input" type="text" id="ImdbTop250MovieListId" />
                             <div class="fieldDescription">A community TMDB list mirroring the IMDb Top 250 movies (default <code>10265</code>).</div>
@@ -581,7 +421,8 @@
                         <h3>Libraries</h3>
                         <p class="fieldDescription">
                             Your TV &amp; movie libraries, detected automatically. Tick the ones Overcoat should
-                            process and choose what each gets. (Status banners apply to TV only.)
+                            process and choose what each library gets. Settings are per library, never per title.
+                            (Status banners apply to TV only.)
                         </p>
                         <div id="OvercoatLibraries" class="ovcGrid"><p class="ovcMuted">Loading libraries…</p></div>
                     </div>
@@ -589,22 +430,8 @@
 
                 <!-- ===================== MAINTENANCE ===================== -->
                 <div class="ovcPanel" data-panel="maintenance">
-                    <div class="ovcCard ovcWide">
-                        <h3>Updates</h3>
-                        <p class="fieldDescription" id="OvercoatVersionLine">Checking for updates…</p>
-                        <div class="ovcRowButtons">
-                            <button is="emby-button" type="button" id="OvercoatCheckUpdate" class="raised">
-                                <span>⭯ Check for updates</span>
-                            </button>
-                        </div>
-                        <div class="fieldDescription">
-                            Installs the newest version your configured Overcoat repository offers. Restart Jellyfin
-                            afterwards to load it. Your settings, saved posters and cache are untouched by an update.
-                        </div>
-                    </div>
-
-                    <div class="ovcCard ovcWide">
-                        <h3>Run</h3>
+                    <div class="ovcCard ovcWide ovcCaution">
+                        <h3>Apply or restore poster artwork</h3>
                         <p class="fieldDescription">
                             Heads-up: clicking either button <strong>saves your current settings first</strong>, then
                             runs — so if you changed anything on the other tabs, just hit Run (no need to Save separately).
@@ -649,9 +476,10 @@
                     </div>
                 </div>
 
-                <div>
-                    <button is="emby-button" type="submit" class="raised button-submit block">
-                        <span>Save</span>
+                <div class="ovcSaveDock" id="OvercoatSaveDock">
+                    <span class="ovcSaveState" id="OvercoatSaveState" role="status">No unsaved changes</span>
+                    <button is="emby-button" type="submit" class="raised button-submit">
+                        <span>Save Changes</span>
                     </button>
                 </div>
             </form>
@@ -667,6 +495,29 @@
             var pluginId = "604f4e22-a0a1-490d-b383-d60336318eaa";
             var page;
             var activeTab = 'general';
+            var loading = false;
+
+            function setSaveState(state, message) {
+                var dock = page.querySelector('#OvercoatSaveDock');
+                var text = page.querySelector('#OvercoatSaveState');
+                dock.classList.toggle('ovcDirty', state === 'dirty');
+                text.textContent = message || (state === 'dirty' ? 'Unsaved changes' : 'No unsaved changes');
+            }
+
+            function detectTheme() {
+                var rgb = getComputedStyle(document.body).backgroundColor.match(/\d+/g) || [20,20,20];
+                var light = (Number(rgb[0]) * 299 + Number(rgb[1]) * 587 + Number(rgb[2]) * 114) / 1000 > 150;
+                page.classList.toggle('ovcLight', light);
+            }
+
+            function toggleDescriptions() {
+                var hidden = !page.classList.contains('ovcNoDescriptions');
+                page.classList.toggle('ovcNoDescriptions', hidden);
+                var button = page.querySelector('#OvercoatDescriptions');
+                button.setAttribute('aria-pressed', hidden ? 'false' : 'true');
+                button.lastChild.textContent = hidden ? ' Descriptions Off' : ' Descriptions On';
+                try { localStorage.setItem('overcoatDescriptions', hidden ? 'off' : 'on'); } catch (_) { }
+            }
 
             // Preview state: which status the live preview renders, and how each maps to text + colour picker.
             var previewStatus = 'RETURNING';
@@ -709,7 +560,7 @@
             function updateFloatingPreview() {
                 if (!page) { return; }
                 var floating = page.querySelector('#OvercoatFloatingPreview');
-                var mobile = window.matchMedia('(max-width: 739px)').matches;
+                var mobile = window.matchMedia('(max-width: 1099px)').matches;
                 var kind = activeTab === 'banners' ? 'banner' : activeTab === 'badges' ? 'badge' : '';
                 var card = kind ? page.querySelector('[data-preview-kind="' + kind + '"]') : null;
                 var show = !!(mobile && card && card.getBoundingClientRect().bottom < 72);
@@ -1033,81 +884,8 @@
                 summary.textContent = 'Runs daily at ' + hint + ' (server time). Takes effect as soon as you save.';
             }
 
-            // Jellyfin's own "update available" indicator is driven by the installed meta.json's
-            // autoUpdate flag; builds packaged before 0.7.0.3 shipped it false, which makes Jellyfin
-            // skip the plugin entirely when working out available updates — no button, no task pickup,
-            // stuck forever. POST /Packages/Installed bypasses that check, so this button can rescue an
-            // install that Jellyfin will not offer to update on its own.
-            function overcoatVersions() {
-                return Promise.all([
-                    ApiClient.getJSON(ApiClient.getUrl('Plugins')),
-                    ApiClient.getJSON(ApiClient.getUrl('Packages'))
-                ]).then(function (r) {
-                    var installed = (r[0] || []).filter(function (p) {
-                        return (p.Id || '').replace(/-/g, '').toLowerCase() === pluginId.replace(/-/g, '').toLowerCase();
-                    })[0];
-                    var pkg = (r[1] || []).filter(function (p) {
-                        return (p.guid || p.Guid || '').replace(/-/g, '').toLowerCase() === pluginId.replace(/-/g, '').toLowerCase();
-                    })[0];
-                    var versions = (pkg && (pkg.versions || pkg.Versions)) || [];
-                    var newest = versions.map(function (v) { return v.version || v.Version; }).sort(cmpVersion).pop();
-                    return { current: installed && installed.Version, newest: newest };
-                });
-            }
-
-            // Numeric 4-part compare; string sort would put 0.7.0.10 below 0.7.0.9.
-            function cmpVersion(a, b) {
-                var pa = String(a || '0').split('.').map(Number);
-                var pb = String(b || '0').split('.').map(Number);
-                for (var i = 0; i < 4; i++) {
-                    var d = (pa[i] || 0) - (pb[i] || 0);
-                    if (d) { return d; }
-                }
-                return 0;
-            }
-
-            function refreshVersionLine() {
-                var el = page.querySelector('#OvercoatVersionLine');
-                if (!el) { return Promise.resolve(); }
-                return overcoatVersions().then(function (v) {
-                    if (!v.current) { el.textContent = 'Could not read the installed version.'; return; }
-                    if (!v.newest) { el.textContent = 'Installed ' + v.current + '. No repository is offering Overcoat — check Dashboard → Plugins → Repositories.'; return; }
-                    el.textContent = cmpVersion(v.newest, v.current) > 0
-                        ? 'Installed ' + v.current + ' — version ' + v.newest + ' is available.'
-                        : 'Installed ' + v.current + ' — up to date.';
-                }, function () {
-                    el.textContent = 'Could not check for updates.';
-                });
-            }
-
-            function checkForUpdate() {
-                Dashboard.showLoadingMsg();
-                overcoatVersions().then(function (v) {
-                    if (v.newest && v.current && cmpVersion(v.newest, v.current) <= 0) {
-                        Dashboard.hideLoadingMsg();
-                        Dashboard.alert('Overcoat ' + v.current + ' is already the newest version your repositories offer.');
-                        return;
-                    }
-                    if (!v.newest) {
-                        Dashboard.hideLoadingMsg();
-                        Dashboard.alert('No Overcoat package was found. Check the repository URL under Dashboard → Plugins → Repositories.');
-                        return;
-                    }
-                    return ApiClient.ajax({
-                        type: 'POST',
-                        url: ApiClient.getUrl('Packages/Installed/Overcoat', { assemblyGuid: pluginId })
-                    }).then(function () {
-                        Dashboard.hideLoadingMsg();
-                        Dashboard.alert('Overcoat ' + v.newest + ' is installing. Restart Jellyfin to finish, then reload this page.');
-                        refreshVersionLine();
-                    });
-                }).catch(function () {
-                    Dashboard.hideLoadingMsg();
-                    Dashboard.alert('Update failed. Check Dashboard → Logs for details.');
-                });
-            }
-
             function load() {
+                loading = true;
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                     page.querySelector('#TmdbApiKey').type = 'password';
@@ -1172,13 +950,13 @@
                     page.querySelector('#TmdbOverrides').value = (config.TmdbOverrides || []).map(function (o) {
                         return o.Name + ' | ' + (o.Year || 0) + ' | ' + (o.TmdbId || 0);
                     }).join('\n');
-                    // Version line is informational; never let it hold up or fail the page load.
-                    refreshVersionLine();
                     Promise.all([loadUsers(config), loadLibraries(config)]).then(function () {
                         updateUserRowVisibility();
                         refreshBannerPreview();
+                        loading = false;
+                        setSaveState('clean');
                         Dashboard.hideLoadingMsg();
-                    }, function () { Dashboard.hideLoadingMsg(); });
+                    }, function () { loading = false; Dashboard.hideLoadingMsg(); });
                 });
             }
 
@@ -1260,7 +1038,10 @@
             function save(e) {
                 e.preventDefault();
                 Dashboard.showLoadingMsg();
-                persist().then(function (result) { Dashboard.processPluginConfigurationUpdateResult(result); });
+                persist().then(function (result) {
+                    setSaveState('clean', 'Changes saved');
+                    Dashboard.processPluginConfigurationUpdateResult(result);
+                });
                 return false;
             }
 
@@ -1269,11 +1050,27 @@
                 // viewshow fires on every visit; wire handlers ONCE so clicks don't stack/duplicate.
                 if (!page.dataset.ovcWired) {
                     page.dataset.ovcWired = '1';
+                    var css = page.querySelector('#OvercoatStylesheet');
+                    if (css && window.ApiClient && ApiClient.getUrl) { css.href = ApiClient.getUrl('Overcoat/Configuration/configPage.css'); }
+                    detectTheme();
                     wireTabs();
+                    page.querySelector('#OvercoatDescriptions').addEventListener('click', toggleDescriptions);
+                    try { if (localStorage.getItem('overcoatDescriptions') === 'off') { toggleDescriptions(); } } catch (_) { }
+                    page.querySelector('#OvercoatConfigForm').addEventListener('input', function (event) {
+                        if (!loading && !event.target.closest('#OvercoatPreviewStatuses, #OvercoatPreviewBadges')) { setSaveState('dirty'); }
+                    });
+                    page.querySelector('#OvercoatConfigForm').addEventListener('change', function () {
+                        if (!loading) { setSaveState('dirty'); }
+                    });
                     page.querySelector('#ToggleTmdbApiKey').addEventListener('click', toggleApiKeyVisibility);
                     window.addEventListener('scroll', updateFloatingPreview, { passive: true });
                     window.addEventListener('resize', updateFloatingPreview);
-                    page.querySelector('#OvercoatCheckUpdate').addEventListener('click', checkForUpdate);
+                    var ancestor = page.parentElement;
+                    while (ancestor) {
+                        var overflow = getComputedStyle(ancestor).overflowY;
+                        if (overflow === 'auto' || overflow === 'scroll') { ancestor.addEventListener('scroll', updateFloatingPreview, { passive: true }); }
+                        ancestor = ancestor.parentElement;
+                    }
                     page.querySelector('#OvercoatRunNow').addEventListener('click', function () { runTask('OvercoatApply', 'Apply Overcoat Overlays'); });
                     page.querySelector('#OvercoatRestore').addEventListener('click', function () {
                         Dashboard.confirm('Restore the original (un-overlaid) posters Overcoat saved?', 'Restore originals', function (ok) {
@@ -1320,6 +1117,7 @@
                     page.querySelectorAll('#OvercoatPreviewBadges .ovcChip').forEach(function (btn) {
                         btn.addEventListener('click', function () {
                             btn.classList.toggle('ovcChipActive');  // multi-toggle
+                            btn.setAttribute('aria-pressed', btn.classList.contains('ovcChipActive') ? 'true' : 'false');
                             refreshBadgePreview();
                         });
                     });

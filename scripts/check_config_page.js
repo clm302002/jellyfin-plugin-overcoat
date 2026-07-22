@@ -18,6 +18,8 @@ const file = process.argv[2]
   || path.join(__dirname, '..', 'Jellyfin.Plugin.Overcoat', 'Configuration', 'configPage.html');
 
 const html = fs.readFileSync(file, 'utf8');
+const cssFile = path.join(path.dirname(file), 'configPage.css');
+const css = fs.readFileSync(cssFile, 'utf8');
 const m = html.match(/<script[^>]*>([\s\S]*)<\/script>/);
 if (!m) {
   console.error(`FAIL: no <script> block found in ${file}`);
@@ -67,6 +69,9 @@ const requiredPatterns = [
   ['badge preview has sticky hook', /data-preview-kind="badge"/],
   ['badge side selector is locked to supported placement', /id="BadgeSide"[^>]*disabled/],
   ['badge side selector contains only the supported left option', /id="BadgeSide"[^>]*>\s*<option value="left">Left<\/option>\s*<\/select>/],
+  ['external stylesheet is linked', /id="OvercoatStylesheet"[^>]*configPage\.css/],
+  ['descriptions toggle exists', /id="OvercoatDescriptions"/],
+  ['save dock exposes status feedback', /id="OvercoatSaveState"[^>]*role="status"/],
 ];
 for (const [label, pattern] of requiredPatterns) {
   if (!pattern.test(html)) {
@@ -75,6 +80,31 @@ for (const [label, pattern] of requiredPatterns) {
   } else {
     console.log(`ok   ${label}`);
   }
+}
+
+const cssPatterns = [
+  ['form width overrides Jellyfin cap', /#OvercoatConfigPage #OvercoatConfigForm[\s\S]*max-width:\s*1600px/],
+  ['plugin overflow is corrected', /overflow:\s*visible\s*!important/],
+  ['desktop preview is sticky', /\.ovcPreviewRail\s*\{[^}]*position:\s*sticky/],
+  ['studio stacks below 1100px', /@media\s*\(max-width:1099px\)/],
+  ['general cards use 480px minimum', /minmax\(min\(100%,480px\),1fr\)/],
+];
+for (const [label, pattern] of cssPatterns) {
+  if (!pattern.test(css)) { console.error(`FAIL ${label}`); failures++; }
+  else { console.log(`ok   ${label}`); }
+}
+
+if (/<style\b/i.test(html)) {
+  console.error('FAIL config page contains a legacy inline style block');
+  failures++;
+} else {
+  console.log('ok   no legacy inline style block');
+}
+if (/<[^>]+\sstyle="/i.test(html)) {
+  console.error('FAIL config markup contains inline layout styles');
+  failures++;
+} else {
+  console.log('ok   no inline layout styles');
 }
 
 // 5. Schedule choices must be unique so a hand-edited option cannot mask another value.

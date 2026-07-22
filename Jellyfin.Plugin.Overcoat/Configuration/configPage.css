@@ -1,0 +1,123 @@
+/* Overcoat dashboard — deliberately page-scoped so Jellyfin themes remain in control. */
+#OvercoatConfigPage {
+    --ov-accent: #00a4dc;
+    --ov-bg: #14171c;
+    --ov-surface: #1d2128;
+    --ov-surface-2: #252a33;
+    --ov-border: rgba(255,255,255,.14);
+    --ov-text: #f2f4f8;
+    --ov-muted: #b6bdc9;
+    --ov-danger: #e85d68;
+    --ov-warning: #f2b84b;
+    color: var(--ov-text);
+    overflow: visible !important;
+}
+#OvercoatConfigPage.ovcLight {
+    --ov-bg: #f5f6f8;
+    --ov-surface: #fff;
+    --ov-surface-2: #eef1f5;
+    --ov-border: rgba(20,28,40,.18);
+    --ov-text: #17202c;
+    --ov-muted: #556070;
+}
+#OvercoatConfigPage,
+#OvercoatConfigPage [data-role="content"],
+#OvercoatConfigPage .content-primary { overflow: visible !important; }
+#OvercoatConfigPage .content-primary {
+    width: min(1600px, calc(100% - 3rem)) !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    padding: 0 0 7rem !important;
+}
+#OvercoatConfigPage #OvercoatConfigForm {
+    width: 100% !important;
+    max-width: 1600px !important;
+    min-width: 0;
+    margin: 0 auto !important;
+}
+#OvercoatConfigPage *, #OvercoatConfigPage *::before, #OvercoatConfigPage *::after { box-sizing: border-box; }
+#OvercoatConfigPage .ovcHeader {
+    position: sticky; top: 0; z-index: 1000; margin: 0 0 1.5rem; padding: 1.25rem 0 .7rem;
+    background: color-mix(in srgb, var(--ov-bg) 94%, transparent);
+    border-bottom: 1px solid var(--ov-border); backdrop-filter: blur(18px);
+}
+#OvercoatConfigPage .ovcHeaderTop { display:flex; align-items:flex-start; gap:1rem; justify-content:space-between; }
+#OvercoatConfigPage .ovcTitle { margin:0; font-size:1.8rem; line-height:1.15; }
+#OvercoatConfigPage .ovcSubtitle { margin:.35rem 0 0; color:var(--ov-muted); max-width:70rem; }
+#OvercoatConfigPage .ovcDescriptionToggle { flex:0 0 auto; white-space:nowrap; }
+#OvercoatConfigPage .ovcTabs { display:flex; gap:.35rem; margin-top:1rem; overflow-x:auto; scrollbar-width:thin; }
+#OvercoatConfigPage .ovcTab {
+    display:flex; align-items:center; gap:.45rem; flex:0 0 auto; min-height:2.65rem; padding:.55rem .9rem;
+    border:0; border-bottom:3px solid transparent; background:transparent; color:var(--ov-muted); cursor:pointer;
+}
+#OvercoatConfigPage .ovcTab:hover, #OvercoatConfigPage .ovcTab:focus-visible { color:var(--ov-text); background:var(--ov-surface-2); }
+#OvercoatConfigPage .ovcTab.ovcActive { color:var(--ov-text); border-color:var(--ov-accent); }
+#OvercoatConfigPage .ovcIcon { font-family:'Material Icons'; font-size:1.25rem; line-height:1; }
+#OvercoatConfigPage .ovcPanel { display:none; }
+#OvercoatConfigPage .ovcPanel.ovcActive { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:1.25rem; align-items:start; }
+#OvercoatConfigPage [data-panel="banners"].ovcActive,
+#OvercoatConfigPage [data-panel="badges"].ovcActive { display:block; }
+#OvercoatConfigPage .ovcCard, #OvercoatConfigPage details.ovcCard, #OvercoatConfigPage fieldset.ovcCard {
+    min-width:0; margin:0; padding:1.15rem 1.25rem; border:1px solid var(--ov-border); border-radius:.75rem;
+    background:var(--ov-surface); color:var(--ov-text); box-shadow:0 5px 18px rgba(0,0,0,.12);
+}
+#OvercoatConfigPage .ovcCard > h3 { margin:0 0 1rem; padding-bottom:.7rem; border-bottom:1px solid var(--ov-border); font-size:1.08rem; }
+#OvercoatConfigPage details.ovcCard { padding:0; overflow:clip; }
+#OvercoatConfigPage details.ovcCard > summary { cursor:pointer; padding:1rem 1.25rem; font-weight:600; list-style:none; }
+#OvercoatConfigPage details.ovcCard > summary::-webkit-details-marker { display:none; }
+#OvercoatConfigPage details.ovcCard > summary::after { content:'expand_more'; float:right; font:1.3rem 'Material Icons'; }
+#OvercoatConfigPage details.ovcCard[open] > summary::after { content:'expand_less'; }
+#OvercoatConfigPage details.ovcCard > .ovcDetailsBody { padding:0 1.25rem 1.2rem; border-top:1px solid var(--ov-border); }
+#OvercoatConfigPage .ovcWide { grid-column:1/-1; }
+#OvercoatConfigPage .ovcNotice { grid-column:1/-1; border-left:4px solid var(--ov-accent); background:color-mix(in srgb,var(--ov-accent) 10%,var(--ov-surface)); }
+#OvercoatConfigPage .ovcCaution { border-left:4px solid var(--ov-warning); background:color-mix(in srgb,var(--ov-warning) 9%,var(--ov-surface)); }
+#OvercoatConfigPage .ovcBannerLayout { display:grid; grid-template-columns:minmax(0,1fr) 360px; grid-template-areas:'notice notice' 'controls preview'; gap:1.25rem; align-items:start; }
+#OvercoatConfigPage .ovcStudioNotice { grid-area:notice; }
+#OvercoatConfigPage .ovcBannerControls { grid-area:controls; min-width:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.25rem; }
+#OvercoatConfigPage .ovcBannerControls > .ovcWide, #OvercoatConfigPage .ovcBannerControls > details { grid-column:1/-1; }
+#OvercoatConfigPage .ovcBannerPreview { grid-area:preview; text-align:center; }
+#OvercoatConfigPage .ovcPreviewRail { position:sticky; top:9.2rem; }
+#OvercoatConfigPage .ovcBannerPreview img { width:100%; max-width:320px; border-radius:.55rem; box-shadow:0 8px 30px rgba(0,0,0,.42); }
+#OvercoatConfigPage .ovcDenseCard, #OvercoatConfigPage .ovcFieldGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+#OvercoatConfigPage .ovcDenseCard > h3, #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column:1/-1; }
+#OvercoatConfigPage .ovcStatusSwitch, #OvercoatConfigPage .ovcRowButtons { display:flex; flex-wrap:wrap; gap:.45rem; justify-content:center; margin:.5rem 0 1rem; }
+#OvercoatConfigPage .ovcChip { border:1px solid var(--ov-border); border-radius:2rem; padding:.4rem .75rem; background:transparent; color:inherit; cursor:pointer; }
+#OvercoatConfigPage .ovcChip.ovcChipActive { background:var(--ov-accent); border-color:var(--ov-accent); color:#fff; }
+#OvercoatConfigPage .ovcColors { display:flex; flex-wrap:wrap; gap:.85rem; }
+#OvercoatConfigPage .ovcColors label { display:grid; justify-items:center; gap:.25rem; }
+#OvercoatConfigPage .ovcColors input { width:3rem; height:2.2rem; }
+#OvercoatConfigPage .ovcStatusRows { display:grid; gap:.6rem; }
+#OvercoatConfigPage .ovcStatusRow { display:grid; grid-template-columns:8.5rem minmax(0,1fr); gap:.75rem; align-items:center; }
+#OvercoatConfigPage .ovcGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:1.25rem; }
+#OvercoatConfigPage .ovcLib { border:1px solid var(--ov-border); border-radius:.6rem; padding:1rem; background:var(--ov-surface-2); }
+#OvercoatConfigPage .ovcMuted, #OvercoatConfigPage .fieldDescription { color:var(--ov-muted); overflow-wrap:anywhere; }
+#OvercoatConfigPage .ovcNoDescriptions .fieldDescription { display:none !important; }
+#OvercoatConfigPage input[type="text"], #OvercoatConfigPage input[type="password"], #OvercoatConfigPage input[type="number"], #OvercoatConfigPage select, #OvercoatConfigPage textarea { width:100%; max-width:100%; }
+#OvercoatConfigPage textarea { min-height:7rem; resize:vertical; }
+#OvercoatConfigPage .ovcSecretRow { display:flex; align-items:flex-end; gap:.7rem; }
+#OvercoatConfigPage .ovcSecretRow .inputContainer { flex:1; min-width:0; }
+#OvercoatConfigPage .ovcWip { display:inline-block; margin-left:.4rem; padding:.15rem .45rem; border-radius:1rem; background:var(--ov-warning); color:#211700; font-size:.7rem; text-transform:uppercase; }
+#OvercoatConfigPage .ovcSaveDock { position:fixed; z-index:1050; left:50%; bottom:1rem; transform:translateX(-50%); display:flex; align-items:center; gap:1rem; width:min(42rem,calc(100% - 2rem)); padding:.75rem; border:1px solid var(--ov-border); border-radius:.75rem; background:color-mix(in srgb,var(--ov-surface) 95%,transparent); box-shadow:0 10px 35px rgba(0,0,0,.35); backdrop-filter:blur(16px); }
+#OvercoatConfigPage .ovcSaveDock button { margin:0; flex:0 0 auto; }
+#OvercoatConfigPage .ovcSaveState { flex:1; color:var(--ov-muted); }
+#OvercoatConfigPage .ovcSaveDock.ovcDirty .ovcSaveState { color:var(--ov-warning); }
+#OvercoatConfigPage .ovcFloatingPreview { display:none; position:fixed; z-index:1040; right:.75rem; bottom:5.5rem; width:112px; padding:.4rem; border:1px solid var(--ov-border); border-radius:.65rem; background:var(--ov-surface); box-shadow:0 8px 25px rgba(0,0,0,.4); text-align:center; pointer-events:none; }
+#OvercoatConfigPage .ovcFloatingPreview img { display:block; width:100%; border-radius:.4rem; }
+@media (max-width:1099px) {
+    #OvercoatConfigPage .ovcBannerLayout { grid-template-columns:1fr; grid-template-areas:'notice' 'preview' 'controls'; }
+    #OvercoatConfigPage .ovcBannerControls { grid-template-columns:1fr; }
+    #OvercoatConfigPage .ovcPreviewRail { position:static; }
+    #OvercoatConfigPage .ovcFloatingPreview.ovcVisible { display:block; }
+}
+@media (max-width:700px) {
+    #OvercoatConfigPage .content-primary { width:calc(100% - 1rem) !important; }
+    #OvercoatConfigPage .ovcHeader { padding-top:.7rem; }
+    #OvercoatConfigPage .ovcHeaderTop { flex-wrap:wrap; }
+    #OvercoatConfigPage .ovcDescriptionToggle { width:100%; }
+    #OvercoatConfigPage .ovcDenseCard, #OvercoatConfigPage .ovcFieldGrid { grid-template-columns:1fr; }
+    #OvercoatConfigPage .ovcDenseCard > h3, #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column:auto; }
+    #OvercoatConfigPage .ovcStatusRow { grid-template-columns:7rem minmax(0,1fr); }
+    #OvercoatConfigPage .ovcTab { padding:.5rem .65rem; }
+    #OvercoatConfigPage .ovcTabLabel { display:none; }
+    #OvercoatConfigPage .ovcSaveDock { bottom:.5rem; }
+}

@@ -44,6 +44,7 @@
   <ItemGroup>
     <!-- Dashboard config page is served from the embedded HTML resource. -->
     <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="Configuration\configPage.css" />
     <!-- Font baked into the assembly. -->
     <EmbeddedResource Include="Resources\Fonts\*.ttf" />
     <!--
