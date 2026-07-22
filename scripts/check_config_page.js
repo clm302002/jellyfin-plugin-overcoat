@@ -73,6 +73,9 @@ const requiredPatterns = [
   ['descriptions toggle exists', /id="OvercoatDescriptions"/],
   ['save dock exposes status feedback', /id="OvercoatSaveState"[^>]*role="status"/],
   ['preview requests carry a stable poster key', /previewKey=' \+ encodeURIComponent\(previewKey\)/],
+  ['all-user wide-card action exists', /id="OvercoatUseWideCardsAll"/],
+  ['all-user episode-still action exists', /id="OvercoatUseEpisodeStillsAll"/],
+  ['all-user preference update preserves the DTO', /entry\.prefs\.CustomPrefs\[episodeImagesPreferenceKey\][\s\S]*updateDisplayPreferences\([\s\S]*entry\.prefs/],
 ];
 for (const [label, pattern] of requiredPatterns) {
   if (!pattern.test(html)) {

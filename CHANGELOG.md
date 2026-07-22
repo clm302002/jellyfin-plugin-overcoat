@@ -10,6 +10,10 @@ All notable changes to Overcoat are documented here. Format follows
 - **Optional overlays for Jellyfin's wide Next Up and Continue Watching cards.** TV libraries can
   mirror their series overlays onto an existing series `Thumb`, with independent state, vault,
   preview, recovery reporting, landscape rendering, and restore support.
+- **One-click artwork mode for all current Jellyfin users.** The Libraries tab can switch every
+  existing user between Overcoat series wide cards and normal episode stills. It changes only
+  Jellyfin's per-user home-screen display preference, preserves all other user preferences, and
+  never edits episode artwork. Newly created users can be included by running the action again.
 
 ### Safety
 - **Episode images are never modified.** The wide pipeline has a hard `Series + Thumb` target guard,

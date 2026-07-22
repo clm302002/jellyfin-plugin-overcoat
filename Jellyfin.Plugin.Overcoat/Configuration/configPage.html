@@ -373,6 +373,29 @@
                 <!-- ===================== LIBRARIES ===================== -->
                 <div class="ovcPanel" data-panel="libraries">
                     <div class="ovcCard ovcWide">
+                        <h3>Next Up &amp; Continue Watching artwork</h3>
+                        <p class="fieldDescription">
+                            Jellyfin stores this choice separately for each user. Series artwork lets every
+                            current user see Overcoat's wide-card overlays. Episode stills show each episode's
+                            own image instead, without an Overcoat overlay. These buttons change only that
+                            Jellyfin display preference—they do not edit or overlay any episode artwork.
+                        </p>
+                        <div class="ovcRowButtons">
+                            <button is="emby-button" type="button" id="OvercoatUseWideCardsAll" class="raised">
+                                <span>Use Overcoat wide cards for all current users</span>
+                            </button>
+                            <button is="emby-button" type="button" id="OvercoatUseEpisodeStillsAll" class="raised">
+                                <span>Use episode stills for all current users</span>
+                            </button>
+                        </div>
+                        <p class="ovcMuted" id="OvercoatUserArtworkStatus" role="status">Checking current users…</p>
+                        <p class="ovcMuted">
+                            This applies to users that exist now. Run it again after creating a new Jellyfin
+                            user. It affects the Jellyfin web client's Next Up and Continue Watching setting;
+                            other clients may choose artwork differently.
+                        </p>
+                    </div>
+                    <div class="ovcCard ovcWide">
                         <h3>Libraries</h3>
                         <p class="fieldDescription">
                             Your TV &amp; movie libraries, detected automatically. Tick the ones Overcoat should
@@ -793,7 +816,7 @@
                     '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcEnabled" /><span>Process this library</span></label>' +
                     '<div class="ovcLibOpts">' +
                       (isTv ? '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcStatus" /><span>Status banners</span></label>' : '') +
-                      (isTv ? '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcWide" /><span>Wide-card overlays (series Thumb)</span></label><p class="ovcMuted">For Next Up and Continue Watching, each Jellyfin user must turn off <em>Use episode images</em>. Episode artwork is never modified.</p>' : '') +
+                      (isTv ? '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcWide" /><span>Wide-card overlays (series Thumb)</span></label><p class="ovcMuted">Use the all-user artwork control above so Next Up and Continue Watching inherit these wide cards. Episode artwork is never modified.</p>' : '') +
                       '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcWatch" /><span>Watch-history badge</span></label>' +
                       '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTrend" /><span>Trending badge</span></label>' +
                       '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTop250" /><span>IMDB Top 250 badge</span></label>' +
@@ -900,6 +923,96 @@
             function updateUserRowVisibility() {
                 var all = page.querySelector('#WatchHistoryAllUsers').checked;
                 page.querySelector('#WatchHistoryUserRow').style.display = all ? 'none' : 'block';
+            }
+
+            var jellyfinDisplayPreferencesId = 'usersettings';
+            var jellyfinDisplayPreferencesClient = 'emby';
+            var episodeImagesPreferenceKey = 'useEpisodeImagesInNextUpAndResume';
+
+            function readUserArtworkPreferences() {
+                return ApiClient.getUsers().then(function (users) {
+                    return Promise.all((users || []).map(function (user) {
+                        return ApiClient.getDisplayPreferences(
+                            jellyfinDisplayPreferencesId,
+                            user.Id,
+                            jellyfinDisplayPreferencesClient
+                        ).then(function (prefs) {
+                            prefs.CustomPrefs = prefs.CustomPrefs || {};
+                            return { user: user, prefs: prefs };
+                        });
+                    }));
+                });
+            }
+
+            function refreshUserArtworkStatus() {
+                var status = page.querySelector('#OvercoatUserArtworkStatus');
+                status.textContent = 'Checking current users…';
+                return readUserArtworkPreferences().then(function (entries) {
+                    var episodeUsers = entries.filter(function (entry) {
+                        return String(entry.prefs.CustomPrefs[episodeImagesPreferenceKey]).toLowerCase() === 'true';
+                    }).length;
+                    var wideUsers = entries.length - episodeUsers;
+                    status.textContent = wideUsers + ' of ' + entries.length + ' current user(s) use series wide cards; '
+                        + episodeUsers + ' use episode stills.';
+                }, function (err) {
+                    status.textContent = 'Could not read the users’ home-screen artwork preferences.';
+                    console.error('Overcoat: failed to read user artwork preferences', err);
+                });
+            }
+
+            function setAllUserArtworkPreference(useEpisodeStills) {
+                var wideButton = page.querySelector('#OvercoatUseWideCardsAll');
+                var episodeButton = page.querySelector('#OvercoatUseEpisodeStillsAll');
+                var status = page.querySelector('#OvercoatUserArtworkStatus');
+                wideButton.disabled = true;
+                episodeButton.disabled = true;
+                status.textContent = 'Updating all current users…';
+
+                readUserArtworkPreferences().then(function (entries) {
+                    return Promise.all(entries.map(function (entry) {
+                        // Preserve the complete DTO and every unrelated CustomPrefs value. Jellyfin's
+                        // update endpoint replaces the preference map, so posting only our key would
+                        // erase the user's other display settings.
+                        entry.prefs.CustomPrefs[episodeImagesPreferenceKey] = useEpisodeStills ? 'true' : 'false';
+                        return ApiClient.updateDisplayPreferences(
+                            jellyfinDisplayPreferencesId,
+                            entry.prefs,
+                            entry.user.Id,
+                            jellyfinDisplayPreferencesClient
+                        ).then(function () {
+                            return { ok: true, name: entry.user.Name || entry.user.Id };
+                        }, function () {
+                            return { ok: false, name: entry.user.Name || entry.user.Id };
+                        });
+                    }));
+                }).then(function (results) {
+                    var failed = results.filter(function (result) { return !result.ok; });
+                    if (failed.length) {
+                        status.textContent = (results.length - failed.length) + ' user(s) updated; '
+                            + failed.length + ' failed. No episode artwork was modified.';
+                        Dashboard.alert('Overcoat could not update: ' + failed.map(function (x) { return x.name; }).join(', '));
+                    } else {
+                        status.textContent = results.length + ' current user(s) now use '
+                            + (useEpisodeStills ? 'episode stills.' : 'Overcoat series wide cards.');
+                    }
+                    return refreshUserArtworkStatus();
+                }, function (err) {
+                    status.textContent = 'The all-user preference update failed before it could finish.';
+                    console.error('Overcoat: failed to update user artwork preferences', err);
+                }).then(function () {
+                    wideButton.disabled = false;
+                    episodeButton.disabled = false;
+                });
+            }
+
+            function confirmAllUserArtworkPreference(useEpisodeStills) {
+                var message = useEpisodeStills
+                    ? 'Show each episode’s own still in Next Up and Continue Watching for every current Jellyfin user? Overcoat will not modify those episode images.'
+                    : 'Use series wide cards in Next Up and Continue Watching for every current Jellyfin user? This lets them see Overcoat overlays on existing series Thumb artwork.';
+                var title = useEpisodeStills ? 'Use episode stills for all users' : 'Use Overcoat wide cards for all users';
+                Dashboard.confirm(message, title, function (ok) {
+                    if (ok) { setAllUserArtworkPreference(useEpisodeStills); }
+                });
             }
 
             function linesToList(text) {
@@ -1102,7 +1215,7 @@
                         return o.Name + ' | ' + (o.Year || 0) + ' | ' + (o.TmdbId || 0);
                     }).join('\n');
                     refreshVaultStats();
-                    Promise.all([loadUsers(config), loadLibraries(config)]).then(function () {
+                    Promise.all([loadUsers(config), loadLibraries(config), refreshUserArtworkStatus()]).then(function () {
                         updateUserRowVisibility();
                         refreshBannerPreview();
                         loading = false;
@@ -1240,6 +1353,12 @@
                         ancestor = ancestor.parentElement;
                     }
                     page.querySelector('#OvercoatVaultRefresh').addEventListener('click', refreshVaultStats);
+                    page.querySelector('#OvercoatUseWideCardsAll').addEventListener('click', function () {
+                        confirmAllUserArtworkPreference(false);
+                    });
+                    page.querySelector('#OvercoatUseEpisodeStillsAll').addEventListener('click', function () {
+                        confirmAllUserArtworkPreference(true);
+                    });
                     page.querySelector('#OvercoatRunNow').addEventListener('click', function () { runTask('OvercoatApply', 'Apply Overcoat Overlays'); });
                     page.querySelector('#OvercoatRestore').addEventListener('click', function () {
                         Dashboard.confirm('Restore the original (un-overlaid) posters Overcoat saved?', 'Restore originals', function (ok) {

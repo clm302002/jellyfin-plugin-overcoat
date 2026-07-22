@@ -10,7 +10,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <!-- Keep in sync with the git tag used for releases (the CI manifest/meta come from the tag). -->
-    <Version>0.8.0.1</Version>
+    <Version>0.8.0.2</Version>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 

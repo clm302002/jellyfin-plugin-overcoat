@@ -40,8 +40,10 @@ and its approach to making media libraries more expressive and useful.
 - **Poster safety:** Overcoat saves a clean original in its originals vault before writing an
   overlay. Dry-run mode lets you inspect what would be processed without changing posters.
 - **Wide home cards (optional):** TV libraries can mirror overlays onto existing series Thumb art.
-  Episode images and Backdrops remain untouched. Each user must turn off **Use episode images in
-  Next Up and Continue Watching** for those cards to inherit the series Thumb; missing Thumbs are skipped.
+  Episode images and Backdrops remain untouched. The Libraries tab can set all current users to
+  inherit these wide cards with one confirmed action, or switch everyone back to episode stills.
+  This changes only Jellyfin's per-user display preference; run it again after adding a new user.
+  Series without a Thumb are skipped.
 
 > [!WARNING]
 > Overcoat writes overlays into your poster artwork. Keep normal backups, and run **Restore Original
@@ -106,6 +108,11 @@ never contacts a live server.
 Libraries expose their banner and badge choices only while **Process this library** is enabled. The
 Maintenance tab groups normal processing, scheduling, apply/restore actions, vault recovery, and
 advanced title targeting into separate sections.
+
+The Libraries tab also reports how many current users see series wide cards versus episode stills.
+**Use Overcoat wide cards for all current users** changes Jellyfin's Next Up/Continue Watching
+preference so those users inherit the overlaid Series Thumb. **Use episode stills for all current
+users** reverses that preference. Neither action changes, overlays, or deletes episode images.
 
 ## Compatibility and project status
 
