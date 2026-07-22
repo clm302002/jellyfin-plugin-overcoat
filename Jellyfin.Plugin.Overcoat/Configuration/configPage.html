@@ -563,6 +563,20 @@
                 <!-- ===================== MAINTENANCE ===================== -->
                 <div class="ovcPanel" data-panel="maintenance">
                     <div class="ovcCard ovcWide">
+                        <h3>Updates</h3>
+                        <p class="fieldDescription" id="OvercoatVersionLine">Checking for updates…</p>
+                        <div class="ovcRowButtons">
+                            <button is="emby-button" type="button" id="OvercoatCheckUpdate" class="raised">
+                                <span>⭯ Check for updates</span>
+                            </button>
+                        </div>
+                        <div class="fieldDescription">
+                            Installs the newest version your configured Overcoat repository offers. Restart Jellyfin
+                            afterwards to load it. Your settings, saved posters and cache are untouched by an update.
+                        </div>
+                    </div>
+
+                    <div class="ovcCard ovcWide">
                         <h3>Run</h3>
                         <p class="fieldDescription">
                             Heads-up: clicking either button <strong>saves your current settings first</strong>, then
@@ -992,6 +1006,80 @@
                 summary.textContent = 'Runs daily at ' + hint + ' (server time). Takes effect as soon as you save.';
             }
 
+            // Jellyfin's own "update available" indicator is driven by the installed meta.json's
+            // autoUpdate flag; builds packaged before 0.7.0.3 shipped it false, which makes Jellyfin
+            // skip the plugin entirely when working out available updates — no button, no task pickup,
+            // stuck forever. POST /Packages/Installed bypasses that check, so this button can rescue an
+            // install that Jellyfin will not offer to update on its own.
+            function overcoatVersions() {
+                return Promise.all([
+                    ApiClient.getJSON(ApiClient.getUrl('Plugins')),
+                    ApiClient.getJSON(ApiClient.getUrl('Packages'))
+                ]).then(function (r) {
+                    var installed = (r[0] || []).filter(function (p) {
+                        return (p.Id || '').replace(/-/g, '').toLowerCase() === pluginId.replace(/-/g, '').toLowerCase();
+                    })[0];
+                    var pkg = (r[1] || []).filter(function (p) {
+                        return (p.guid || p.Guid || '').replace(/-/g, '').toLowerCase() === pluginId.replace(/-/g, '').toLowerCase();
+                    })[0];
+                    var versions = (pkg && (pkg.versions || pkg.Versions)) || [];
+                    var newest = versions.map(function (v) { return v.version || v.Version; }).sort(cmpVersion).pop();
+                    return { current: installed && installed.Version, newest: newest };
+                });
+            }
+
+            // Numeric 4-part compare; string sort would put 0.7.0.10 below 0.7.0.9.
+            function cmpVersion(a, b) {
+                var pa = String(a || '0').split('.').map(Number);
+                var pb = String(b || '0').split('.').map(Number);
+                for (var i = 0; i < 4; i++) {
+                    var d = (pa[i] || 0) - (pb[i] || 0);
+                    if (d) { return d; }
+                }
+                return 0;
+            }
+
+            function refreshVersionLine() {
+                var el = page.querySelector('#OvercoatVersionLine');
+                if (!el) { return Promise.resolve(); }
+                return overcoatVersions().then(function (v) {
+                    if (!v.current) { el.textContent = 'Could not read the installed version.'; return; }
+                    if (!v.newest) { el.textContent = 'Installed ' + v.current + '. No repository is offering Overcoat — check Dashboard → Plugins → Repositories.'; return; }
+                    el.textContent = cmpVersion(v.newest, v.current) > 0
+                        ? 'Installed ' + v.current + ' — version ' + v.newest + ' is available.'
+                        : 'Installed ' + v.current + ' — up to date.';
+                }, function () {
+                    el.textContent = 'Could not check for updates.';
+                });
+            }
+
+            function checkForUpdate() {
+                Dashboard.showLoadingMsg();
+                overcoatVersions().then(function (v) {
+                    if (v.newest && v.current && cmpVersion(v.newest, v.current) <= 0) {
+                        Dashboard.hideLoadingMsg();
+                        Dashboard.alert('Overcoat ' + v.current + ' is already the newest version your repositories offer.');
+                        return;
+                    }
+                    if (!v.newest) {
+                        Dashboard.hideLoadingMsg();
+                        Dashboard.alert('No Overcoat package was found. Check the repository URL under Dashboard → Plugins → Repositories.');
+                        return;
+                    }
+                    return ApiClient.ajax({
+                        type: 'POST',
+                        url: ApiClient.getUrl('Packages/Installed/Overcoat', { assemblyGuid: pluginId })
+                    }).then(function () {
+                        Dashboard.hideLoadingMsg();
+                        Dashboard.alert('Overcoat ' + v.newest + ' is installing. Restart Jellyfin to finish, then reload this page.');
+                        refreshVersionLine();
+                    });
+                }).catch(function () {
+                    Dashboard.hideLoadingMsg();
+                    Dashboard.alert('Update failed. Check Dashboard → Logs for details.');
+                });
+            }
+
             function load() {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then(function (config) {
@@ -1056,6 +1144,8 @@
                     page.querySelector('#TmdbOverrides').value = (config.TmdbOverrides || []).map(function (o) {
                         return o.Name + ' | ' + (o.Year || 0) + ' | ' + (o.TmdbId || 0);
                     }).join('\n');
+                    // Version line is informational; never let it hold up or fail the page load.
+                    refreshVersionLine();
                     Promise.all([loadUsers(config), loadLibraries(config)]).then(function () {
                         updateUserRowVisibility();
                         refreshBannerPreview();
@@ -1155,6 +1245,7 @@
                     page.querySelector('#ToggleTmdbApiKey').addEventListener('click', toggleApiKeyVisibility);
                     window.addEventListener('scroll', updateFloatingPreview, { passive: true });
                     window.addEventListener('resize', updateFloatingPreview);
+                    page.querySelector('#OvercoatCheckUpdate').addEventListener('click', checkForUpdate);
                     page.querySelector('#OvercoatRunNow').addEventListener('click', function () { runTask('OvercoatApply', 'Apply Overcoat Overlays'); });
                     page.querySelector('#OvercoatRestore').addEventListener('click', function () {
                         Dashboard.confirm('Restore the original (un-overlaid) posters Overcoat saved?', 'Restore originals', function (ok) {

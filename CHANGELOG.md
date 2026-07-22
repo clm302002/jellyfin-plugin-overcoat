@@ -11,6 +11,12 @@ All notable changes to Overcoat are documented here. Format follows
   Jellyfin skips a plugin entirely when deciding which have updates available if that flag is off —
   so the Plugins page never offered an update and the "Update Plugins" task ignored Overcoat. Anyone
   who installed it stayed on that version indefinitely regardless of what the repository advertised.
+- **Settings → Maintenance now has a Check for updates button.** It shows the installed and newest
+  available versions and installs the newer one. It does not rely on the flag above, so it can also
+  rescue an installation Jellyfin has stopped offering updates for.
+- **Tidied the plugin's description** on the Jellyfin plugins page. It was a dense paragraph ending
+  in a shouted all-caps warning; it is now two plain sentences, with the uninstall caveat kept
+  because losing it costs people their original posters.
 
 ### Changed
 - **The settings page now uses the whole screen.** Related controls are grouped into responsive
