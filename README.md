@@ -89,10 +89,10 @@ it changes only when you explicitly request another random poster.
 Click any screenshot to open the full-size image.
 
 <p align="center">
-  <a href="assets/settings-banners.png"><img src="assets/settings-banners.png" width="48%" alt="Overcoat Banners studio with appearance, placement, expanded advanced controls, and sticky live preview" /></a>
-  <a href="assets/settings-badges.png"><img src="assets/settings-badges.png" width="48%" alt="Overcoat Badges studio with source settings, watch-history rules, layout controls, and live preview" /></a>
-  <a href="assets/settings-libraries.png"><img src="assets/settings-libraries.png" width="48%" alt="Overcoat Libraries settings with fictional TV and movie libraries and indented per-library options" /></a>
-  <a href="assets/settings-maintenance.png"><img src="assets/settings-maintenance.png" width="48%" alt="Overcoat Maintenance settings with automation, scheduling, apply, restore, recovery, and targeting sections" /></a>
+  <a href="assets/settings-ui-v072-banners.png"><img src="assets/settings-ui-v072-banners.png" width="48%" alt="Overcoat Banners studio with appearance, placement, expanded advanced controls, and sticky live preview" /></a>
+  <a href="assets/settings-ui-v072-badges.png"><img src="assets/settings-ui-v072-badges.png" width="48%" alt="Overcoat Badges studio with source settings, watch-history rules, layout controls, and live preview" /></a>
+  <a href="assets/settings-ui-v072-libraries.png"><img src="assets/settings-ui-v072-libraries.png" width="48%" alt="Overcoat Libraries settings with fictional TV and movie libraries and indented per-library options" /></a>
+  <a href="assets/settings-ui-v072-maintenance.png"><img src="assets/settings-ui-v072-maintenance.png" width="48%" alt="Overcoat Maintenance settings with automation, scheduling, apply, restore, recovery, and targeting sections" /></a>
 </p>
 
 These are separate full-size captures of the real embedded configuration HTML in a standalone

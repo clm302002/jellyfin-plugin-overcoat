@@ -6,8 +6,8 @@ const expected = {
   'showcase-hero.png':[1600,760], 'showcase-statuses.png':[1600,690],
   'showcase-styles.png':[1600,690], 'showcase-controls.png':[1600,1080],
   'showcase-badges.png':[1600,760],
-  'settings-banners.png':[1180,900], 'settings-badges.png':[1180,900],
-  'settings-libraries.png':[1180,900], 'settings-maintenance.png':[1180,900],
+  'settings-ui-v072-banners.png':[1180,900], 'settings-ui-v072-badges.png':[1180,900],
+  'settings-ui-v072-libraries.png':[1180,900], 'settings-ui-v072-maintenance.png':[1180,900],
 };
 let failed = false;
 for (const [name, dims] of Object.entries(expected)) {
