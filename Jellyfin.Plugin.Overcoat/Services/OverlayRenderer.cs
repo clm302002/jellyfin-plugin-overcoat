@@ -259,7 +259,7 @@ public sealed class OverlayRenderer : IDisposable
 
         float bannerHeight = textHeight + (paddingY * 2);
         float bannerWidth = fullWidth ? posterWidth : contentWidth + (paddingX * 2);
-        if (!fullWidth && bannerWidth > posterWidth * 0.94f)
+        if (landscape && !fullWidth && bannerWidth > posterWidth * 0.94f)
         {
             var fit = (posterWidth * 0.94f) / bannerWidth;
             dynamicFontSize *= fit;

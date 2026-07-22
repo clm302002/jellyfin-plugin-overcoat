@@ -1,7 +1,7 @@
 # Contributing to Overcoat
 
 Thanks for your interest! Overcoat is a native Jellyfin plugin (C# / .NET 9) that overlays status
-pills and badges onto posters.
+pills and badges onto posters and, optionally, existing TV Series Thumb images.
 
 ## Prerequisites
 
@@ -29,8 +29,8 @@ Jellyfin.Plugin.Overcoat/
 ├── ScheduledTasks/OverlayTask.cs   # the run loop (enumerate → resolve → render → save in-process)
 └── Services/
     ├── OverlayRenderer.cs          # SkiaSharp rendering (status pill + badges)
-    ├── BadgeCompositor.cs          # composites the side/corner badges onto the poster
-    ├── ProcessingState.cs          # skip cache + originals vault + self-heal
+    ├── BadgeCompositor.cs          # composites side/corner badges onto portrait or wide artwork
+    ├── ProcessingState.cs          # independent poster/Thumb caches + originals vaults + self-heal
     ├── WatchHistory.cs             # recent play activity (watch-history badge)
     ├── StatusOverlayResolver.cs    # TMDB status + air dates → banner text
     └── TmdbService.cs              # TMDB v3 over HttpClient
@@ -61,6 +61,17 @@ The rendering and status logic are a **faithful port of the original Python refe
 (font size = `height × 0.053 × 1.105`, pill alpha 220, corner radius 56%, etc.) unless intentionally
 changing the look — and update the parity notes.
 
+Wide cards deliberately use a parallel landscape path; do not retune the calibrated portrait
+constants to make 16:9 art work. The only supported secondary target is `Series + ImageType.Thumb`.
+Episode Primary and Backdrop images are out of scope and must remain untouched. Poster state stays in
+`state.json`/`originals/`; Thumb state stays in `thumb-state.json`/`thumb-originals/`.
+
+The Libraries page's all-user artwork buttons update Jellyfin's
+`useEpisodeImagesInNextUpAndResume` display preference. Jellyfin stores it per user, so the action
+must GET and repost each complete display-preferences DTO while changing only that key; posting a
+partial DTO can erase unrelated user settings. New users are not a global default—run the action
+again after creating them.
+
 ## Testing
 
 - **Renderer:** use `tools/ParityTest` to render banners/badges onto a sample poster and eyeball or
@@ -73,7 +84,9 @@ changing the look — and update the parity notes.
   this project has lived.
 - **Settings page:** `node scripts/check_config_page.js` — nothing else compiles that file.
 - **End-to-end:** install the built DLL on a test Jellyfin, run the **Apply Overcoat Overlays** task
-  on a small/limited library, and confirm posters update.
+  on a small/limited library, and confirm posters update. For wide cards, also enable the library's
+  Series Thumb option, exercise both all-user artwork buttons, verify Next Up/Continue Watching,
+  then run **Restore Original Artwork (Overcoat)** and confirm both poster and Thumb return clean.
 
 ## Branches and releases
 
@@ -90,6 +103,7 @@ Releases are cut by pushing a tag; **pushing to a branch publishes nothing.**
 | `v0.7.0-beta.2` | `0.7.0.2` | beta | " |
 | `v0.7.0` | `0.7.0.500` | stable | `releases/latest/download/manifest.json` |
 | `v0.8.0-beta.1` | `0.8.0.1` | beta | next line starts over |
+| `v0.8.0-beta.2` | `0.8.0.2` | beta | current wide-card test build |
 
 GitHub's "latest" excludes prereleases, so a beta can never appear on the stable URL. The beta channel
 is a **superset** — stable releases are published there too — so subscribing to the beta URL alone is

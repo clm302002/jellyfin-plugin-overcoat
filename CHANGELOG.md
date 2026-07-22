@@ -17,8 +17,16 @@ All notable changes to Overcoat are documented here. Format follows
 
 ### Safety
 - **Episode images are never modified.** The wide pipeline has a hard `Series + Thumb` target guard,
-  does not touch Backdrops, and does not create missing Thumbs. Each Jellyfin user must turn off
-  **Use episode images in Next Up and Continue Watching** for the series Thumb to appear there.
+  does not touch Backdrops, and does not create missing Thumbs. Use the Libraries tab's all-user
+  action—or turn off **Use episode images in Next Up and Continue Watching** manually—for the
+  overlaid Series Thumb to appear there.
+- **Restore covers every image channel Overcoat changes.** `Restore Original Artwork (Overcoat)`
+  independently restores managed poster Primary images and Series Thumbs, protects externally
+  changed art unless Force restore is selected, and never targets Episode or Backdrop images.
+
+### Fixed
+- **Landscape text fitting no longer changes portrait output.** The 94%-width shrink rule is now
+  explicitly landscape-only, preserving the calibrated poster renderer and its independent revision.
 
 ## [0.7.2] — 2026-07-22
 
