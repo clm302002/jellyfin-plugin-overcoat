@@ -33,7 +33,7 @@ jobs:
           - jellyfin: '10.11.11'  # current — MUST build
             expect: pass
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
@@ -55,7 +55,7 @@ jobs:
     name: Build + settings page
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v4
         with:
