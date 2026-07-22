@@ -6,6 +6,10 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.7.2] — 2026-07-22
+
 ### Fixed
 - **The Recovery panel now states its conclusion**, e.g. *"All 545 posters Overcoat manages can be
   put back."* Reading four figures and doing the subtraction yourself was not an answer to the

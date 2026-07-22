@@ -115,6 +115,17 @@ Cutting a release:
 The release notes on GitHub and the changelog text shown *inside Jellyfin's plugin catalogue* are
 both extracted from that `## [x.y.z]` section automatically — so write it for users, not for you.
 
+## Settings page assets
+
+The page's CSS lives in `Configuration/configPage.css`, embedded in the assembly and served by
+`Api/ConfigurationAssetsController`. If you change it:
+
+- The stylesheet URL carries the plugin version (`?v=…`), so a new release busts the cache. Keep it.
+- The endpoint is `[AllowAnonymous]` because a `<link>` tag cannot send an auth header.
+- `node scripts/check_config_page.js` validates the page — the inline script parses, every element id
+  the script references exists and is unique, and a set of layout/security hooks are present. Nothing
+  else compiles that file, so run it.
+
 ## Pull requests
 
 - Branch off `dev`, keep PRs focused, describe what you changed and how you tested it.
