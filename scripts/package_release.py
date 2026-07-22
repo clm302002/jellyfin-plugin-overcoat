@@ -138,7 +138,7 @@ def main():
     manifest = [{
         "guid": GUID, "name": NAME, "description": DESCRIPTION, "overview": OVERVIEW,
         "owner": OWNER, "category": "Metadata",
-        "imageUrl": f"https://raw.githubusercontent.com/{repo}/main/assets/overcoat-hero.png",
+        "imageUrl": f"https://raw.githubusercontent.com/{repo}/main/assets/showcase-hero.png",
         "versions": versions,
     }]
     with open(os.path.join(out, "manifest.json"), "w") as f:
