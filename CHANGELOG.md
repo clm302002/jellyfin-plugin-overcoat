@@ -13,6 +13,10 @@ All notable changes to Overcoat are documented here. Format follows
   who installed it stayed on that version indefinitely regardless of what the repository advertised.
   To update an installation packaged before this fix, expand the version you want under **Revision
   History** on the plugin's page and click Install.
+- **The settings page can no longer load a stale stylesheet after an update.** Its CSS was cached for
+  24 hours, so a version that changed the styling would render new markup against the previous
+  stylesheet — a settings page that looks broken, with nothing to suggest a hard refresh would fix it.
+  The stylesheet now revalidates against the plugin version, so it updates the moment the plugin does.
 - **Revision history no longer repeats itself.** Every pre-release of a version advertised the
   identical multi-thousand-character release notes, so the plugin page showed the same wall of text
   once per build. Pre-releases now carry their own notes and are labelled with their build number,
