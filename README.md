@@ -103,7 +103,7 @@ The current focus is TV status overlays, with badges and movie overlays being ac
 
 * Native Jellyfin plugin
 * Runs inside Jellyfin
-* Uses Jellyfin scheduled tasks
+* Uses Jellyfin scheduled tasks, with the **run time set from the plugin's own settings**
 * Per-library configuration
 * Poster overlays rendered with SkiaSharp
 * Status banners for TV series, with **solid / frosted-glass / neon** styles
@@ -146,6 +146,11 @@ Then:
 2. **Restart Jellyfin.**
 3. Open **Plugins → Overcoat**, add your TMDB API key, and choose which libraries to process.
 4. Run the scheduled task: **Dashboard → Scheduled Tasks → Apply Overcoat Overlays**.
+
+After that it runs on its own once a day. Set the time under **Plugins → Overcoat → General →
+Schedule** (default 03:00 server time) — pick a quiet hour, since a full run on a large library takes
+a while. Prefer to drive it yourself? Untick **Run automatically every day** and Overcoat will leave
+the triggers in **Dashboard → Scheduled Tasks** alone, so you can use intervals or several run times.
 
 > ✅ Live now — `v0.2.0` is published, so the repository URL above works. (Prefer building it
 > yourself? See **Build from source** below.)

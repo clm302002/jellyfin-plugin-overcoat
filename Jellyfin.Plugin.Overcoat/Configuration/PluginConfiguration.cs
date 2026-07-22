@@ -15,6 +15,33 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets the TMDB v3 API key.</summary>
     public string TmdbApiKey { get; set; } = string.Empty;
 
+    // --- Schedule ---
+    // Jellyfin only reads IScheduledTask.GetDefaultTriggers() the first time it registers a task;
+    // after that the trigger lives in the server's own task config. These settings are applied to the
+    // live task at startup and on every config save (see ScheduledTasks.ScheduleSync), which is what
+    // makes the run time editable from the plugin page instead of only from Dashboard → Scheduled Tasks.
+
+    /// <summary>
+    /// Gets or sets a value indicating whether Overcoat manages its own schedule. Turn this off to
+    /// hand control back to Dashboard → Scheduled Tasks (Overcoat then leaves the triggers alone).
+    /// </summary>
+    public bool ScheduleEnabled { get; set; } = true;
+
+    /// <summary>Gets or sets the hour (0–23, server local time) the overlay task runs.</summary>
+    public int ScheduleHour { get; set; } = 3;
+
+    /// <summary>Gets or sets the minute (0–59) past <see cref="ScheduleHour"/> the overlay task runs.</summary>
+    public int ScheduleMinute { get; set; }
+
+    /// <summary>
+    /// Gets the configured run time as a trigger offset from midnight, clamped to a valid
+    /// time of day so a bad hand-edit of the XML can't produce an out-of-range trigger.
+    /// </summary>
+    public TimeSpan ScheduleTimeOfDay => new TimeSpan(
+        Math.Clamp(ScheduleHour, 0, 23),
+        Math.Clamp(ScheduleMinute, 0, 59),
+        0);
+
     // --- Global behaviour (was settings:) ---
 
     /// <summary>

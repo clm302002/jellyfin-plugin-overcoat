@@ -25,6 +25,40 @@ public sealed class TmdbService
         _logger = logger;
     }
 
+    /// <summary>
+    /// How a TMDB request ended. The distinction matters: <see cref="NotFound"/> is a real answer
+    /// ("TMDB has nothing for this id"), while <see cref="Failed"/> means we never got an answer
+    /// (rate limit, bad key, 5xx, DNS/timeout). Callers must not treat the second as the first —
+    /// doing so is what let a transient outage strip overlays off already-overlaid posters.
+    /// </summary>
+    public enum FetchOutcome
+    {
+        /// <summary>TMDB answered.</summary>
+        Ok,
+
+        /// <summary>TMDB answered "no such item" (404).</summary>
+        NotFound,
+
+        /// <summary>TMDB could not be reached or refused the request. The answer is unknown.</summary>
+        Failed,
+    }
+
+    /// <summary>
+    /// A TV status lookup. <see cref="Info"/> is non-null only when <see cref="Outcome"/> is
+    /// <see cref="FetchOutcome.Ok"/>; check <see cref="Failed"/> before concluding a show has no status.
+    /// </summary>
+    public readonly record struct TvStatusResult(TvStatusInfo? Info, FetchOutcome Outcome)
+    {
+        /// <summary>Gets a value indicating whether TMDB could not be reached (answer unknown).</summary>
+        public bool Failed => Outcome == FetchOutcome.Failed;
+    }
+
+    /// <summary>
+    /// Gets the number of TMDB requests that failed outright during this instance's lifetime (one run).
+    /// Lets the task log a run summary instead of burying per-item failures.
+    /// </summary>
+    public int FailedRequests { get; private set; }
+
     /// <summary>Air-date/status snapshot for a show. Mirrors what <c>process_show</c> gathers from TMDB.</summary>
     public sealed record TvStatusInfo(
         string? Status,
@@ -107,17 +141,18 @@ public sealed class TmdbService
     /// Fetches status + first/next/last air-date info in a single /tv/{id} call. Combines the Python
     /// <c>get_show_status</c>, <c>calculate_days_since_first_air</c> and <c>get_next_air_date</c>.
     /// </summary>
-    public async Task<TvStatusInfo?> GetTvStatusAsync(int tmdbId, CancellationToken ct)
+    public async Task<TvStatusResult> GetTvStatusAsync(int tmdbId, CancellationToken ct)
     {
         try
         {
             var url = $"{Base}/tv/{tmdbId}?api_key={_apiKey}";
-            using var doc = await GetJsonAsync(url, ct).ConfigureAwait(false);
+            var (doc, outcome) = await FetchJsonAsync(url, ct).ConfigureAwait(false);
             if (doc is null)
             {
-                return null;
+                return new TvStatusResult(null, outcome);
             }
 
+            using var owned = doc;
             var root = doc.RootElement;
             var today = DateTime.Now.Date; // matches the script's local-time .date() semantics
 
@@ -151,12 +186,21 @@ public sealed class TmdbService
 
             string? posterPath = root.TryGetProperty("poster_path", out var pp) ? pp.GetString() : null;
 
-            return new TvStatusInfo(status, daysSinceFirst, nextDate, nextDay, daysUntil, daysSinceLast, posterPath);
+            return new TvStatusResult(
+                new TvStatusInfo(status, daysSinceFirst, nextDate, nextDay, daysUntil, daysSinceLast, posterPath),
+                FetchOutcome.Ok);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "TMDB /tv/{Id} failed", tmdbId);
-            return null;
+            // Parsing blew up on a response we did get. Still "unknown", not "no status" — never let
+            // this collapse into the caller's revert path.
+            FailedRequests++;
+            _logger.LogWarning(ex, "TMDB /tv/{Id} could not be parsed; leaving this item's poster untouched.", tmdbId);
+            return new TvStatusResult(null, FetchOutcome.Failed);
         }
     }
 
@@ -285,16 +329,56 @@ public sealed class TmdbService
         return false;
     }
 
+    /// <summary>
+    /// Callers that only care about the payload. A failure is indistinguishable from "no data" here,
+    /// so this must not be used anywhere a null answer causes a destructive action — use
+    /// <see cref="FetchJsonAsync"/> and inspect the outcome instead.
+    /// </summary>
     private async Task<JsonDocument?> GetJsonAsync(string url, CancellationToken ct)
-    {
-        using var resp = await _http.GetAsync(url, ct).ConfigureAwait(false);
-        if (!resp.IsSuccessStatusCode)
-        {
-            _logger.LogDebug("TMDB {Status} for {Url}", (int)resp.StatusCode, url);
-            return null;
-        }
+        => (await FetchJsonAsync(url, ct).ConfigureAwait(false)).Doc;
 
-        var stream = await resp.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
-        return await JsonDocument.ParseAsync(stream, default, ct).ConfigureAwait(false);
+    /// <summary>
+    /// Performs the request and reports how it ended. A 404 is a real "not found"; anything else
+    /// non-success (429 rate limit, 401 bad key, 5xx) or a transport exception is <c>Failed</c>.
+    /// Failures log at Warning — they used to log at Debug, which made them invisible by default.
+    /// </summary>
+    private async Task<(JsonDocument? Doc, FetchOutcome Outcome)> FetchJsonAsync(string url, CancellationToken ct)
+    {
+        try
+        {
+            using var resp = await _http.GetAsync(url, ct).ConfigureAwait(false);
+            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _logger.LogDebug("TMDB 404 for {Url}", Redact(url));
+                return (null, FetchOutcome.NotFound);
+            }
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                FailedRequests++;
+                _logger.LogWarning(
+                    "TMDB request failed with HTTP {Status} — overlays will be left untouched for affected items. URL: {Url}",
+                    (int)resp.StatusCode,
+                    Redact(url));
+                return (null, FetchOutcome.Failed);
+            }
+
+            var stream = await resp.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+            return (await JsonDocument.ParseAsync(stream, default, ct).ConfigureAwait(false), FetchOutcome.Ok);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            FailedRequests++;
+            _logger.LogWarning(ex, "TMDB request errored — overlays will be left untouched for affected items. URL: {Url}", Redact(url));
+            return (null, FetchOutcome.Failed);
+        }
     }
+
+    /// <summary>Strips the api_key from a URL so it never reaches a log file.</summary>
+    private string Redact(string url) =>
+        string.IsNullOrEmpty(_apiKey) ? url : url.Replace(_apiKey, "***", StringComparison.Ordinal);
 }

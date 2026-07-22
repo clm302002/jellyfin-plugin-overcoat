@@ -33,8 +33,9 @@ Console.WriteLine("== status + resolver ==");
 var ids = argIds.Length > 0 ? argIds : new[] { 1396, 456, 1399, 71912, 95557, 60625 };
 foreach (var id in ids)
 {
-    var info = await tmdb.GetTvStatusAsync(id, ct);
-    if (info is null) { Console.WriteLine($"  {id}: <no data>"); continue; }
+    var result = await tmdb.GetTvStatusAsync(id, ct);
+    var info = result.Info;
+    if (info is null) { Console.WriteLine($"  {id}: {(result.Failed ? "<TMDB request FAILED>" : "<no data>")}"); continue; }
     var text = StatusOverlayResolver.Resolve(info);
     Console.WriteLine($"  {id}: status='{info.Status}' firstAir={info.DaysSinceFirstAir}d " +
                       $"next={info.NextAirDate}({info.DaysUntilAir}) lastEp={info.DaysSinceLastAir}d  =>  banner='{text}'");

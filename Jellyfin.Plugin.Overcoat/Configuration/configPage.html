@@ -80,6 +80,9 @@
         #OvercoatConfigPage .ovcStatusRow input[type="text"] { width: 100%; box-sizing: border-box; min-width: 0; }
         #OvercoatConfigPage .ovcMuted { opacity: .7; font-size: .9em; }
         #OvercoatConfigPage .ovcRowButtons { display: flex; flex-wrap: wrap; gap: 1em; margin: .4em 0 1em; }
+        #OvercoatConfigPage .ovcRow { display: flex; flex-wrap: wrap; gap: 1em; align-items: flex-end; }
+        #OvercoatConfigPage .ovcRow .selectContainer { flex: 0 1 11em; }
+        #OvercoatConfigPage .ovcRow[hidden] { display: none; }
     </style>
     <div data-role="content">
         <div class="content-primary">
@@ -158,6 +161,37 @@
                             <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="DryRun" /><span>Dry run</span></label>
                             <div class="fieldDescription">Test mode — works out what it would do but doesn't change any posters.</div>
                         </div>
+                    </div>
+
+                    <div class="ovcCard">
+                        <h3>Schedule</h3>
+                        <p class="fieldDescription">
+                            When the overlay job runs automatically. Pick a quiet hour — on a large library
+                            the run can take a while.
+                        </p>
+                        <div class="ovcCheck">
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ScheduleEnabled" /><span>Run automatically every day</span></label>
+                            <div class="fieldDescription">
+                                Off hands scheduling back to Dashboard &rarr; Scheduled Tasks, where you can set
+                                your own triggers (intervals, multiple times, on&nbsp;startup). Overcoat won't touch them.
+                            </div>
+                        </div>
+                        <div class="ovcRow" id="ScheduleTimeRow">
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="ScheduleHour">Hour</label>
+                                <select is="emby-select" id="ScheduleHour"></select>
+                            </div>
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="ScheduleMinute">Minute</label>
+                                <select is="emby-select" id="ScheduleMinute">
+                                    <option value="0">:00</option>
+                                    <option value="15">:15</option>
+                                    <option value="30">:30</option>
+                                    <option value="45">:45</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="fieldDescription" id="ScheduleSummary"></div>
                     </div>
                 </div>
 
@@ -706,6 +740,43 @@
                 });
             }
 
+            // --- schedule ---
+
+            // 0–23 with a readable 12-hour hint, so "03" reads as 3 AM at a glance.
+            function fillHours() {
+                var sel = page.querySelector('#ScheduleHour');
+                if (sel.options.length) { return; }
+                for (var h = 0; h < 24; h++) {
+                    var hint = (h % 12 === 0 ? 12 : h % 12) + (h < 12 ? ' AM' : ' PM');
+                    var o = document.createElement('option');
+                    o.value = String(h);
+                    o.textContent = (h < 10 ? '0' + h : String(h)) + ':00  (' + hint + ')';
+                    sel.appendChild(o);
+                }
+            }
+
+            // The minute dropdown only offers quarters; snap anything else (hand-edited XML) to the
+            // nearest one so the saved value always round-trips through the UI.
+            function nearestQuarter(m) {
+                var v = parseInt(m, 10);
+                if (isNaN(v) || v < 0) { v = 0; }
+                return Math.min(45, Math.round(Math.min(v, 59) / 15) * 15);
+            }
+
+            function updateScheduleUi() {
+                var on = page.querySelector('#ScheduleEnabled').checked;
+                page.querySelector('#ScheduleTimeRow').hidden = !on;
+                var summary = page.querySelector('#ScheduleSummary');
+                if (!on) {
+                    summary.textContent = 'Overcoat is not managing the schedule — set it in Dashboard → Scheduled Tasks.';
+                    return;
+                }
+                var h = parseInt(page.querySelector('#ScheduleHour').value, 10) || 0;
+                var m = parseInt(page.querySelector('#ScheduleMinute').value, 10) || 0;
+                var hint = (h % 12 === 0 ? 12 : h % 12) + ':' + (m < 10 ? '0' + m : m) + (h < 12 ? ' AM' : ' PM');
+                summary.textContent = 'Runs daily at ' + hint + ' (server time). Takes effect as soon as you save.';
+            }
+
             function load() {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then(function (config) {
@@ -715,6 +786,11 @@
                     page.querySelector('#BackupOriginals').checked = config.BackupOriginals !== false;
                     page.querySelector('#CleanupOrphans').checked = !!config.CleanupOrphans;
                     page.querySelector('#DryRun').checked = !!config.DryRun;
+                    fillHours();
+                    page.querySelector('#ScheduleEnabled').checked = config.ScheduleEnabled !== false;
+                    page.querySelector('#ScheduleHour').value = String(config.ScheduleHour != null ? config.ScheduleHour : 3);
+                    page.querySelector('#ScheduleMinute').value = String(nearestQuarter(config.ScheduleMinute));
+                    updateScheduleUi();
                     page.querySelector('#BannerStyle').value = config.BannerStyle || 'solid';
                     page.querySelector('#BannerShape').value = config.BannerShape || 'pill';
                     page.querySelector('#BannerPosition').value = config.BannerPosition || 'top';
@@ -828,6 +904,11 @@
                 config.WatchHistoryMaxScan = parseInt(page.querySelector('#WatchHistoryMaxScan').value, 10) || 10000;
                 config.ImdbTop250TvListId = page.querySelector('#ImdbTop250TvListId').value;
                 config.ImdbTop250MovieListId = page.querySelector('#ImdbTop250MovieListId').value;
+                config.ScheduleEnabled = page.querySelector('#ScheduleEnabled').checked;
+                config.ScheduleHour = parseInt(page.querySelector('#ScheduleHour').value, 10);
+                if (isNaN(config.ScheduleHour)) { config.ScheduleHour = 3; }
+                config.ScheduleMinute = parseInt(page.querySelector('#ScheduleMinute').value, 10);
+                if (isNaN(config.ScheduleMinute)) { config.ScheduleMinute = 0; }
                 config.Libraries = collectLibraries();
                 config.LimitToTitles = linesToList(page.querySelector('#LimitToTitles').value);
                 config.IgnoreTitles = linesToList(page.querySelector('#IgnoreTitles').value);
@@ -863,6 +944,9 @@
                     });
                     page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
                     page.querySelector('#WatchHistoryAllUsers').addEventListener('change', updateUserRowVisibility);
+                    ['ScheduleEnabled', 'ScheduleHour', 'ScheduleMinute'].forEach(function (id) {
+                        page.querySelector('#' + id).addEventListener('change', updateScheduleUi);
+                    });
                     ['BannerStyle', 'BannerShape', 'BannerPosition', 'BannerAlign', 'BannerFullWidth',
                      'BannerFont', 'BannerFontScale', 'BannerIcons', 'BannerShadow', 'BannerShadowStrength',
                      'GlassTint', 'GlassTintStrength', 'GlassBlur', 'NeonGlow',

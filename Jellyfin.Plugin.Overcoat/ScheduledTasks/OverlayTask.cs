@@ -215,17 +215,37 @@ public class OverlayTask : IScheduledTask
         state.Flush();
         _logger.LogInformation("Overcoat: done. {Updated}/{Count} poster(s) updated.", updated, work.Count);
         file.Info($"Done — {updated}/{work.Count} poster(s) updated.");
+
+        // Surface TMDB trouble loudly. A run that couldn't reach TMDB leaves posters untouched rather
+        // than stripping them, but the user still needs to know why nothing changed.
+        if (tmdb.FailedRequests > 0)
+        {
+            _logger.LogWarning(
+                "Overcoat: {Failed} TMDB request(s) failed this run — affected items were left untouched. "
+                + "Check your TMDB API key and the server's connectivity to api.themoviedb.org.",
+                tmdb.FailedRequests);
+            file.Error($"{tmdb.FailedRequests} TMDB request(s) failed this run — affected posters left untouched. Check the TMDB API key / network.");
+        }
     }
 
     /// <inheritdoc />
+    /// <summary>
+    /// The trigger used the first time Jellyfin registers this task. Jellyfin never consults this
+    /// again afterwards, so the run time configured on the plugin page is applied to the live task by
+    /// <see cref="ScheduleSync"/> instead. Both read the same config, so a fresh install and a
+    /// reconfigured one agree.
+    /// </summary>
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
     {
-        yield return new TaskTriggerInfo
-        {
-            Type = TaskTriggerInfoType.DailyTrigger,
-            TimeOfDayTicks = TimeSpan.FromHours(3).Ticks,
-        };
+        yield return BuildDailyTrigger(Plugin.Instance?.Configuration.ScheduleTimeOfDay ?? TimeSpan.FromHours(3));
     }
+
+    /// <summary>Builds the daily trigger for a given time of day.</summary>
+    internal static TaskTriggerInfo BuildDailyTrigger(TimeSpan timeOfDay) => new()
+    {
+        Type = TaskTriggerInfoType.DailyTrigger,
+        TimeOfDayTicks = timeOfDay.Ticks,
+    };
 
     private async Task<bool> ProcessItemAsync(
         BaseItem item,
@@ -253,7 +273,22 @@ public class OverlayTask : IScheduledTask
         TmdbService.TvStatusInfo? info = null;
         if (type == "tv" && lib.StatusOverlays)
         {
-            info = await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false);
+            var status = await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false);
+
+            // TMDB gave us no answer (rate limit / bad key / outage). We therefore do NOT know whether
+            // this show still warrants a banner — and "no banner" is destructive here: the branch below
+            // would restore the clean original and wipe a perfectly good overlay. Leave the poster
+            // exactly as it is and retry next run. (This is what caused overlays to vanish overnight.)
+            if (status.Failed)
+            {
+                _logger.LogWarning(
+                    "Overcoat: TMDB lookup failed for '{Name}' — leaving its poster untouched this run.",
+                    item.Name ?? "?");
+                file.Info((item.Name ?? "?") + " → TMDB unavailable; poster left untouched (will retry next run)");
+                return false;
+            }
+
+            info = status.Info;
             if (info is not null)
             {
                 statusKey = info.Status ?? "tv";
@@ -514,7 +549,8 @@ public class OverlayTask : IScheduledTask
 
         if (type == "tv")
         {
-            info ??= await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false);
+            // Poster fallback only — a failure here just means no TMDB poster to fall back to.
+            info ??= (await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false)).Info;
             if (info?.PosterPath is { Length: > 0 } posterPath
                 && await tmdb.DownloadPosterAsync(posterPath, ct).ConfigureAwait(false) is { } fetched)
             {

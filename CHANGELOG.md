@@ -8,6 +8,27 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.6.0] — 2026-07-21
+
+### Fixed
+- **Overlays no longer disappear when TMDB is unreachable.** A failed TMDB request (rate limit, bad or
+  expired API key, 5xx, DNS/timeout) returned the same "no data" as a genuine no-status answer. The run
+  loop read that as "this show no longer qualifies for anything" and took the revert path — restoring
+  the clean original poster and dropping the item from the cache. A single bad night could therefore
+  strip overlays across a library, leaving them off until the next run or a manual apply. TMDB failures
+  are now distinguished from real answers, and an affected item is **skipped with its poster left
+  exactly as it is** and retried on the next run.
+- TMDB request failures were logged at `Debug`, so at default log level they were invisible. They now
+  log at `Warning`, with the API key redacted from the logged URL, plus an end-of-run summary line
+  naming how many requests failed.
+
+### Added
+- **Configurable run time** (Settings → General → Schedule): choose the hour and minute the overlay job
+  runs, instead of being stuck on the hard-coded 3 AM default. Applied to the live scheduled task as
+  soon as you save — no restart. Unticking "Run automatically every day" hands scheduling back to
+  Dashboard → Scheduled Tasks, where you can set intervals or multiple triggers, and Overcoat then
+  leaves the triggers alone.
+
 ## [0.5.1] — 2026-06-26
 
 ### Changed
