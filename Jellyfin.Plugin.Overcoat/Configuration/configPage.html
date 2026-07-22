@@ -30,6 +30,7 @@
 
         /* Wide inputs by default (text/number/select/textarea — not checkboxes). */
         #OvercoatConfigPage input[type="text"],
+        #OvercoatConfigPage input[type="password"],
         #OvercoatConfigPage input[type="number"],
         #OvercoatConfigPage select,
         #OvercoatConfigPage textarea { width: 100%; box-sizing: border-box; }
@@ -83,6 +84,71 @@
         #OvercoatConfigPage .ovcRow { display: flex; flex-wrap: wrap; gap: 1em; align-items: flex-end; }
         #OvercoatConfigPage .ovcRow .selectContainer { flex: 0 1 11em; }
         #OvercoatConfigPage .ovcRow[hidden] { display: none; }
+
+        /* Responsive workspace: Jellyfin's default content-primary is intentionally narrow. */
+        #OvercoatConfigPage .content-primary {
+            width: min(1500px, calc(100% - 2.5em)); max-width: none; margin: 0 auto;
+        }
+        #OvercoatConfigPage .ovcPanel.ovcActive {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
+            gap: 1.2em; align-items: start;
+        }
+        #OvercoatConfigPage .ovcCard { margin: 0; min-width: 0; }
+        #OvercoatConfigPage .ovcWide { grid-column: 1 / -1; }
+        #OvercoatConfigPage .ovcBannerLayout {
+            display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 370px);
+            grid-template-areas: "controls preview"; gap: 1.2em; align-items: start;
+        }
+        #OvercoatConfigPage [data-panel="banners"].ovcActive,
+        #OvercoatConfigPage [data-panel="badges"].ovcActive { display: block; }
+        #OvercoatConfigPage .ovcBannerControls { grid-area: controls; min-width: 0; }
+        #OvercoatConfigPage .ovcControlGrid {
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2em;
+        }
+        #OvercoatConfigPage .ovcControlGrid .ovcIntroCard { grid-column: 1 / -1; }
+        #OvercoatConfigPage .ovcBannerPreview { grid-area: preview; align-self: start; }
+        #OvercoatConfigPage .ovcPreviewRail { position: sticky; top: 1em; }
+        #OvercoatConfigPage .ovcFieldGrid {
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1em;
+        }
+        #OvercoatConfigPage .ovcFieldGrid > * { margin-top: 0 !important; min-width: 0; }
+        #OvercoatConfigPage .ovcSecretRow { display: flex; gap: .65em; align-items: flex-end; }
+        #OvercoatConfigPage .ovcSecretRow .inputContainer { flex: 1 1 auto; min-width: 0; }
+        #OvercoatConfigPage .ovcSecretToggle { flex: 0 0 auto; margin-bottom: .15em; }
+        #OvercoatConfigPage .ovcFloatingPreview {
+            display: none; position: fixed; z-index: 1100; right: max(.75em, env(safe-area-inset-right));
+            bottom: max(.75em, env(safe-area-inset-bottom)); width: 118px; padding: .45em;
+            border: 1px solid rgba(255,255,255,.24); border-radius: .7em;
+            background: rgba(15,18,24,.94); box-shadow: 0 8px 28px rgba(0,0,0,.65);
+            text-align: center; pointer-events: none;
+        }
+        #OvercoatConfigPage .ovcFloatingPreview img { display: block; width: 100%; border-radius: .45em; }
+        #OvercoatConfigPage .ovcFloatingPreview span { display: block; margin-top: .3em; font-size: .72em; opacity: .8; }
+
+        @media (max-width: 1199px) {
+            #OvercoatConfigPage .ovcControlGrid { grid-template-columns: 1fr; }
+            #OvercoatConfigPage .ovcControlGrid .ovcIntroCard { grid-column: auto; }
+            #OvercoatConfigPage .ovcBannerLayout { grid-template-columns: minmax(0, 1fr) minmax(280px, 320px); }
+        }
+        @media (max-width: 739px) {
+            #OvercoatConfigPage .content-primary { width: calc(100% - 1.2em); }
+            #OvercoatConfigPage .ovcTabs {
+                flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-inline: contain;
+                scrollbar-width: thin; padding-bottom: .35em;
+            }
+            #OvercoatConfigPage .ovcTab { flex: 0 0 auto; padding: .5em 1.05em; }
+            #OvercoatConfigPage .ovcPanel.ovcActive { grid-template-columns: 1fr; }
+            #OvercoatConfigPage .ovcBannerLayout {
+                grid-template-columns: 1fr; grid-template-areas: "preview" "controls";
+            }
+            #OvercoatConfigPage .ovcPreviewRail { position: static; }
+            #OvercoatConfigPage .ovcFieldGrid { grid-template-columns: 1fr; }
+            #OvercoatConfigPage .ovcGrid { grid-template-columns: 1fr; }
+            #OvercoatConfigPage .ovcStatusRow { grid-template-columns: minmax(105px, 38%) minmax(0, 1fr); gap: .5em; }
+            #OvercoatConfigPage .ovcSecretRow { align-items: stretch; flex-direction: column; }
+            #OvercoatConfigPage .ovcSecretToggle { align-self: flex-start; }
+            #OvercoatConfigPage .ovcFloatingPreview.ovcVisible { display: block; }
+        }
     </style>
     <div data-role="content">
         <div class="content-primary">
@@ -194,13 +260,16 @@
                 <!-- ===================== BANNERS ===================== -->
                 <div class="ovcPanel" data-panel="banners">
                     <div class="ovcBannerLayout">
-                        <div class="ovcCard ovcBannerControls">
-                            <h3>Status banner look</h3>
-                            <p class="fieldDescription">
-                                Controls the NEW / AIRING / RETURNING / ENDED / CANCELED banner drawn on TV posters.
-                            </p>
+                        <div class="ovcBannerControls ovcControlGrid">
+                            <div class="ovcCard ovcIntroCard">
+                                <h3>Status banner look</h3>
+                                <p class="fieldDescription">
+                                    Controls the NEW / AIRING / RETURNING / ENDED / CANCELED banner drawn on TV posters.
+                                </p>
+                            </div>
 
-                            <h4 class="ovcGroup ovcGroupFirst">Style</h4>
+                            <div class="ovcCard">
+                            <h3>Style &amp; typography</h3>
                             <div class="selectContainer">
                                 <label class="selectLabel" for="BannerStyle">Style</label>
                                 <select is="emby-select" id="BannerStyle">
@@ -246,8 +315,10 @@
                                 </select>
                                 <div class="fieldDescription">"Display" is Overcoat's bundled font. The others use the server's fonts (exact look depends on what's installed).</div>
                             </div>
+                            </div>
 
-                            <h4 class="ovcGroup">Shape &amp; layout</h4>
+                            <div class="ovcCard">
+                            <h3>Shape &amp; layout</h3>
                             <div class="selectContainer" style="margin-top:1em;">
                                 <label class="selectLabel" for="BannerShape">Shape</label>
                                 <select is="emby-select" id="BannerShape">
@@ -283,7 +354,10 @@
                                 <input is="emby-input" type="number" id="BannerFontScale" min="0.5" max="2" step="0.05" />
                                 <div class="fieldDescription">Multiplier on the calibrated size. 1.0 = default, 1.2 = 20% bigger, 0.8 = smaller.</div>
                             </div>
-                            <h4 class="ovcGroup">Effects</h4>
+                            </div>
+
+                            <div class="ovcCard">
+                            <h3>Effects</h3>
                             <div class="ovcCheck" style="margin-top:1em;">
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerIcons" /><span>Show status icons</span></label>
                                 <div class="fieldDescription">Draw the ★ / ⟳ / ✓ icon beside the banner text. Off = text only.</div>
@@ -296,8 +370,10 @@
                                 <label class="inputLabel inputLabelUnfocused" for="BannerShadowStrength">Shadow strength (%)</label>
                                 <input is="emby-input" type="number" id="BannerShadowStrength" min="0" max="100" step="1" />
                             </div>
+                            </div>
 
-                            <h4 class="ovcGroup">Status dates</h4>
+                            <div class="ovcCard">
+                            <h3>Status dates</h3>
                             <p class="fieldDescription" style="margin-top:0;">AIRING shows the next episode in the chosen format, always (no "within" window). RETURNING shows the upcoming episode/season date only when it's within the chosen window. (Turn AIRING off in the Statuses group and an airing show falls back to RETURNING.)</p>
                             <div class="selectContainer" style="margin-top:.6em;">
                                 <label class="selectLabel" for="AiringDateFormat">Airing — format</label>
@@ -326,8 +402,10 @@
                                 </select>
                                 <div class="fieldDescription">The window can't be shown in the preview (it depends on real air dates) — only the format is previewed.</div>
                             </div>
+                            </div>
 
-                            <h4 class="ovcGroup">Colours</h4>
+                            <div class="ovcCard">
+                            <h3>Colours</h3>
                             <div style="margin-top:.4em;">
                                 <label class="inputLabel inputLabelUnfocused">Status colours</label>
                                 <div class="ovcColors">
@@ -339,8 +417,10 @@
                                 </div>
                                 <div class="fieldDescription">Tap a swatch to recolour that status. Switch the preview to that status to see it.</div>
                             </div>
+                            </div>
 
-                            <h4 class="ovcGroup">Statuses</h4>
+                            <div class="ovcCard">
+                            <h3>Statuses &amp; labels</h3>
                             <div style="margin-top:.4em;">
                                 <label class="inputLabel inputLabelUnfocused">Per-status: show &amp; label</label>
                                 <div class="ovcStatusRows">
@@ -352,9 +432,10 @@
                                 </div>
                                 <div class="fieldDescription">Untick to skip a status entirely; edit the text to rename it (e.g. RETURNING → RETURNS).</div>
                             </div>
+                            </div>
                         </div>
 
-                        <div class="ovcCard ovcBannerPreview">
+                        <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="banner">
                             <h3>Live preview</h3>
                             <div class="ovcStatusSwitch" id="OvercoatPreviewStatuses">
                                 <button type="button" class="ovcChip" data-status="NEW">NEW</button>
@@ -387,6 +468,7 @@
                                 is a baked corner ribbon and isn't affected by these. Which badges actually appear is
                                 still set per library (Libraries tab) and the global badge switch (General tab).
                             </p>
+                            <div class="ovcFieldGrid">
                             <div class="selectContainer">
                                 <label class="selectLabel" for="BadgeSide">Side</label>
                                 <select is="emby-select" id="BadgeSide">
@@ -414,9 +496,10 @@
                                 <input is="emby-input" type="number" id="BadgeGapPercent" min="0" max="10" step="1" />
                                 <div class="fieldDescription">Vertical spacing between stacked badges, as a percent of poster height.</div>
                             </div>
+                            </div>
                         </div>
 
-                        <div class="ovcCard ovcBannerPreview">
+                        <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="badge">
                             <h3>Live preview</h3>
                             <div class="ovcStatusSwitch" id="OvercoatPreviewBadges">
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="watch_history">Watch</button>
@@ -437,12 +520,16 @@
                 <div class="ovcPanel" data-panel="apikeys">
                     <div class="ovcCard">
                         <h3>API keys</h3>
-                        <div class="inputContainer">
-                            <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">TMDB API Key</label>
-                            <input is="emby-input" type="text" id="TmdbApiKey" />
-                            <div class="fieldDescription">
-                                Free from themoviedb.org → account Settings → API. Required for status, trending and Top 250 data.
+                        <div class="ovcSecretRow">
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">TMDB API Key</label>
+                                <input is="emby-input" type="password" id="TmdbApiKey" autocomplete="off" />
+                                <div class="fieldDescription">
+                                    Free from themoviedb.org → account Settings → API. Required for status, trending and Top 250 data.
+                                </div>
                             </div>
+                            <button is="emby-button" type="button" id="ToggleTmdbApiKey" class="raised ovcSecretToggle"
+                                    aria-controls="TmdbApiKey" aria-pressed="false"><span>Show key</span></button>
                         </div>
                     </div>
 
@@ -475,7 +562,7 @@
 
                 <!-- ===================== MAINTENANCE ===================== -->
                 <div class="ovcPanel" data-panel="maintenance">
-                    <div class="ovcCard">
+                    <div class="ovcCard ovcWide">
                         <h3>Run</h3>
                         <p class="fieldDescription">
                             Heads-up: clicking either button <strong>saves your current settings first</strong>, then
@@ -527,6 +614,10 @@
                     </button>
                 </div>
             </form>
+            <div id="OvercoatFloatingPreview" class="ovcFloatingPreview" aria-hidden="true">
+                <img id="OvercoatFloatingPreviewImage" alt="" />
+                <span id="OvercoatFloatingPreviewLabel">Live preview</span>
+            </div>
         </div>
     </div>
 
@@ -534,6 +625,7 @@
         (function () {
             var pluginId = "604f4e22-a0a1-490d-b383-d60336318eaa";
             var page;
+            var activeTab = 'general';
 
             // Preview state: which status the live preview renders, and how each maps to text + colour picker.
             var previewStatus = 'RETURNING';
@@ -542,16 +634,47 @@
             var STATUS_LABEL = { NEW: 'LabelNew', AIRING: 'LabelAiring', RETURNING: 'LabelReturning', ENDED: 'LabelEnded', CANCELED: 'LabelCanceled' };
 
             function showTab(name) {
+                activeTab = name;
                 page.querySelectorAll('.ovcTab').forEach(function (t) {
-                    t.classList.toggle('ovcActive', t.getAttribute('data-tab') === name);
+                    var selected = t.getAttribute('data-tab') === name;
+                    t.classList.toggle('ovcActive', selected);
+                    t.setAttribute('aria-selected', selected ? 'true' : 'false');
+                    t.setAttribute('tabindex', selected ? '0' : '-1');
                 });
                 page.querySelectorAll('.ovcPanel').forEach(function (p) {
                     var on = p.getAttribute('data-panel') === name;
                     p.classList.toggle('ovcActive', on);
-                    p.style.display = on ? 'block' : 'none';
+                    p.setAttribute('aria-hidden', on ? 'false' : 'true');
+                    p.style.display = '';
                 });
                 if (name === 'banners') { refreshBannerPreview(); }
                 if (name === 'badges') { refreshBadgePreview(); }
+                window.setTimeout(updateFloatingPreview, 0);
+            }
+
+            function syncFloatingPreview() {
+                if (!page) { return; }
+                var source = activeTab === 'banners'
+                    ? page.querySelector('#BannerPreview')
+                    : activeTab === 'badges' ? page.querySelector('#BadgePreview') : null;
+                var target = page.querySelector('#OvercoatFloatingPreviewImage');
+                var label = page.querySelector('#OvercoatFloatingPreviewLabel');
+                if (source && target && source.src) {
+                    target.src = source.src;
+                    label.textContent = activeTab === 'banners' ? 'Banner preview' : 'Badge preview';
+                }
+            }
+
+            function updateFloatingPreview() {
+                if (!page) { return; }
+                var floating = page.querySelector('#OvercoatFloatingPreview');
+                var mobile = window.matchMedia('(max-width: 739px)').matches;
+                var kind = activeTab === 'banners' ? 'banner' : activeTab === 'badges' ? 'badge' : '';
+                var card = kind ? page.querySelector('[data-preview-kind="' + kind + '"]') : null;
+                var show = !!(mobile && card && card.getBoundingClientRect().bottom < 72);
+                floating.classList.toggle('ovcVisible', show);
+                floating.setAttribute('aria-hidden', show ? 'false' : 'true');
+                if (show) { syncFloatingPreview(); }
             }
 
             // Build the badge preview URL: saved banner + the toggled badges with live placement.
@@ -588,7 +711,7 @@
             }
             function refreshBadgePreview() {
                 var img = page && page.querySelector('#BadgePreview');
-                if (img) { img.src = badgePreviewUrl(); }
+                if (img) { img.src = badgePreviewUrl(); syncFloatingPreview(); }
             }
 
             // Style-specific options reveal only for their style (progressive disclosure).
@@ -643,13 +766,47 @@
             }
             function refreshBannerPreview() {
                 var img = page && page.querySelector('#BannerPreview');
-                if (img) { img.src = bannerPreviewUrl(); }
+                if (img) { img.src = bannerPreviewUrl(); syncFloatingPreview(); }
             }
             function wireTabs() {
-                page.querySelectorAll('.ovcTab').forEach(function (tab) {
+                var tabs = Array.prototype.slice.call(page.querySelectorAll('.ovcTab'));
+                var tablist = page.querySelector('.ovcTabs');
+                tablist.setAttribute('role', 'tablist');
+                tablist.setAttribute('aria-label', 'Overcoat settings sections');
+                page.querySelectorAll('.ovcPanel').forEach(function (panel) {
+                    var name = panel.getAttribute('data-panel');
+                    panel.id = 'OvercoatPanel-' + name;
+                    panel.setAttribute('role', 'tabpanel');
+                    panel.setAttribute('aria-labelledby', 'OvercoatTab-' + name);
+                });
+                tabs.forEach(function (tab, index) {
+                    var name = tab.getAttribute('data-tab');
+                    tab.id = 'OvercoatTab-' + name;
+                    tab.setAttribute('role', 'tab');
+                    tab.setAttribute('aria-controls', 'OvercoatPanel-' + name);
                     tab.addEventListener('click', function () { showTab(tab.getAttribute('data-tab')); });
+                    tab.addEventListener('keydown', function (event) {
+                        var next = index;
+                        if (event.key === 'ArrowRight') { next = (index + 1) % tabs.length; }
+                        else if (event.key === 'ArrowLeft') { next = (index - 1 + tabs.length) % tabs.length; }
+                        else if (event.key === 'Home') { next = 0; }
+                        else if (event.key === 'End') { next = tabs.length - 1; }
+                        else { return; }
+                        event.preventDefault();
+                        tabs[next].focus();
+                        showTab(tabs[next].getAttribute('data-tab'));
+                    });
                 });
                 showTab('general');
+            }
+
+            function toggleApiKeyVisibility() {
+                var input = page.querySelector('#TmdbApiKey');
+                var button = page.querySelector('#ToggleTmdbApiKey');
+                var reveal = input.type === 'password';
+                input.type = reveal ? 'text' : 'password';
+                button.setAttribute('aria-pressed', reveal ? 'true' : 'false');
+                button.querySelector('span').textContent = reveal ? 'Hide key' : 'Show key';
             }
 
             function libraryRow(name, type, saved) {
@@ -838,7 +995,10 @@
             function load() {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                    page.querySelector('#TmdbApiKey').type = 'password';
                     page.querySelector('#TmdbApiKey').value = config.TmdbApiKey || '';
+                    page.querySelector('#ToggleTmdbApiKey').setAttribute('aria-pressed', 'false');
+                    page.querySelector('#ToggleTmdbApiKey').querySelector('span').textContent = 'Show key';
                     page.querySelector('#BadgesEnabled').checked = config.BadgesEnabled !== false;
                     page.querySelector('#CacheEnabled').checked = config.CacheEnabled !== false;
                     page.querySelector('#DryRun').checked = !!config.DryRun;
@@ -992,6 +1152,9 @@
                 if (!page.dataset.ovcWired) {
                     page.dataset.ovcWired = '1';
                     wireTabs();
+                    page.querySelector('#ToggleTmdbApiKey').addEventListener('click', toggleApiKeyVisibility);
+                    window.addEventListener('scroll', updateFloatingPreview, { passive: true });
+                    window.addEventListener('resize', updateFloatingPreview);
                     page.querySelector('#OvercoatRunNow').addEventListener('click', function () { runTask('OvercoatApply', 'Apply Overcoat Overlays'); });
                     page.querySelector('#OvercoatRestore').addEventListener('click', function () {
                         Dashboard.confirm('Restore the original (un-overlaid) posters Overcoat saved?', 'Restore originals', function (ok) {

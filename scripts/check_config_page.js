@@ -48,4 +48,41 @@ if (missing.length) {
   console.log(`ok   all ${referenced.length} referenced element ids exist`);
 }
 
+// 3. IDs must stay unique. Duplicate IDs make querySelector silently wire the wrong control.
+const ids = [...html.matchAll(/\bid="([A-Za-z0-9_-]+)"/g)].map((x) => x[1]);
+const duplicateIds = [...new Set(ids.filter((id, i) => ids.indexOf(id) !== i))];
+if (duplicateIds.length) {
+  console.error(`FAIL duplicate element id(s): ${duplicateIds.join(', ')}`);
+  failures++;
+} else {
+  console.log(`ok   all ${ids.length} element ids are unique`);
+}
+
+// 4. Security/responsive hooks that are easy to lose in a markup cleanup.
+const requiredPatterns = [
+  ['TMDB API key is masked', /id="TmdbApiKey"[^>]*type="password"|type="password"[^>]*id="TmdbApiKey"/],
+  ['API key reveal button exists', /id="ToggleTmdbApiKey"/],
+  ['mobile floating preview exists', /id="OvercoatFloatingPreview"/],
+  ['banner preview has sticky hook', /data-preview-kind="banner"/],
+  ['badge preview has sticky hook', /data-preview-kind="badge"/],
+];
+for (const [label, pattern] of requiredPatterns) {
+  if (!pattern.test(html)) {
+    console.error(`FAIL ${label}`);
+    failures++;
+  } else {
+    console.log(`ok   ${label}`);
+  }
+}
+
+// 5. Schedule choices must be unique so a hand-edited option cannot mask another value.
+const minuteSelect = html.match(/<select[^>]*id="ScheduleMinute"[^>]*>([\s\S]*?)<\/select>/);
+const minuteValues = minuteSelect ? [...minuteSelect[1].matchAll(/value="([^"]+)"/g)].map((x) => x[1]) : [];
+if (!minuteSelect || new Set(minuteValues).size !== minuteValues.length) {
+  console.error('FAIL schedule minute options are missing or duplicated');
+  failures++;
+} else {
+  console.log('ok   schedule minute options are unique');
+}
+
 process.exit(failures ? 1 : 0);

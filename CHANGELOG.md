@@ -6,6 +6,12 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed
+- **The settings page now uses the whole screen.** Related controls are grouped into responsive
+  cards across wide displays and collapse to one column on phones. Banner and badge previews stay
+  visible while editing (sticky on desktop, compact floating preview on mobile), tabs swipe on
+  narrow screens, and the TMDB API key is masked until explicitly revealed.
+
 ### Added
 - **Preview on your own posters.** The Banners and Badges preview studios now have a
   **🎲 Random from my library** button alongside the built-in sample. A banner reads very differently
