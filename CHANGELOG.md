@@ -6,6 +6,10 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.7.1] — 2026-07-22
+
 ### Added
 - **Recovery panel** (Settings → Maintenance). Shows how many posters Overcoat can still put back,
   how much disk the saved copies use, and — the number that actually matters — how many posters are
