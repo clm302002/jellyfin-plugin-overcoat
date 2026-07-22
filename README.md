@@ -15,7 +15,8 @@
 
 Overcoat is a native Jellyfin plugin that draws useful information directly onto poster artwork. It
 handles TV status banners, watch-history and TMDB Trending ribbons, and IMDb Top 250 corner badges;
-each selected library can have its own combination.
+each selected library can have its own combination. The project was heavily inspired by **Kometa**
+and its approach to making media libraries more expressive and useful.
 
 ## See Overcoat in action
 
@@ -25,7 +26,7 @@ each selected library can have its own combination.
 > The banner examples were captured on **July 22, 2026**. Real labels are resolved from current
 > metadata when Overcoat runs; schedules and return dates can change.
 
-![Breaking Bad poster comparing solid, frosted-glass, and neon banner styles](assets/showcase-styles.png)
+![Breaking Bad poster comparing solid, frosted-glass, and neon AIRING banner styles](assets/showcase-styles.png)
 
 ![Six posters demonstrating banner shape, position, alignment, width, font, icon, shadow, tint, blur, glow, and date-format controls](assets/showcase-controls.png)
 
@@ -66,7 +67,8 @@ a later library scan or metadata tool can replace an overlaid poster until Overc
 
 The Banners tab covers solid, frosted-glass, and neon styles; pill, square, and edge-drop shapes;
 top/bottom placement; alignment; full-width bands; bundled/system fonts; text scale; icons; shadows;
-per-status colours and labels; glass blur/tint; neon glow; and airing/returning date formats.
+per-status colours and labels; glass blur/tint; neon glow; and airing/returning date formats. The
+edge-flush **drop** shape is the maintainer's favorite and is featured in the customization gallery.
 
 > [!IMPORTANT]
 > Banner appearance and badge layout are **global settings**, not per-title settings. The Libraries
