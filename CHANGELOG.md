@@ -6,44 +6,7 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-### Fixed
-- **Updates now actually appear in Jellyfin.** The packaged metadata set `autoUpdate: false`, and
-  Jellyfin skips a plugin entirely when deciding which have updates available if that flag is off —
-  so the Plugins page never offered an update and the "Update Plugins" task ignored Overcoat. Anyone
-  who installed it stayed on that version indefinitely regardless of what the repository advertised.
-  To update an installation packaged before this fix, expand the version you want under **Revision
-  History** on the plugin's page and click Install.
-- **The settings page can no longer load a stale stylesheet after an update.** Its CSS was cached for
-  24 hours, so a version that changed the styling would render new markup against the previous
-  stylesheet — a settings page that looks broken, with nothing to suggest a hard refresh would fix it.
-  The stylesheet now revalidates against the plugin version, so it updates the moment the plugin does.
-- **Revision history no longer repeats itself.** Every pre-release of a version advertised the
-  identical multi-thousand-character release notes, so the plugin page showed the same wall of text
-  once per build. Pre-releases now carry their own notes and are labelled with their build number,
-  superseded ones collapse to a single line, and manifest entries are length-capped for the narrow
-  panel they render in. The full notes stay on the release page.
-- **Tidied the plugin's description** on the Jellyfin plugins page. It was a dense paragraph ending
-  in a shouted all-caps warning; it is now two plain sentences, with the uninstall caveat kept
-  because losing it costs people their original posters.
-
-### Changed
-- **The settings page now uses the whole screen.** Related controls are grouped into responsive
-  cards across wide displays and collapse to one column on phones. Banner and badge previews stay
-  visible while editing (sticky on desktop, compact floating preview on mobile), tabs swipe on
-  narrow screens, and the TMDB API key is masked until explicitly revealed.
-- **Banner editing is denser on desktop.** Wide sections keep related controls together without
-  turning them into tall, narrow cards, and the preview rail sits below the page chrome. Badge
-  placement is temporarily locked to the supported left-side artwork; right-side support is WIP.
-
-### Added
-- **Preview on your own posters.** The Banners and Badges preview studios now have a
-  **🎲 Random from my library** button alongside the built-in sample. A banner reads very differently
-  over a dark poster than a bright one, so previewing on real art tells you far more than a synthetic
-  one does. Click again for another poster.
-
-  It only ever uses **clean** art: the saved original if Overcoat has one for that item, otherwise a
-  poster Overcoat has never touched. It will not pick something already overlaid, which would show a
-  banner drawn on top of a banner and make the preview misleading.
+_Nothing yet._
 
 ## [0.7.0] — 2026-07-22
 
@@ -89,6 +52,24 @@ theme is the same one as 0.6.0/0.6.1: **an unknown must never be treated as an a
 - **Changing the overlay artwork or drawing code now refreshes existing posters.** The skip cache
   only tracked your settings, so a rendering change reached items that happened to change for some
   other reason and silently left everything else on the old art.
+- **Updates now actually appear in Jellyfin.** The packaged metadata set `autoUpdate: false`, and
+  Jellyfin skips a plugin entirely when deciding which have updates available if that flag is off —
+  so the Plugins page never offered an update and the "Update Plugins" task ignored Overcoat. Anyone
+  who installed it stayed on that version indefinitely regardless of what the repository advertised.
+  To update an installation packaged before this fix, expand the version you want under **Revision
+  History** on the plugin's page and click Install.
+- **The settings page can no longer load a stale stylesheet after an update.** Its CSS was cached for
+  24 hours, so a version that changed the styling would render new markup against the previous
+  stylesheet — a settings page that looks broken, with nothing to suggest a hard refresh would fix it.
+  The stylesheet now revalidates against the plugin version, so it updates the moment the plugin does.
+- **Revision history no longer repeats itself.** Every pre-release of a version advertised the
+  identical multi-thousand-character release notes, so the plugin page showed the same wall of text
+  once per build. Pre-releases now carry their own notes and are labelled with their build number,
+  superseded ones collapse to a single line, and manifest entries are length-capped for the narrow
+  panel they render in. The full notes stay on the release page.
+- **Tidied the plugin's description** on the Jellyfin plugins page. It was a dense paragraph ending
+  in a shouted all-caps warning; it is now two plain sentences, with the uninstall caveat kept
+  because losing it costs people their original posters.
 
 ### Changed
 - Releases now build with the exact version they publish, and fail if the two disagree — the
@@ -102,6 +83,13 @@ theme is the same one as 0.6.0/0.6.1: **an unknown must never be treated as an a
 - Added **THIRD_PARTY_NOTICES.md** and the attribution TMDB requires. It also records two unresolved
   licensing items honestly: the bundled font has no recorded licence, and the watch-history badge art
   is derived from the Jellyfin logo. Both need resolving before wider promotion.
+- **The settings page now uses the whole screen.** Related controls are grouped into responsive
+  cards across wide displays and collapse to one column on phones. Banner and badge previews stay
+  visible while editing (sticky on desktop, compact floating preview on mobile), tabs swipe on
+  narrow screens, and the TMDB API key is masked until explicitly revealed.
+- **Banner editing is denser on desktop.** Wide sections keep related controls together without
+  turning them into tall, narrow cards, and the preview rail sits below the page chrome. Badge
+  placement is temporarily locked to the supported left-side artwork; right-side support is WIP.
 
 ### Added
 - **A test suite** (44 tests) covering the skip cache, the originals vault, atomic writes and state
@@ -111,6 +99,14 @@ theme is the same one as 0.6.0/0.6.1: **an unknown must never be treated as an a
   Actions and NuGet.
 - **The beta channel now carries stable releases too**, so subscribing to the beta repository alone
   is a complete "always newest" channel rather than one that silently misses stable-only releases.
+- **Preview on your own posters.** The Banners and Badges preview studios now have a
+  **🎲 Random from my library** button alongside the built-in sample. A banner reads very differently
+  over a dark poster than a bright one, so previewing on real art tells you far more than a synthetic
+  one does. Click again for another poster.
+
+  It only ever uses **clean** art: the saved original if Overcoat has one for that item, otherwise a
+  poster Overcoat has never touched. It will not pick something already overlaid, which would show a
+  banner drawn on top of a banner and make the preview misleading.
 
 ## [0.6.1] — 2026-07-21
 
