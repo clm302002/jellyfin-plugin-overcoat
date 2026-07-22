@@ -59,7 +59,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       previewTop: document.querySelector('[data-preview-kind="banner"]').getBoundingClientRect().top,
     }));
     if (state.mobile && !state.floating) throw new Error('Mobile floating preview did not appear after scrolling.');
-    if (!state.mobile && (state.previewTop < 0 || state.previewTop > 40)) throw new Error(`Desktop preview is not sticky (top=${state.previewTop}).`);
+    if (!state.mobile && (state.previewTop < 48 || state.previewTop > 128)) throw new Error(`Desktop preview is not sticky below the page chrome (top=${state.previewTop}).`);
     console.log(`scroll preview ok: ${state.mobile ? 'floating mobile' : 'sticky desktop'}`);
   }
   await browser.close();

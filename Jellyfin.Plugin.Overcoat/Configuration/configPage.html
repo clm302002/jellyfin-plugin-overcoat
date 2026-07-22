@@ -23,10 +23,14 @@
         #OvercoatConfigPage .ovcPanel.ovcActive { display: block; }
 
         #OvercoatConfigPage .ovcCard {
-            border: 1px solid rgba(255,255,255,.15); border-radius: .7em;
-            padding: 1em 1.2em 1.1em; margin: 0 0 1.2em; background: rgba(255,255,255,.03);
+            border: 1px solid rgba(255,255,255,.14); border-radius: .8em;
+            padding: 1.1em 1.3em 1.25em; margin: 0 0 1.2em; background: rgba(22,22,22,.94);
+            box-shadow: 0 8px 24px rgba(0,0,0,.12);
         }
-        #OvercoatConfigPage .ovcCard > h3 { margin: .1em 0 .8em; font-size: 1.15em; }
+        #OvercoatConfigPage .ovcCard > h3 {
+            margin: -.1em 0 .9em; padding: 0 0 .65em; font-size: 1.15em;
+            border-bottom: 1px solid rgba(255,255,255,.1);
+        }
 
         /* Wide inputs by default (text/number/select/textarea — not checkboxes). */
         #OvercoatConfigPage input[type="text"],
@@ -103,11 +107,24 @@
         #OvercoatConfigPage [data-panel="badges"].ovcActive { display: block; }
         #OvercoatConfigPage .ovcBannerControls { grid-area: controls; min-width: 0; }
         #OvercoatConfigPage .ovcControlGrid {
-            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2em;
+            display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em;
         }
-        #OvercoatConfigPage .ovcControlGrid .ovcIntroCard { grid-column: 1 / -1; }
+        #OvercoatConfigPage .ovcIntroCard {
+            background: linear-gradient(120deg, rgba(0,164,220,.13), rgba(22,22,22,.94) 55%);
+            border-left: 3px solid #00a4dc;
+        }
+        #OvercoatConfigPage .ovcDenseCard {
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+            column-gap: 1.35em; row-gap: 1em;
+        }
+        #OvercoatConfigPage .ovcDenseCard > h3,
+        #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column: 1 / -1; }
+        #OvercoatConfigPage .ovcDenseCard > * { min-width: 0; margin-top: 0 !important; }
+        #OvercoatConfigPage .ovcDenseCard.ovcLayoutCard { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        #OvercoatConfigPage .ovcDenseCard.ovcLayoutCard .ovcCheck { align-self: end; }
         #OvercoatConfigPage .ovcBannerPreview { grid-area: preview; align-self: start; }
-        #OvercoatConfigPage .ovcPreviewRail { position: sticky; top: 1em; }
+        #OvercoatConfigPage .ovcPreviewRail { position: sticky; top: clamp(4.5em, 10vh, 7em); }
+        #OvercoatConfigPage [data-panel="banners"] .ovcPreviewRail { margin-top: 7.2em; }
         #OvercoatConfigPage .ovcFieldGrid {
             display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1em;
         }
@@ -115,6 +132,11 @@
         #OvercoatConfigPage .ovcSecretRow { display: flex; gap: .65em; align-items: flex-end; }
         #OvercoatConfigPage .ovcSecretRow .inputContainer { flex: 1 1 auto; min-width: 0; }
         #OvercoatConfigPage .ovcSecretToggle { flex: 0 0 auto; margin-bottom: .15em; }
+        #OvercoatConfigPage .ovcWipNote {
+            margin-top: .75em; padding: .65em .8em; border-radius: .5em;
+            border-left: 3px solid #00a4dc; background: rgba(0,164,220,.08);
+            font-size: .9em;
+        }
         #OvercoatConfigPage .ovcFloatingPreview {
             display: none; position: fixed; z-index: 1100; right: max(.75em, env(safe-area-inset-right));
             bottom: max(.75em, env(safe-area-inset-bottom)); width: 118px; padding: .45em;
@@ -126,9 +148,9 @@
         #OvercoatConfigPage .ovcFloatingPreview span { display: block; margin-top: .3em; font-size: .72em; opacity: .8; }
 
         @media (max-width: 1199px) {
-            #OvercoatConfigPage .ovcControlGrid { grid-template-columns: 1fr; }
-            #OvercoatConfigPage .ovcControlGrid .ovcIntroCard { grid-column: auto; }
             #OvercoatConfigPage .ovcBannerLayout { grid-template-columns: minmax(0, 1fr) minmax(280px, 320px); }
+            #OvercoatConfigPage .ovcDenseCard,
+            #OvercoatConfigPage .ovcDenseCard.ovcLayoutCard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
         @media (max-width: 739px) {
             #OvercoatConfigPage .content-primary { width: calc(100% - 1.2em); }
@@ -142,6 +164,11 @@
                 grid-template-columns: 1fr; grid-template-areas: "preview" "controls";
             }
             #OvercoatConfigPage .ovcPreviewRail { position: static; }
+            #OvercoatConfigPage [data-panel="banners"] .ovcPreviewRail { margin-top: 0; }
+            #OvercoatConfigPage .ovcDenseCard,
+            #OvercoatConfigPage .ovcDenseCard.ovcLayoutCard { grid-template-columns: 1fr; }
+            #OvercoatConfigPage .ovcDenseCard > h3,
+            #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column: auto; }
             #OvercoatConfigPage .ovcFieldGrid { grid-template-columns: 1fr; }
             #OvercoatConfigPage .ovcGrid { grid-template-columns: 1fr; }
             #OvercoatConfigPage .ovcStatusRow { grid-template-columns: minmax(105px, 38%) minmax(0, 1fr); gap: .5em; }
@@ -268,7 +295,7 @@
                                 </p>
                             </div>
 
-                            <div class="ovcCard">
+                            <div class="ovcCard ovcDenseCard">
                             <h3>Style &amp; typography</h3>
                             <div class="selectContainer">
                                 <label class="selectLabel" for="BannerStyle">Style</label>
@@ -317,7 +344,7 @@
                             </div>
                             </div>
 
-                            <div class="ovcCard">
+                            <div class="ovcCard ovcDenseCard ovcLayoutCard">
                             <h3>Shape &amp; layout</h3>
                             <div class="selectContainer" style="margin-top:1em;">
                                 <label class="selectLabel" for="BannerShape">Shape</label>
@@ -356,7 +383,7 @@
                             </div>
                             </div>
 
-                            <div class="ovcCard">
+                            <div class="ovcCard ovcDenseCard">
                             <h3>Effects</h3>
                             <div class="ovcCheck" style="margin-top:1em;">
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerIcons" /><span>Show status icons</span></label>
@@ -372,9 +399,9 @@
                             </div>
                             </div>
 
-                            <div class="ovcCard">
+                            <div class="ovcCard ovcDenseCard">
                             <h3>Status dates</h3>
-                            <p class="fieldDescription" style="margin-top:0;">AIRING shows the next episode in the chosen format, always (no "within" window). RETURNING shows the upcoming episode/season date only when it's within the chosen window. (Turn AIRING off in the Statuses group and an airing show falls back to RETURNING.)</p>
+                            <p class="fieldDescription ovcCardLead" style="margin-top:0;">AIRING shows the next episode in the chosen format, always (no "within" window). RETURNING shows the upcoming episode/season date only when it's within the chosen window. (Turn AIRING off in the Statuses group and an airing show falls back to RETURNING.)</p>
                             <div class="selectContainer" style="margin-top:.6em;">
                                 <label class="selectLabel" for="AiringDateFormat">Airing — format</label>
                                 <select is="emby-select" id="AiringDateFormat">
@@ -471,11 +498,11 @@
                             <div class="ovcFieldGrid">
                             <div class="selectContainer">
                                 <label class="selectLabel" for="BadgeSide">Side</label>
-                                <select is="emby-select" id="BadgeSide">
+                                <select is="emby-select" id="BadgeSide" disabled aria-describedby="BadgeSideNote">
                                     <option value="left">Left</option>
-                                    <option value="right">Right</option>
                                 </select>
-                                <div class="fieldDescription">Which edge the badge ribbons sit against.</div>
+                                <div class="fieldDescription">Badges currently use their designed left-edge placement.</div>
+                                <div class="ovcWipNote" id="BadgeSideNote"><strong>Future update:</strong> right-side artwork and placement are still a work in progress.</div>
                             </div>
                             <div class="selectContainer" style="margin-top:1em;">
                                 <label class="selectLabel" for="BadgeVertical">Vertical anchor</label>
@@ -1129,7 +1156,8 @@
                     page.querySelector('#LabelEnded').value = config.LabelEnded || 'ENDED';
                     page.querySelector('#LabelCanceled').value = config.LabelCanceled || 'CANCELED';
                     updateStyleOptions();
-                    page.querySelector('#BadgeSide').value = config.BadgeSide || 'left';
+                    // Side ribbons currently have artwork calibrated for the left edge only.
+                    page.querySelector('#BadgeSide').value = 'left';
                     page.querySelector('#BadgeVertical').value = config.BadgeVertical || 'middle';
                     page.querySelector('#BadgeScale').value = (config.BadgeScale != null ? config.BadgeScale : 100);
                     page.querySelector('#BadgeGapPercent').value = (config.BadgeGapPercent != null ? config.BadgeGapPercent : 1);
@@ -1186,7 +1214,7 @@
                 config.NeonGlow = parseInt(page.querySelector('#NeonGlow').value, 10);
                 if (isNaN(config.NeonGlow)) { config.NeonGlow = 60; }
                 config.BannerFont = page.querySelector('#BannerFont').value;
-                config.BadgeSide = page.querySelector('#BadgeSide').value;
+                config.BadgeSide = 'left';
                 config.BadgeVertical = page.querySelector('#BadgeVertical').value;
                 config.BadgeScale = parseInt(page.querySelector('#BadgeScale').value, 10);
                 if (isNaN(config.BadgeScale)) { config.BadgeScale = 100; }

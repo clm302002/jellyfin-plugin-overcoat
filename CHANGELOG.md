@@ -23,6 +23,9 @@ All notable changes to Overcoat are documented here. Format follows
   cards across wide displays and collapse to one column on phones. Banner and badge previews stay
   visible while editing (sticky on desktop, compact floating preview on mobile), tabs swipe on
   narrow screens, and the TMDB API key is masked until explicitly revealed.
+- **Banner editing is denser on desktop.** Wide sections keep related controls together without
+  turning them into tall, narrow cards, and the preview rail sits below the page chrome. Badge
+  placement is temporarily locked to the supported left-side artwork; right-side support is WIP.
 
 ### Added
 - **Preview on your own posters.** The Banners and Badges preview studios now have a

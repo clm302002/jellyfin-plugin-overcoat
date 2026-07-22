@@ -65,6 +65,8 @@ const requiredPatterns = [
   ['mobile floating preview exists', /id="OvercoatFloatingPreview"/],
   ['banner preview has sticky hook', /data-preview-kind="banner"/],
   ['badge preview has sticky hook', /data-preview-kind="badge"/],
+  ['badge side selector is locked to supported placement', /id="BadgeSide"[^>]*disabled/],
+  ['badge side selector contains only the supported left option', /id="BadgeSide"[^>]*>\s*<option value="left">Left<\/option>\s*<\/select>/],
 ];
 for (const [label, pattern] of requiredPatterns) {
   if (!pattern.test(html)) {
