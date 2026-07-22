@@ -44,9 +44,9 @@ OWNER = "clm302002"
 # before 10.11.9, so 10.11.0–10.11.8 fail to compile and would fail to load. Claiming 10.11.0.0 here
 # offered those servers a plugin that cannot start. CI locks the floor with a matrix build.
 TARGET_ABI = "10.11.9.0"
-OVERVIEW = "Overlays status banners and badges onto your Jellyfin posters."
+OVERVIEW = "Overlays status banners and badges onto Jellyfin posters and optional series wide cards."
 DESCRIPTION = (
-    "Overcoat decorates your Jellyfin posters with useful info at a glance — status banners like "
+    "Overcoat decorates Jellyfin posters and optional series wide cards with useful info at a glance — status banners like "
     "NEW, AIRING, RETURNING, ENDED and CANCELED on your TV shows, plus badges for trending titles, "
     "IMDb Top 250 picks, and the shows and movies you've actually been watching (using Jellyfin's "
     "built-in activity). Set it up once, choose your libraries, and Overcoat keeps your posters "

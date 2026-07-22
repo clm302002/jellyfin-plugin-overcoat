@@ -6,7 +6,15 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+- **Optional overlays for Jellyfin's wide Next Up and Continue Watching cards.** TV libraries can
+  mirror their series overlays onto an existing series `Thumb`, with independent state, vault,
+  preview, recovery reporting, landscape rendering, and restore support.
+
+### Safety
+- **Episode images are never modified.** The wide pipeline has a hard `Series + Thumb` target guard,
+  does not touch Backdrops, and does not create missing Thumbs. Each Jellyfin user must turn off
+  **Use episode images in Next Up and Continue Watching** for the series Thumb to appear there.
 
 ## [0.7.2] — 2026-07-22
 

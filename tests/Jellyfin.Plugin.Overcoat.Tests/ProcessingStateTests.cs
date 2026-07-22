@@ -196,6 +196,23 @@ public sealed class ProcessingStateTests : IDisposable
         Assert.Equal(new byte[] { 2, 2 }, await s.ReadOriginalAsync("id1", CancellationToken.None));
     }
 
+    [Fact]
+    public async Task ThumbChannel_UsesIndependentStateAndVault()
+    {
+        var primary = New();
+        var thumb = new ProcessingState(_dir, NullLogger.Instance, ProcessingState.ArtworkChannel.Thumb);
+        Mark(primary, "same", hash: "POSTER");
+        Mark(thumb, "same", hash: "THUMB");
+        await primary.SaveOriginalAsync("same", new byte[] { 1 }, CancellationToken.None);
+        await thumb.SaveOriginalAsync("same", new byte[] { 2 }, CancellationToken.None);
+        primary.Flush();
+        thumb.Flush();
+        Assert.Equal("POSTER", new ProcessingState(_dir, NullLogger.Instance).ProducedHashFor("same"));
+        Assert.Equal("THUMB", new ProcessingState(_dir, NullLogger.Instance, ProcessingState.ArtworkChannel.Thumb).ProducedHashFor("same"));
+        Assert.True(File.Exists(Path.Combine(_dir, "originals", "same.png")));
+        Assert.True(File.Exists(Path.Combine(_dir, "thumb-originals", "same.img")));
+    }
+
     // --- A-21: vault contents are not necessarily PNG ---
 
     [Theory]

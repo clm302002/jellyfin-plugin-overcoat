@@ -107,6 +107,7 @@ public class OverlayTask : IScheduledTask
         using var renderer = new OverlayRenderer();
         var badges = new BadgeCompositor();
         var state = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger);
+        var thumbState = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger, ProcessingState.ArtworkChannel.Thumb);
         using var file = new FileLog(_appPaths.LogDirectoryPath);
 
         var ignore = new HashSet<string>(config.IgnoreTitles, StringComparer.OrdinalIgnoreCase);
@@ -288,7 +289,7 @@ public class OverlayTask : IScheduledTask
                     }
                 }
 
-                if (await ProcessItemAsync(item, lib, type, tmdbId.Value, badgeSet, tmdb, renderer, badges, state, file, config, badgeDataIncomplete, cancellationToken).ConfigureAwait(false))
+                if (await ProcessItemAsync(item, lib, type, tmdbId.Value, badgeSet, tmdb, renderer, badges, state, thumbState, file, config, badgeDataIncomplete, cancellationToken).ConfigureAwait(false))
                 {
                     updated++;
                 }
@@ -312,8 +313,9 @@ public class OverlayTask : IScheduledTask
         }
 
         state.Flush();
-        _logger.LogInformation("Overcoat: done. {Updated}/{Count} poster(s) updated.", updated, work.Count);
-        file.Info($"Done — {updated}/{work.Count} poster(s) updated.");
+        thumbState.Flush();
+        _logger.LogInformation("Overcoat: done. {Updated}/{Count} item(s) updated.", updated, work.Count);
+        file.Info($"Done — {updated}/{work.Count} item(s) updated.");
 
         // Surface TMDB trouble loudly. A run that couldn't reach TMDB leaves posters untouched rather
         // than stripping them, but the user still needs to know why nothing changed.
@@ -356,6 +358,7 @@ public class OverlayTask : IScheduledTask
         OverlayRenderer renderer,
         BadgeCompositor badges,
         ProcessingState state,
+        ProcessingState thumbState,
         FileLog file,
         PluginConfiguration config,
         bool badgeDataIncomplete,
@@ -399,8 +402,60 @@ public class OverlayTask : IScheduledTask
             }
         }
 
+        var primaryUpdated = await ProcessArtworkAsync(
+            item, type, tmdbId, badgeSet, info, tmdb, renderer, badges, state, file, config,
+            badgeDataIncomplete, text, cacheText, iconKey, statusKey, allowProviderFallback: true, ct).ConfigureAwait(false);
+
+        var thumbUpdated = false;
+        if (type == "tv" && item is MediaBrowser.Controller.Entities.TV.Series)
+        {
+            var wideBadges = lib.WideCardOverlays ? badgeSet : new HashSet<string>(StringComparer.Ordinal);
+            thumbUpdated = await ProcessArtworkAsync(
+                item, type, tmdbId, wideBadges, info, tmdb, renderer, badges, thumbState, file, config,
+                lib.WideCardOverlays && badgeDataIncomplete,
+                lib.WideCardOverlays ? text : null,
+                lib.WideCardOverlays ? cacheText : null,
+                lib.WideCardOverlays ? iconKey : string.Empty,
+                statusKey,
+                allowProviderFallback: false,
+                ct).ConfigureAwait(false);
+        }
+
+        return primaryUpdated || thumbUpdated;
+    }
+
+    private async Task<bool> ProcessArtworkAsync(
+        BaseItem item,
+        string type,
+        int tmdbId,
+        ISet<string> badgeSet,
+        TmdbService.TvStatusInfo? info,
+        TmdbService tmdb,
+        OverlayRenderer renderer,
+        BadgeCompositor badges,
+        ProcessingState state,
+        FileLog file,
+        PluginConfiguration config,
+        bool badgeDataIncomplete,
+        string? text,
+        string? cacheText,
+        string iconKey,
+        string statusKey,
+        bool allowProviderFallback,
+        CancellationToken ct)
+    {
+        // This is the hard safety boundary: the secondary channel is series Thumb only. Episodes
+        // can be read by WatchHistory above, but no episode image can ever reach SaveImage here.
+        if (state.Channel == ProcessingState.ArtworkChannel.Thumb
+            && item is not MediaBrowser.Controller.Entities.TV.Series)
+        {
+            throw new InvalidOperationException("Wide-card overlays may only target Series Thumb images.");
+        }
+
+        var imageType = state.ImageType;
+        var imageLabel = imageType == ImageType.Thumb ? "wide card" : "poster";
         var id = item.Id.ToString("N");
-        var currentSig = ProcessingState.Signature(item);
+        var currentSig = state.ImageSignature(item);
 
         // The mtime signature only tells us the file was touched, not that its bytes changed. Confirm
         // against the hash of what we last wrote before believing it — otherwise a library scan or a
@@ -421,9 +476,9 @@ public class OverlayTask : IScheduledTask
         {
             art = ArtState.Unknown;
             _logger.LogWarning(
-                "Overcoat: '{Name}' has no primary image but we previously overlaid it — re-applying from the vaulted original.",
-                item.Name ?? "?");
-            file.Info((item.Name ?? "?") + " — primary image missing; recovering from the vaulted original");
+                "Overcoat: '{Name}' has no {ImageLabel} but we previously overlaid it — re-applying from the vaulted original.",
+                item.Name ?? "?", imageLabel);
+            file.Info((item.Name ?? "?") + " — " + imageLabel + " missing; recovering from the vaulted original");
         }
 
         // Upgrade path: an entry from <=0.6.0 whose file is demonstrably untouched since we wrote it
@@ -435,7 +490,7 @@ public class OverlayTask : IScheduledTask
         // promise makes the diagnostic mode itself a mutation. (A-19)
         if (!config.DryRun && state.NeedsHashBackfill(id, currentSig))
         {
-            var settledBytes = await ProcessingState.ReadPrimaryImageAsync(item, _logger, ct).ConfigureAwait(false);
+            var settledBytes = await state.ReadImageAsync(item, ct).ConfigureAwait(false);
             if (settledBytes is not null)
             {
                 state.SetProducedHash(id, ProcessingState.HashBytes(settledBytes));
@@ -456,7 +511,7 @@ public class OverlayTask : IScheduledTask
             }
             else
             {
-                var currentBytes = await ProcessingState.ReadPrimaryImageAsync(item, _logger, ct).ConfigureAwait(false);
+                var currentBytes = await state.ReadImageAsync(item, ct).ConfigureAwait(false);
                 if (currentBytes is null)
                 {
                     // We could not read the file, so we do NOT know whether it is still ours. Treating
@@ -520,7 +575,7 @@ public class OverlayTask : IScheduledTask
                 if (clean is not null)
                 {
                     using var msClean = new MemoryStream(clean);
-                    await _providerManager.SaveImage(item, msClean, "image/png", ImageType.Primary, null, ct).ConfigureAwait(false);
+                    await _providerManager.SaveImage(item, msClean, ProcessingState.DetectMimeType(clean), imageType, null, ct).ConfigureAwait(false);
                     await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, ct).ConfigureAwait(false);
                 }
 
@@ -588,7 +643,9 @@ public class OverlayTask : IScheduledTask
         // left every unchanged item displaying the old output forever — invisible, and impossible to
         // clear short of telling users to disable the skip cache. Bump RendererRevision whenever
         // output changes for identical settings. (A-22)
-        keyParts.Add("r" + OverlayRenderer.RendererRevision.ToString(inv));
+        keyParts.Add(imageType == ImageType.Thumb
+            ? "lr" + OverlayRenderer.LandscapeRendererRevision.ToString(inv)
+            : "r" + OverlayRenderer.RendererRevision.ToString(inv));
 
         var appearanceKey = string.Join("||", keyParts);
 
@@ -608,7 +665,7 @@ public class OverlayTask : IScheduledTask
         var original = forceReacquire ? null : await state.ReadOriginalAsync(id, ct).ConfigureAwait(false);
         if (original is null)
         {
-            original = await AcquireSourcePosterAsync(item, type, tmdbId, info, tmdb, ct).ConfigureAwait(false);
+            original = await AcquireSourceImageAsync(item, imageType, allowProviderFallback, type, tmdbId, info, tmdb, ct).ConfigureAwait(false);
             if (original is null)
             {
                 _logger.LogDebug("Overcoat: '{Name}' has no usable poster; skipping.", item.Name ?? "?");
@@ -656,8 +713,11 @@ public class OverlayTask : IScheduledTask
             string.Equals(config.BadgeSide, "right", StringComparison.OrdinalIgnoreCase),
             config.BadgeVertical,
             config.BadgeScale,
-            config.BadgeGapPercent));
-        var png = OverlayRenderer.EncodePng(bmp);
+            config.BadgeGapPercent,
+            imageType == ImageType.Thumb && text is not null && !string.Equals(config.BannerPosition, "bottom", StringComparison.OrdinalIgnoreCase) ? 18 : 0));
+        var output = imageType == ImageType.Thumb
+            ? OverlayRenderer.EncodeWideCardWebp(bmp)
+            : OverlayRenderer.EncodePng(bmp);
 
         if (config.DryRun)
         {
@@ -666,8 +726,8 @@ public class OverlayTask : IScheduledTask
             return true;
         }
 
-        using var ms = new MemoryStream(png);
-        await _providerManager.SaveImage(item, ms, "image/png", ImageType.Primary, null, ct).ConfigureAwait(false);
+        using var ms = new MemoryStream(output);
+        await _providerManager.SaveImage(item, ms, imageType == ImageType.Thumb ? "image/webp" : "image/png", imageType, null, ct).ConfigureAwait(false);
         await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, ct).ConfigureAwait(false);
 
         var produced = _libraryManager.GetItemById(item.Id) ?? item;
@@ -676,7 +736,7 @@ public class OverlayTask : IScheduledTask
         // re-encodes or rewrites the file, hashing our intended bytes would never match on read-back
         // and the whole content check would silently degrade to the old mtime-only behaviour. An
         // empty hash (read-back failed) does exactly that, deliberately, rather than lying.
-        var writtenBytes = await ProcessingState.ReadPrimaryImageAsync(produced, _logger, ct).ConfigureAwait(false);
+        var writtenBytes = await state.ReadImageAsync(produced, ct).ConfigureAwait(false);
         var producedHash = writtenBytes is not null ? ProcessingState.HashBytes(writtenBytes) : string.Empty;
 
         state.MarkProcessed(
@@ -685,7 +745,7 @@ public class OverlayTask : IScheduledTask
             statusKey,
             cacheText,
             badgeSet,
-            ProcessingState.Signature(produced),
+            state.ImageSignature(produced),
             appearanceKey,
             producedHash);
 
@@ -775,18 +835,18 @@ public class OverlayTask : IScheduledTask
     }
 
     /// <summary>Clean source poster: the Jellyfin file if present; for TV, else the TMDB poster (movies have no fallback).</summary>
-    private async Task<byte[]?> AcquireSourcePosterAsync(BaseItem item, string type, int tmdbId, TmdbService.TvStatusInfo? info, TmdbService tmdb, CancellationToken ct)
+    private async Task<byte[]?> AcquireSourceImageAsync(BaseItem item, ImageType imageType, bool allowProviderFallback, string type, int tmdbId, TmdbService.TvStatusInfo? info, TmdbService tmdb, CancellationToken ct)
     {
-        if (item.HasImage(ImageType.Primary, 0))
+        if (item.HasImage(imageType, 0))
         {
-            var sourcePath = item.GetImagePath(ImageType.Primary, 0);
+            var sourcePath = item.GetImagePath(imageType, 0);
             if (File.Exists(sourcePath))
             {
                 return await File.ReadAllBytesAsync(sourcePath, ct).ConfigureAwait(false);
             }
         }
 
-        if (type == "tv")
+        if (allowProviderFallback && type == "tv")
         {
             // Poster fallback only — a failure here just means no TMDB poster to fall back to.
             info ??= (await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false)).Info;

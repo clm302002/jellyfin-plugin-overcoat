@@ -205,6 +205,7 @@
 
                         <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="banner">
                             <h3>Live preview</h3>
+                            <div class="ovcStatusSwitch"><button type="button" class="ovcChip ovcLayoutBtn ovcChipActive" data-layout="portrait">Poster</button><button type="button" class="ovcChip ovcLayoutBtn" data-layout="landscape">Wide card</button></div>
                             <div class="ovcStatusSwitch" id="OvercoatPreviewStatuses">
                                 <button type="button" class="ovcChip" data-status="NEW">NEW</button>
                                 <button type="button" class="ovcChip" data-status="AIRING">AIRING</button>
@@ -333,6 +334,7 @@
 
                         <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="badge">
                             <h3>Live preview</h3>
+                            <div class="ovcStatusSwitch"><button type="button" class="ovcChip ovcLayoutBtn ovcChipActive" data-layout="portrait">Poster</button><button type="button" class="ovcChip ovcLayoutBtn" data-layout="landscape">Wide card</button></div>
                             <div class="ovcStatusSwitch" id="OvercoatPreviewBadges">
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="watch_history" aria-pressed="true">Watch History</button>
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="tmdb_trending" aria-pressed="true">TMDB Trending</button>
@@ -620,6 +622,7 @@
             // asks the server for a clean poster out of the user's own library.
             var previewSource = 'placeholder';
             var previewKey = '';
+            var previewLayout = 'portrait';
 
             function newPreviewKey() {
                 if (window.crypto && window.crypto.randomUUID) { return window.crypto.randomUUID(); }
@@ -636,6 +639,16 @@
                 else { refreshBannerPreview(); }
             }
 
+            function setPreviewLayout(next) {
+                previewLayout = next === 'landscape' ? 'landscape' : 'portrait';
+                if (previewSource === 'random') { previewKey = newPreviewKey(); }
+                page.querySelectorAll('.ovcLayoutBtn').forEach(function (b) {
+                    b.classList.toggle('ovcChipActive', b.getAttribute('data-layout') === previewLayout);
+                });
+                refreshBannerPreview();
+                refreshBadgePreview();
+            }
+
             function badgePreviewUrl() {
                 var keys = [];
                 page.querySelectorAll('#OvercoatPreviewBadges .ovcChip.ovcChipActive').forEach(function (b) {
@@ -649,6 +662,7 @@
                     'gap=' + encodeURIComponent(val('BadgeGapPercent') || '1'),
                     'source=' + encodeURIComponent(previewSource),
                     'previewKey=' + encodeURIComponent(previewKey),
+                    'layout=' + encodeURIComponent(previewLayout),
                     'api_key=' + encodeURIComponent(ApiClient.accessToken()),
                     '_=' + new Date().getTime()
                 ].join('&');
@@ -705,6 +719,7 @@
                     'font=' + encodeURIComponent(val('BannerFont')),
                     'source=' + encodeURIComponent(previewSource),
                     'previewKey=' + encodeURIComponent(previewKey),
+                    'layout=' + encodeURIComponent(previewLayout),
                     'api_key=' + encodeURIComponent(ApiClient.accessToken()),
                     '_=' + new Date().getTime()
                 ].join('&');
@@ -778,6 +793,7 @@
                     '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcEnabled" /><span>Process this library</span></label>' +
                     '<div class="ovcLibOpts">' +
                       (isTv ? '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcStatus" /><span>Status banners</span></label>' : '') +
+                      (isTv ? '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcWide" /><span>Wide-card overlays (series Thumb)</span></label><p class="ovcMuted">For Next Up and Continue Watching, each Jellyfin user must turn off <em>Use episode images</em>. Episode artwork is never modified.</p>' : '') +
                       '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcWatch" /><span>Watch-history badge</span></label>' +
                       '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTrend" /><span>Trending badge</span></label>' +
                       '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTop250" /><span>IMDB Top 250 badge</span></label>' +
@@ -785,6 +801,7 @@
                 while (body.firstChild) { row.appendChild(body.firstChild); }
                 row.querySelector('.ovcEnabled').checked = !!saved.Enabled;
                 if (isTv) row.querySelector('.ovcStatus').checked = saved.StatusOverlays !== false;
+                if (isTv) row.querySelector('.ovcWide').checked = saved.WideCardOverlays === true;
                 row.querySelector('.ovcWatch').checked = saved.WatchHistoryBadge !== false;
                 row.querySelector('.ovcTrend').checked = saved.TrendingBadge !== false;
                 row.querySelector('.ovcTop250').checked = saved.ImdbTop250Badge !== false;
@@ -851,6 +868,7 @@
                         Type: row.getAttribute('data-type'),
                         Enabled: row.querySelector('.ovcEnabled').checked,
                         StatusOverlays: statusEl ? statusEl.checked : false,
+                        WideCardOverlays: row.querySelector('.ovcWide') ? row.querySelector('.ovcWide').checked : false,
                         WatchHistoryBadge: row.querySelector('.ovcWatch').checked,
                         TrendingBadge: row.querySelector('.ovcTrend').checked,
                         ImdbTop250Badge: row.querySelector('.ovcTop250').checked
@@ -996,6 +1014,12 @@
                 stat('on disk', h.VaultSizeDisplay);
                 if (h.OrphanedOriginals) {
                     stat('for items no longer in your library', h.OrphanedOriginals);
+                }
+                if (h.WideCards) {
+                    stat('wide cards managed', h.WideCards.TrackedItems);
+                    stat('wide cards without a saved copy', h.WideCards.TrackedWithoutOriginal,
+                        h.WideCards.TrackedWithoutOriginal ? 'ovcStatWarn' : '');
+                    stat('wide-card originals on disk', h.WideCards.VaultSizeDisplay);
                 }
             }
 
@@ -1219,7 +1243,7 @@
                     page.querySelector('#OvercoatRunNow').addEventListener('click', function () { runTask('OvercoatApply', 'Apply Overcoat Overlays'); });
                     page.querySelector('#OvercoatRestore').addEventListener('click', function () {
                         Dashboard.confirm('Restore the original (un-overlaid) posters Overcoat saved?', 'Restore originals', function (ok) {
-                            if (ok) runTask('OvercoatRestore', 'Restore Original Posters (Overcoat)');
+                            if (ok) runTask('OvercoatRestore', 'Restore Original Artwork (Overcoat)');
                         });
                     });
                     page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
@@ -1244,6 +1268,9 @@
                         btn.addEventListener('click', function () {
                             setPreviewSource(btn.getAttribute('data-source'));
                         });
+                    });
+                    page.querySelectorAll('.ovcLayoutBtn').forEach(function (btn) {
+                        btn.addEventListener('click', function () { setPreviewLayout(btn.getAttribute('data-layout')); });
                     });
                     page.querySelectorAll('#OvercoatPreviewStatuses .ovcChip').forEach(function (btn) {
                         btn.addEventListener('click', function () {

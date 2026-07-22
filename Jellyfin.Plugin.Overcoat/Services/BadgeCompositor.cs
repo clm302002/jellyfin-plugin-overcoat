@@ -16,7 +16,7 @@ public sealed class BadgeCompositor
     public const string ImdbTop250 = "imdb_top250";
 
     /// <summary>Placement options for the side-ribbon stack.</summary>
-    public readonly record struct BadgeLayout(bool RightSide, string Vertical, int ScalePercent, int GapPercent)
+    public readonly record struct BadgeLayout(bool RightSide, string Vertical, int ScalePercent, int GapPercent, int ReservedTopPercent = 0)
     {
         public static BadgeLayout Default => new(false, "top", 100, 1);
     }
@@ -68,6 +68,8 @@ public sealed class BadgeCompositor
             {
                 startY = 0;
             }
+
+            startY = Math.Max(startY, (int)(poster.Height * (Math.Clamp(layout.ReservedTopPercent, 0, 50) / 100f)));
 
             // NOTE: right-side placement is just an x-shift to the right edge — the art is NOT mirrored.
             // The current ribbons are flat on the left and rounded on the right, so on the right side

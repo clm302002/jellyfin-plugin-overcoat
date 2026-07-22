@@ -39,10 +39,13 @@ and its approach to making media libraries more expressive and useful.
   Watch history means recent playback activity; it is not another “trending” source.
 - **Poster safety:** Overcoat saves a clean original in its originals vault before writing an
   overlay. Dry-run mode lets you inspect what would be processed without changing posters.
+- **Wide home cards (optional):** TV libraries can mirror overlays onto existing series Thumb art.
+  Episode images and Backdrops remain untouched. Each user must turn off **Use episode images in
+  Next Up and Continue Watching** for those cards to inherit the series Thumb; missing Thumbs are skipped.
 
 > [!WARNING]
 > Overcoat writes overlays into your poster artwork. Keep normal backups, and run **Restore Original
-> Posters** before uninstalling. Uninstalling the plugin does not automatically restore posters.
+> Artwork** before uninstalling. Uninstalling the plugin does not automatically restore artwork.
 
 ## Install and get your first result
 
@@ -113,7 +116,8 @@ advanced title targeting into separate sections.
 | TV status banners and live preview | Working |
 | TV and movie badges | Working; movies are badges-only |
 | Per-library controls | Working |
-| Originals vault, dry run, restore task | Working |
+| Existing series Thumb wide-card overlays | Working; opt-in; episode images untouched |
+| Originals vault, dry run, restore task | Working for posters and managed series Thumbs |
 | Badge art/style selection | Planned |
 
 A TMDB API key is required for status and TMDB-backed lists. Overcoat is tested against the pinned
@@ -122,7 +126,7 @@ Jellyfin 10.11 API surface; newer Jellyfin releases may require a plugin update.
 ### Restoring or removing Overcoat
 
 1. Stop tools or scans that might rewrite posters.
-2. Run **Plugins → Overcoat → Maintenance → Restore original posters** (or the identically named
+2. Run **Plugins → Overcoat → Maintenance → Restore original artwork** (or the identically named
    scheduled task) and let it finish.
 3. Verify a few posters, then uninstall the plugin and restart Jellyfin.
 
@@ -134,9 +138,9 @@ an uninstall. That persistence is useful for recovery, but it is not a substitut
 
 Add `https://github.com/clm302002/jellyfin-plugin-overcoat/releases/download/beta/manifest.json`
 as a separate plugin repository. Betas are opt-in and never appear at the stable URL. The beta feed
-also contains stable releases, so it can be used alone. Jellyfin sorts the four-part beta version
-(for example `0.7.0.1`) above the matching stable (`0.7.0.0`); choose stable manually when moving
-back from a beta. Keep backups and expect prerelease rough edges.
+also contains stable releases, so it can be used alone. Jellyfin uses the fourth version component
+for channel ordering: betas count upward from `.1`, while the matching stable release uses `.500`
+so every tester is offered the finished build. Keep backups and expect prerelease rough edges.
 
 </details>
 

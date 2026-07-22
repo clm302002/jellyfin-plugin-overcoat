@@ -407,6 +407,12 @@ public class LibraryConfig
     /// <summary>Gets or sets a value indicating whether status banners are drawn (TV only; ignored for movies).</summary>
     public bool StatusOverlays { get; set; } = true;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the same overlays are also drawn on the series Thumb
+    /// used by Jellyfin's landscape Next Up / Continue Watching cards. TV libraries only.
+    /// </summary>
+    public bool WideCardOverlays { get; set; }
+
     /// <summary>Gets or sets a value indicating whether the watch-history badge is eligible in this library.</summary>
     public bool WatchHistoryBadge { get; set; } = true;
 

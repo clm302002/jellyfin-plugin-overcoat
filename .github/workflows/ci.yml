@@ -1,9 +1,7 @@
 name: CI
 
-# Runs on every push to main/dev and on every PR. There is no unit-test suite (see CONTRIBUTING),
-# so this is deliberately about the two things that have actually broken in practice: the plugin
-# failing to compile, and the hand-edited settings page shipping with a syntax error or a dangling
-# element id. Both are cheap to check and neither is visible without checking.
+# Runs on every push to main/dev and on every PR. It builds against the supported ABI floor, runs
+# the regression suite, validates the hand-edited settings page, and smoke-tests packaging.
 
 on:
   push:

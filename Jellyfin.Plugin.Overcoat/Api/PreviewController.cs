@@ -41,11 +41,11 @@ public class PreviewController : ControllerBase
     /// library. Falls back to the placeholder whenever no clean poster can be found, so the preview
     /// always renders something rather than erroring on a settings page.
     /// </summary>
-    private async Task<SKBitmap> ResolveCanvasAsync(string? source, string? previewKey, CancellationToken ct)
+    private async Task<SKBitmap> ResolveCanvasAsync(string? source, string? previewKey, bool landscape, CancellationToken ct)
     {
         if (!string.Equals(source, "random", StringComparison.OrdinalIgnoreCase))
         {
-            return BuildSamplePoster();
+            return BuildSamplePoster(landscape);
         }
 
         // The browser creates a new opaque key only when Random is clicked. Every subsequent
@@ -55,12 +55,13 @@ public class PreviewController : ControllerBase
             || previewKey.Length > 64
             || previewKey.Any(c => !char.IsAsciiLetterOrDigit(c) && c != '-' && c != '_'))
         {
-            return BuildSamplePoster();
+            return BuildSamplePoster(landscape);
         }
 
+        previewKey += landscape ? "_wide" : "_portrait";
         if (PreviewPosters.TryGetValue(previewKey, out var cached))
         {
-            return OverlayRenderer.Decode(cached) ?? BuildSamplePoster();
+            return OverlayRenderer.Decode(cached) ?? BuildSamplePoster(landscape);
         }
 
         var gate = PreviewLocks.GetOrAdd(previewKey, _ => new SemaphoreSlim(1, 1));
@@ -69,14 +70,14 @@ public class PreviewController : ControllerBase
         {
             if (PreviewPosters.TryGetValue(previewKey, out cached))
             {
-                return OverlayRenderer.Decode(cached) ?? BuildSamplePoster();
+                return OverlayRenderer.Decode(cached) ?? BuildSamplePoster(landscape);
             }
 
             var picker = new PreviewPosterSource(_libraryManager, _logger);
-            var selected = await picker.TryGetRandomAsync(ct).ConfigureAwait(false);
+            var selected = await picker.TryGetRandomAsync(landscape, ct).ConfigureAwait(false);
             if (selected is null)
             {
-                return BuildSamplePoster();
+                return BuildSamplePoster(landscape);
             }
 
             PreviewPosters[previewKey] = OverlayRenderer.EncodePng(selected);
@@ -125,9 +126,10 @@ public class PreviewController : ControllerBase
         [FromQuery] string? font = null,
         [FromQuery] string? source = null,
         [FromQuery] string? previewKey = null,
+        [FromQuery] string? layout = null,
         CancellationToken cancellationToken = default)
     {
-        using var bmp = await ResolveCanvasAsync(source, previewKey, cancellationToken).ConfigureAwait(false);
+        using var bmp = await ResolveCanvasAsync(source, previewKey, string.Equals(layout, "landscape", StringComparison.OrdinalIgnoreCase), cancellationToken).ConfigureAwait(false);
         using var renderer = new OverlayRenderer();
         renderer.DrawStatusBanner(bmp, status, new OverlayRenderer.BannerOptions
         {
@@ -170,9 +172,10 @@ public class PreviewController : ControllerBase
         [FromQuery] int gap = 1,
         [FromQuery] string? source = null,
         [FromQuery] string? previewKey = null,
+        [FromQuery] string? layout = null,
         CancellationToken cancellationToken = default)
     {
-        using var bmp = await ResolveCanvasAsync(source, previewKey, cancellationToken).ConfigureAwait(false);
+        using var bmp = await ResolveCanvasAsync(source, previewKey, string.Equals(layout, "landscape", StringComparison.OrdinalIgnoreCase), cancellationToken).ConfigureAwait(false);
         using var renderer = new OverlayRenderer();
 
         var config = Plugin.Instance?.Configuration;
@@ -219,16 +222,18 @@ public class PreviewController : ControllerBase
                 string.Equals(side, "right", StringComparison.OrdinalIgnoreCase),
                 string.IsNullOrWhiteSpace(vertical) ? "top" : vertical,
                 scale,
-                gap));
+                gap,
+                bmp.Width > bmp.Height && config is not null && config.IsStatusShown("RETURNING")
+                    && !string.Equals(config.BannerPosition, "bottom", StringComparison.OrdinalIgnoreCase) ? 18 : 0));
         }
 
         return File(OverlayRenderer.EncodePng(bmp), "image/png");
     }
 
-    private static SKBitmap BuildSamplePoster()
+    private static SKBitmap BuildSamplePoster(bool landscape)
     {
-        const int w = 600;
-        const int h = 900;
+        int w = landscape ? 960 : 600;
+        int h = landscape ? 540 : 900;
         var bmp = new SKBitmap(w, h);
         using var canvas = new SKCanvas(bmp);
 
