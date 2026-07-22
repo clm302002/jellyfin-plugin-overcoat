@@ -5,6 +5,8 @@ updates:
   # visible as a PR rather than silent. Pinning to commit SHAs is the stronger fix and is still open.
   - package-ecosystem: github-actions
     directory: /
+    # main holds released code only, so proposals go to the integration branch.
+    target-branch: dev
     schedule:
       interval: monthly
     commit-message:
@@ -12,6 +14,7 @@ updates:
 
   - package-ecosystem: nuget
     directory: /
+    target-branch: dev
     schedule:
       interval: monthly
     commit-message:
