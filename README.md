@@ -68,14 +68,31 @@ The Banners tab covers solid, frosted-glass, and neon styles; pill, square, and 
 top/bottom placement; alignment; full-width bands; bundled/system fonts; text scale; icons; shadows;
 per-status colours and labels; glass blur/tint; neon glow; and airing/returning date formats.
 
+> [!IMPORTANT]
+> Banner appearance and badge layout are **global settings**, not per-title settings. The Libraries
+> tab chooses which overlay and badge types each library receives; every eligible title in that
+> library then uses the same global appearance and layout. You can enable watch history only, TMDB
+> Trending only, both side ribbons, and/or IMDb Top 250 for a library, but you cannot give one title
+> a unique banner or badge design.
+
 The Badges tab controls the **left-side** ribbon anchor (top, middle, or bottom), scale, and spacing.
 IMDb retains its supported corner placement. The gallery intentionally contains no right-side ribbon
 examples because the current ribbon artwork is designed for the left edge.
 
-![Mocked Jellyfin shell showing the real Overcoat Banners, Badges, and Libraries settings panels](assets/showcase-settings.png)
+### Settings tour
 
-This composite is captured from the real embedded configuration HTML in a standalone mocked shell.
-It uses fictional libraries and users and never logs in to or contacts a Jellyfin server.
+Click any screenshot to open the full-size image.
+
+<p align="center">
+  <a href="assets/settings-banners.png"><img src="assets/settings-banners.png" width="31%" alt="Overcoat Banners settings with style, shape, font, colour, date-format, and preview controls" /></a>
+  <a href="assets/settings-badges.png"><img src="assets/settings-badges.png" width="31%" alt="Overcoat Badges settings with left-side anchor, scale, spacing, and preview controls" /></a>
+  <a href="assets/settings-libraries.png"><img src="assets/settings-libraries.png" width="31%" alt="Overcoat Libraries settings with fictional TV Shows and Movies library rows" /></a>
+</p>
+
+These are separate full-size captures of the real embedded configuration HTML in a standalone
+mocked shell. Every user, library, configuration value, preview response, and access token is
+synthetic. The capture tool has no real server address or API key, never logs in to Jellyfin, and
+never contacts a live server.
 
 ## Compatibility and project status
 
