@@ -54,27 +54,77 @@ DESCRIPTION = (
 )
 
 
-def extract_changelog(path, tag):
-    """Pull the '## [x.y.z] — date' section for this tag out of a Keep-a-Changelog file.
+def extract_section(text, heading):
+    """Body of a '## [heading] ...' section, up to the next '## ' heading. Empty if absent."""
+    pattern = rf"^##\s*\[{re.escape(heading)}\][^\n]*\n(.*?)(?=^##\s|\Z)"
+    m = re.search(pattern, text, re.MULTILINE | re.DOTALL)
+    if not m:
+        return ""
+    body = m.group(1).strip()
+    return "" if body.lower().startswith("_nothing yet") else body
 
-    Falls back to a one-liner rather than failing the release: a missing heading should not block
-    shipping, but the generic text is a signal the CHANGELOG wasn't updated.
+
+def extract_changelog(path, tag, max_chars=None):
+    """Release notes for a tag.
+
+    Betas of one version all reduce to the same base number, so keying purely off that made every
+    beta of 0.7.0 advertise the identical 5,000-character 0.7.0 section — the plugin page's revision
+    history then showed the same wall of text four times over, which is worse than showing nothing.
+
+    So a prerelease prefers the '## [Unreleased]' section, which is where work that has not shipped
+    yet is recorded and therefore changes between betas, and is labelled with its beta number so two
+    entries are never indistinguishable. A stable release uses its own '## [x.y.z]' section.
     """
-    version = tag.lstrip("v").split("-")[0]
+    raw = tag.lstrip("v")
+    base = raw.split("-")[0]
+    prerelease = "-" in raw
+
     try:
         with open(path, encoding="utf-8") as f:
             text = f.read()
     except OSError:
         return f"Overcoat {tag}."
 
-    # Match '## [0.6.1]' (any trailing date/text), up to the next '## ' heading.
-    pattern = rf"^##\s*\[{re.escape(version)}\][^\n]*\n(.*?)(?=^##\s|\Z)"
-    m = re.search(pattern, text, re.MULTILINE | re.DOTALL)
-    if not m:
-        return f"Overcoat {tag}."
+    if prerelease:
+        suffix = raw.split("-", 1)[1]
+        body = extract_section(text, "Unreleased") or extract_section(text, base)
+        header = f"Pre-release ({suffix}) of {base}. Expect rough edges."
+        body = f"{header}\n\n{body}" if body else header
+    else:
+        body = extract_section(text, base) or f"Overcoat {tag}."
 
-    body = m.group(1).strip()
-    return body if body else f"Overcoat {tag}."
+    return truncate_changelog(body, max_chars)
+
+
+def truncate_changelog(body, max_chars):
+    """Trim to a readable length for the manifest — it renders in a narrow dashboard panel."""
+    if not max_chars or len(body) <= max_chars:
+        return body
+
+    cut = body[:max_chars]
+    # Prefer breaking at a line boundary so a bullet is not sliced mid-word.
+    nl = cut.rfind("\n")
+    if nl > max_chars * 0.6:
+        cut = cut[:nl]
+    return cut.rstrip() + "\n\n… see the full notes on the release page."
+
+
+def tidy_historical_changelog(version, changelog):
+    """Shorten a carried-over entry so the plugin page's revision history stays readable.
+
+    Superseded prereleases are collapsed to a one-line label. Builds published before the notes were
+    per-beta all carried the same multi-thousand-character section, so the panel showed the identical
+    wall of text once per beta — the label is both shorter and more accurate about what that entry is.
+    Stable entries keep their notes and are only length-capped.
+    """
+    parts = version.split(".")
+    if len(parts) == 4 and parts[3].isdigit():
+        build = int(parts[3])
+        if 1 <= build < 500:
+            base = ".".join(parts[:3])
+            return f"Pre-release (build {build}) of {base}. Superseded — see the release page for details."
+
+    return truncate_changelog(changelog, 900)
 
 
 def load_previous_versions(path, current_version):
@@ -91,6 +141,8 @@ def load_previous_versions(path, current_version):
             data = json.load(f)
         versions = data[0].get("versions", []) if isinstance(data, list) and data else []
         kept = [v for v in versions if v.get("version") != current_version]
+        for v in kept:
+            v["changelog"] = tidy_historical_changelog(v.get("version", ""), v.get("changelog", ""))
         print(f"history:  {len(kept)} previous version(s) carried over from {path}")
         return kept
     except (OSError, ValueError, KeyError, IndexError) as exc:
@@ -114,8 +166,12 @@ def main():
     prev_manifest = os.environ.get("PREV_MANIFEST", "")
     ts = os.environ.get("TIMESTAMP") or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    # The manifest's changelog renders inside Jellyfin's plugin page, in a narrow column stacked
+    # once per version — long entries there are unreadable. The GitHub release body keeps the full
+    # text (the workflow calls extract_changelog separately without a cap).
+    MANIFEST_CHANGELOG_LIMIT = 900
     changelog = os.environ.get("CHANGELOG") or extract_changelog(
-        os.environ.get("CHANGELOG_FILE", "CHANGELOG.md"), tag)
+        os.environ.get("CHANGELOG_FILE", "CHANGELOG.md"), tag, max_chars=MANIFEST_CHANGELOG_LIMIT)
 
     os.makedirs(out, exist_ok=True)
     dll = os.path.join(pub, "Jellyfin.Plugin.Overcoat.dll")

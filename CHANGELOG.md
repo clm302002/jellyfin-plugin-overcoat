@@ -14,6 +14,11 @@ All notable changes to Overcoat are documented here. Format follows
 - **Settings → Maintenance now has a Check for updates button.** It shows the installed and newest
   available versions and installs the newer one. It does not rely on the flag above, so it can also
   rescue an installation Jellyfin has stopped offering updates for.
+- **Revision history no longer repeats itself.** Every pre-release of a version advertised the
+  identical multi-thousand-character release notes, so the plugin page showed the same wall of text
+  once per build. Pre-releases now carry their own notes and are labelled with their build number,
+  superseded ones collapse to a single line, and manifest entries are length-capped for the narrow
+  panel they render in. The full notes stay on the release page.
 - **Tidied the plugin's description** on the Jellyfin plugins page. It was a dense paragraph ending
   in a shouted all-caps warning; it is now two plain sentences, with the uninstall caveat kept
   because losing it costs people their original posters.
