@@ -83,10 +83,11 @@ for (const [label, pattern] of requiredPatterns) {
   }
 }
 
-const generalMarkup = html.slice(html.indexOf('data-panel="general"'), html.indexOf('data-panel="banners"'));
+// The General tab was folded into Maintenance; this guards that badge settings did not come with it.
+const maintenanceMarkup = html.slice(html.indexOf('data-panel="maintenance"'));
 const badgeMarkup = html.slice(html.indexOf('data-panel="badges"'), html.indexOf('data-panel="apikeys"'));
 for (const id of ['BadgesEnabled', 'TrendingTimeWindow', 'WatchHistoryDays', 'WatchHistoryAllUsers', 'ImdbTop250TvListId']) {
-  if (generalMarkup.includes(`id="${id}"`) || !badgeMarkup.includes(`id="${id}"`)) {
+  if (maintenanceMarkup.includes(`id="${id}"`) || !badgeMarkup.includes(`id="${id}"`)) {
     console.error(`FAIL badge setting ${id} is not grouped exclusively on the Badges tab`);
     failures++;
   }
@@ -125,6 +126,15 @@ if (!minuteSelect || new Set(minuteValues).size !== minuteValues.length) {
   failures++;
 } else {
   console.log('ok   schedule minute options are unique');
+}
+
+// 6. The General tab was removed and its settings folded into Maintenance. A stray tab button or
+//    panel would render as an empty tab, so fail rather than ship one.
+if (/data-tab="general"/.test(html) || /data-panel="general"/.test(html)) {
+  console.error('FAIL the removed General tab is referenced again');
+  failures++;
+} else {
+  console.log('ok   General tab stays removed');
 }
 
 process.exit(failures ? 1 : 0);

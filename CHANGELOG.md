@@ -13,6 +13,11 @@ All notable changes to Overcoat are documented here. Format follows
   failure case, including the one people don't expect: the saved copies survive uninstalling the
   plugin, so a forgotten restore is fixed by reinstalling and running it then.
 
+### Changed
+- **The General tab is gone.** Its two settings — run behaviour and the schedule — moved to
+  **Maintenance**, which is where the rest of the "how it runs" controls already lived. The page now
+  opens on **Banners**, since that is what most visits are for.
+
 ## [0.7.0] — 2026-07-22
 
 Findings from an independent deep audit. Every item was re-verified before being changed, and the

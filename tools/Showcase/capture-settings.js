@@ -26,7 +26,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (!el.querySelector('.ovcLibraryRow')) el.innerHTML = '<div class="ovcCard ovcLibraryRow"><h3>TV Shows <small>(mock)</small></h3><label><input type="checkbox" checked> Process library</label> &nbsp; <label><input type="checkbox" checked> Status banners</label><br><label><input type="checkbox" checked> Watch history</label> &nbsp; <label><input type="checkbox" checked> TMDB Trending</label> &nbsp; <label><input type="checkbox"> IMDb Top 250</label></div><div class="ovcCard ovcLibraryRow"><h3>Movies <small>(mock)</small></h3><label><input type="checkbox" checked> Process library</label><br><label><input type="checkbox"> Watch history</label> &nbsp; <label><input type="checkbox" checked> TMDB Trending</label> &nbsp; <label><input type="checkbox" checked> IMDb Top 250</label></div>';
   });
   const captureTabs = process.env.SHOWCASE_CAPTURE_ALL === '1'
-    ? ['general','banners','badges','apikeys','libraries','maintenance']
+    ? ['banners','badges','apikeys','libraries','maintenance']
     : ['banners','badges','libraries'];
   for (const tab of captureTabs) {
     await page.locator(`button[data-tab="${tab}"]`).click();
@@ -34,7 +34,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     await page.screenshot({ path:path.join(out,`settings-${tab}.png`), fullPage:true });
   }
   if (process.env.SHOWCASE_VERIFY_SCROLL === '1') {
-    for (const tab of ['general','banners','badges','apikeys','libraries','maintenance']) {
+    for (const tab of ['banners','badges','apikeys','libraries','maintenance']) {
       await page.locator(`button[data-tab="${tab}"]`).click();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       if (overflow > 1) throw new Error(`${tab} has ${overflow}px of horizontal overflow.`);
@@ -42,7 +42,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (await page.locator('button[data-tab="maintenance"]').getAttribute('aria-selected') !== 'true') {
       throw new Error('Tab ARIA selection state did not update.');
     }
-    await page.locator('button[data-tab="general"]').focus();
+    await page.locator('button[data-tab="banners"]').focus();
     await page.keyboard.press('ArrowRight');
     if (await page.locator('button[data-tab="banners"]').getAttribute('aria-selected') !== 'true') {
       throw new Error('Keyboard tab navigation failed.');
@@ -70,11 +70,11 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (state.mobile && !state.floating) throw new Error('Mobile floating preview did not appear after scrolling.');
     if (!state.mobile && (state.previewTop < 100 || state.previewTop > 600)) throw new Error(`Desktop preview is not sticky below the page chrome (top=${state.previewTop}).`);
     console.log(`scroll preview ok: ${state.mobile ? 'floating mobile' : 'sticky desktop'}`);
-    await page.locator('button[data-tab="general"]').click();
+    await page.locator('button[data-tab="banners"]').click();
     const computed = await page.evaluate(() => ({
       form: document.querySelector('#OvercoatConfigForm').getBoundingClientRect().width,
       available: document.querySelector('.content-primary').getBoundingClientRect().width,
-      minCard: Math.min(...[...document.querySelectorAll('[data-panel="general"] > .ovcCard')].map(x=>x.getBoundingClientRect().width)),
+      minCard: Math.min(...[...document.querySelectorAll('[data-panel="maintenance"] > .ovcCard')].map(x=>x.getBoundingClientRect().width)),
       badgeOptions: [...document.querySelectorAll('#BadgeSide option')].map(x=>x.value),
       details: document.querySelectorAll('[data-panel="banners"] details.ovcCard').length,
     }));
@@ -98,7 +98,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     const wasOpen = await dateDetails.getAttribute('open');
     await dateDetails.locator('summary').click();
     if ((await dateDetails.getAttribute('open')) === wasOpen) throw new Error('Banner accordion did not toggle.');
-    await page.locator('button[data-tab="general"]').click();
+    await page.locator('button[data-tab="banners"]').click();
     await page.locator('#CacheEnabled').click();
     await page.locator('#CacheEnabled').dispatchEvent('input');
     const dirtyText = await page.locator('#OvercoatSaveState').textContent();

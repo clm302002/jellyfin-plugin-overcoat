@@ -23,8 +23,7 @@
                         <button is="emby-button" type="button" id="OvercoatDescriptions" class="raised ovcDescriptionToggle" aria-pressed="true"><span class="ovcIcon" aria-hidden="true">notes</span> Descriptions On</button>
                     </div>
                     <div class="ovcTabs" role="tablist" aria-label="Overcoat settings">
-                        <button type="button" class="ovcTab ovcActive" data-tab="general" role="tab"><span class="ovcIcon" aria-hidden="true">tune</span><span class="ovcTabLabel">General</span></button>
-                        <button type="button" class="ovcTab" data-tab="banners" role="tab"><span class="ovcIcon" aria-hidden="true">view_stream</span><span class="ovcTabLabel">Banners</span></button>
+                        <button type="button" class="ovcTab ovcActive" data-tab="banners" role="tab"><span class="ovcIcon" aria-hidden="true">view_stream</span><span class="ovcTabLabel">Banners</span></button>
                         <button type="button" class="ovcTab" data-tab="badges" role="tab"><span class="ovcIcon" aria-hidden="true">bookmark</span><span class="ovcTabLabel">Badges</span></button>
                         <button type="button" class="ovcTab" data-tab="apikeys" role="tab"><span class="ovcIcon" aria-hidden="true">key</span><span class="ovcTabLabel">TMDB API</span></button>
                         <button type="button" class="ovcTab" data-tab="libraries" role="tab"><span class="ovcIcon" aria-hidden="true">video_library</span><span class="ovcTabLabel">Libraries</span></button>
@@ -32,59 +31,8 @@
                     </div>
                 </header>
 
-                <!-- ===================== GENERAL ===================== -->
-                <div class="ovcPanel ovcActive" data-panel="general">
-
-                    <div class="ovcCard">
-                        <h3>Behaviour</h3>
-                        <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="CacheEnabled" /><span>Use skip cache</span></label>
-                            <div class="fieldDescription">Only reprocess items that changed since the last run (much faster). Off reprocesses everything.</div>
-                        </div>
-                        <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="DryRun" /><span>Dry run</span></label>
-                            <div class="fieldDescription">Test mode — works out what it would do but doesn't change any posters.</div>
-                        </div>
-                    </div>
-
-                    <div class="ovcCard">
-                        <h3>Schedule</h3>
-                        <p class="fieldDescription">
-                            When the overlay job runs automatically. Pick a quiet hour — on a large library
-                            the run can take a while.
-                        </p>
-                        <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ScheduleEnabled" /><span>Let Overcoat set the run time</span></label>
-                            <div class="fieldDescription">
-                                On, Overcoat keeps the task on the daily time below. Off, it stops touching the
-                                schedule and you manage it yourself in Dashboard &rarr; Scheduled&nbsp;Tasks
-                                (intervals, several times a day, on&nbsp;startup).
-                                <strong>Turning this off does not stop the task running</strong> — any trigger
-                                already set there stays active. To stop automatic runs entirely, remove the
-                                triggers in Dashboard &rarr; Scheduled&nbsp;Tasks.
-                            </div>
-                        </div>
-                        <div class="ovcRow" id="ScheduleTimeRow">
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="ScheduleHour">Hour</label>
-                                <select is="emby-select" id="ScheduleHour"></select>
-                            </div>
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="ScheduleMinute">Minute</label>
-                                <select is="emby-select" id="ScheduleMinute">
-                                    <option value="0">:00</option>
-                                    <option value="15">:15</option>
-                                    <option value="30">:30</option>
-                                    <option value="45">:45</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="fieldDescription" id="ScheduleSummary"></div>
-                    </div>
-                </div>
-
                 <!-- ===================== BANNERS ===================== -->
-                <div class="ovcPanel" data-panel="banners">
+                <div class="ovcPanel ovcActive" data-panel="banners">
                     <div class="ovcBannerLayout">
                         <div class="ovcCard ovcNotice ovcStudioNotice">
                             <strong>Global banner design</strong>
@@ -439,6 +387,52 @@
 
                 <!-- ===================== MAINTENANCE ===================== -->
                 <div class="ovcPanel" data-panel="maintenance">
+                    <div class="ovcCard">
+                        <h3>Behaviour</h3>
+                        <div class="ovcCheck">
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="CacheEnabled" /><span>Use skip cache</span></label>
+                            <div class="fieldDescription">Only reprocess items that changed since the last run (much faster). Off reprocesses everything.</div>
+                        </div>
+                        <div class="ovcCheck">
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="DryRun" /><span>Dry run</span></label>
+                            <div class="fieldDescription">Test mode — works out what it would do but doesn't change any posters.</div>
+                        </div>
+                    </div>
+
+                    <div class="ovcCard">
+                        <h3>Schedule</h3>
+                        <p class="fieldDescription">
+                            When the overlay job runs automatically. Pick a quiet hour — on a large library
+                            the run can take a while.
+                        </p>
+                        <div class="ovcCheck">
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ScheduleEnabled" /><span>Let Overcoat set the run time</span></label>
+                            <div class="fieldDescription">
+                                On, Overcoat keeps the task on the daily time below. Off, it stops touching the
+                                schedule and you manage it yourself in Dashboard &rarr; Scheduled&nbsp;Tasks
+                                (intervals, several times a day, on&nbsp;startup).
+                                <strong>Turning this off does not stop the task running</strong> — any trigger
+                                already set there stays active. To stop automatic runs entirely, remove the
+                                triggers in Dashboard &rarr; Scheduled&nbsp;Tasks.
+                            </div>
+                        </div>
+                        <div class="ovcRow" id="ScheduleTimeRow">
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="ScheduleHour">Hour</label>
+                                <select is="emby-select" id="ScheduleHour"></select>
+                            </div>
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="ScheduleMinute">Minute</label>
+                                <select is="emby-select" id="ScheduleMinute">
+                                    <option value="0">:00</option>
+                                    <option value="15">:15</option>
+                                    <option value="30">:30</option>
+                                    <option value="45">:45</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="fieldDescription" id="ScheduleSummary"></div>
+
                     <div class="ovcCard ovcWide ovcCaution">
                         <h3>Apply or restore poster artwork</h3>
                         <p class="fieldDescription">
@@ -477,6 +471,11 @@
                             <button is="emby-button" type="button" id="OvercoatVaultRefresh" class="raised">
                                 <span>⭯ Recheck</span>
                             </button>
+                        </div>
+                        <div class="fieldDescription">
+                            These figures are read when the page opens. <strong>Recheck</strong> reads them again —
+                            useful after a run, a restore, or removing something from your library. It only looks;
+                            it doesn't change any posters.
                         </div>
                         <details class="ovcRecoveryHelp">
                             <summary>If something looks wrong</summary>
@@ -536,7 +535,7 @@
         (function () {
             var pluginId = "604f4e22-a0a1-490d-b383-d60336318eaa";
             var page;
-            var activeTab = 'general';
+            var activeTab = 'banners';
             var loading = false;
 
             function setSaveState(state, message) {
@@ -740,7 +739,7 @@
                         showTab(tabs[next].getAttribute('data-tab'));
                     });
                 });
-                showTab('general');
+                showTab('banners');
             }
 
             function toggleApiKeyVisibility() {
@@ -951,7 +950,12 @@
                     var l = document.createElement('span');
                     l.className = 'ovcStatLabel';
                     l.textContent = label;
-                    d.appendChild(v); d.appendChild(l);
+                    // Real whitespace between them: the CSS stacks these, but if the stylesheet is
+                    // stale or fails to load they must still read as "545 posters …" rather than
+                    // "545posters …".
+                    d.appendChild(v);
+                    d.appendChild(document.createTextNode(' '));
+                    d.appendChild(l);
                     el.appendChild(d);
                 }
 
