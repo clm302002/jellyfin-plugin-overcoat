@@ -23,6 +23,10 @@ audit.md
 # Local staging bundle + backups (built artifacts, not source)
 dist/
 
+# Clean, licensed/source-attributed posters used only by the developer showcase harness.
+# The generator accepts this directory explicitly and never reads Jellyfin data.
+private/showcase-input/
+
 # Python bytecode (scripts/)
 __pycache__/
 *.pyc

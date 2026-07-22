@@ -1,257 +1,152 @@
 <div align="center">
 
-<img src="assets/overcoat-hero.png" alt="Overcoat hero banner" width="100%" />
+<img src="assets/showcase-hero.png" alt="Six live-action posters demonstrating Overcoat status-banner treatments" width="100%" />
 
+# Overcoat
 
-**Smart poster overlays for Jellyfin.**
+**Status banners and badges that make a Jellyfin library readable at a glance.**
 
-[![Latest release](https://img.shields.io/github/v/release/clm302002/jellyfin-plugin-overcoat?label=latest&color=5EBD3E)](https://github.com/clm302002/jellyfin-plugin-overcoat/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/clm302002/jellyfin-plugin-overcoat?label=release&color=5EBD3E)](https://github.com/clm302002/jellyfin-plugin-overcoat/releases/latest)
 [![CI](https://github.com/clm302002/jellyfin-plugin-overcoat/actions/workflows/ci.yml/badge.svg)](https://github.com/clm302002/jellyfin-plugin-overcoat/actions/workflows/ci.yml)
-[![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11.9%2B-00A4DC)](https://jellyfin.org/)
-[![License](https://img.shields.io/github/license/clm302002/jellyfin-plugin-overcoat?color=blue)](LICENSE)
-
-Overcoat adds clean status banners and badges directly to your Jellyfin posters — so your library can show what is **new**, **airing**, **returning**, **ended**, **canceled**, trending, ranked, or worth noticing at a glance.
-
-Inspired by **Kometa**, built specifically for **Jellyfin**.
+[![Jellyfin 10.11.9+](https://img.shields.io/badge/Jellyfin-10.11.9%2B-00A4DC)](https://jellyfin.org/)
+[![GPL-3.0](https://img.shields.io/github/license/clm302002/jellyfin-plugin-overcoat?color=blue)](LICENSE)
 
 </div>
 
----
+Overcoat is a native Jellyfin plugin that draws useful information directly onto poster artwork. It
+handles TV status banners, watch-history and TMDB Trending ribbons, and IMDb Top 250 corner badges;
+each selected library can have its own combination.
 
-<div align="center">
+## See Overcoat in action
 
-## !!! Yes, this is vibe-coded !!!
+![Five posters showing NEW, AIRING SUN, RETURNING with a date, ENDED, and CANCELED banner treatments](assets/showcase-statuses.png)
 
-</div>
+> The posters above are a visual-treatment showcase, not claims about those titles' current status.
+> The banner examples were captured on **July 22, 2026**. Real labels are resolved from current
+> metadata when Overcoat runs; schedules and return dates can change.
 
-Full transparency: I'm not a professional C#/Jellyfin developer — I built Overcoat for my own server,
-mostly by "vibe coding" it with an AI assistant until it did what I wanted. I'm sharing it in case
-someone else wants something similar.
+![Breaking Bad poster comparing solid, frosted-glass, and neon banner styles](assets/showcase-styles.png)
 
-It works and I use it daily, but treat it as a hobby project: expect rough edges, **back up anything
-you care about**, and know that things may change. Bug reports, ideas, and pull requests are very
-welcome — but no pressure, and no promises.
+![Six posters demonstrating banner shape, position, alignment, width, font, icon, shadow, tint, blur, glow, and date-format controls](assets/showcase-controls.png)
 
----
+![Three posters demonstrating left-side watch-history and TMDB ribbons at top, middle, and bottom anchors, plus IMDb corner badges](assets/showcase-badges.png)
 
-## What it does
+### What gets changed?
 
-Overcoat gives your Jellyfin library a polished, information-rich poster view without needing external scripts or manual poster edits.
+- **Banners** show `NEW`, `AIRING <day>`, `RETURNING <date>`, `ENDED`, or `CANCELED` on TV posters.
+- **Badges** can show Jellyfin watch history, TMDB Trending membership, and IMDb Top 250 membership.
+  Watch history means recent playback activity; it is not another “trending” source.
+- **Poster safety:** Overcoat saves a clean original in its originals vault before writing an
+  overlay. Dry-run mode lets you inspect what would be processed without changing posters.
 
-It can add:
+> [!WARNING]
+> Overcoat writes overlays into your poster artwork. Keep normal backups, and run **Restore Original
+> Posters** before uninstalling. Uninstalling the plugin does not automatically restore posters.
 
-* **Top status banners**
-  `NEW`, `AIRING`, `RETURNING`, `ENDED`, `CANCELED`
+## Install and get your first result
 
-* **Side badges**
-  `TMDB Trending` and watch-history (recently played) badges, and more
+1. In Jellyfin, open **Dashboard → Plugins → Repositories**, select **+**, and add:
 
-* **Corner badges**
-  IMDb Top 250, ranking badges, and other compact poster markers
+   ```text
+   Name: Overcoat
+   URL:  https://github.com/clm302002/jellyfin-plugin-overcoat/releases/latest/download/manifest.json
+   ```
 
-Everything is rendered into the poster artwork and saved through Jellyfin, so it appears naturally inside your library.
+2. Open **Catalog**, install **Overcoat**, and restart Jellyfin.
+3. Open **Dashboard → Plugins → Overcoat**. Add a free TMDB API key and select your libraries.
+4. Start conservatively: enable **Dry run**, save, then use **Maintenance → Run now**.
+5. Review the Overcoat log. Disable dry run and run **Apply Overcoat Overlays** again when ready.
+6. Under **General → Schedule**, choose **Let Overcoat set the run time**, or turn it off and manage
+   the task's triggers yourself in **Dashboard → Scheduled Tasks**.
 
----
+Overcoat normally runs once daily. Choose a time after anything else that refreshes poster artwork;
+a later library scan or metadata tool can replace an overlaid poster until Overcoat runs again.
 
-## Preview
+## Customize it
 
-<div align="center">
+The Banners tab covers solid, frosted-glass, and neon styles; pill, square, and edge-drop shapes;
+top/bottom placement; alignment; full-width bands; bundled/system fonts; text scale; icons; shadows;
+per-status colours and labels; glass blur/tint; neon glow; and airing/returning date formats.
 
-<img src="assets/library-showcase.png" width="700" alt="Overcoat overlays shown inside a Jellyfin library" />
+The Badges tab controls the **left-side** ribbon anchor (top, middle, or bottom), scale, and spacing.
+IMDb retains its supported corner placement. The gallery intentionally contains no right-side ribbon
+examples because the current ribbon artwork is designed for the left edge.
 
-</div>
+![Mocked Jellyfin shell showing the real Overcoat Banners, Badges, and Libraries settings panels](assets/showcase-settings.png)
 
----
+This composite is captured from the real embedded configuration HTML in a standalone mocked shell.
+It uses fictional libraries and users and never logs in to or contacts a Jellyfin server.
 
-## Why Overcoat?
+## Compatibility and project status
 
-Jellyfin posters look great, but sometimes the most useful information is hidden behind clicks.
+| Area | Status |
+| --- | --- |
+| Jellyfin | **10.11.9 or newer**; 10.11.0–10.11.8 lack APIs the plugin needs |
+| Runtime | .NET 9, supplied by a compatible Jellyfin server |
+| TV status banners and live preview | Working |
+| TV and movie badges | Working; movies are badges-only |
+| Per-library controls | Working |
+| Originals vault, dry run, restore task | Working |
+| Badge art/style selection | Planned |
 
-Overcoat makes that information visible immediately.
+A TMDB API key is required for status and TMDB-backed lists. Overcoat is tested against the pinned
+Jellyfin 10.11 API surface; newer Jellyfin releases may require a plugin update.
 
-You can quickly spot:
+### Restoring or removing Overcoat
 
-* shows that are currently airing
-* shows that are returning soon
-* completed or canceled series
-* trending titles
-* highly ranked movies
-* items with watch-history or activity badges
+1. Stop tools or scans that might rewrite posters.
+2. Run **Plugins → Overcoat → Maintenance → Restore original posters** (or the identically named
+   scheduled task) and let it finish.
+3. Verify a few posters, then uninstall the plugin and restart Jellyfin.
 
-The goal is simple:
+The originals vault and configuration live outside the versioned install directory and may survive
+an uninstall. That persistence is useful for recovery, but it is not a substitute for your backups.
 
-> Make your Jellyfin library easier to browse, prettier to look at, and more useful at a glance.
+<details>
+<summary><strong>Optional beta channel</strong></summary>
 
----
+Add `https://github.com/clm302002/jellyfin-plugin-overcoat/releases/download/beta/manifest.json`
+as a separate plugin repository. Betas are opt-in and never appear at the stable URL. The beta feed
+also contains stable releases, so it can be used alone. Jellyfin sorts the four-part beta version
+(for example `0.7.0.1`) above the matching stable (`0.7.0.0`); choose stable manually when moving
+back from a beta. Keep backups and expect prerelease rough edges.
 
-## Current status
+</details>
 
-Overcoat is early, but working — and in daily use.
+<details>
+<summary><strong>Build from source</strong></summary>
 
-TV status banners, badges and movie overlays all work today. The current focus is badge
-customization and better recovery tooling.
-
-| Area                    | Status      |
-| ----------------------- | ----------- |
-| TV status banners       | Working     |
-| Banner customization    | Working     |
-| Live banner preview     | Working     |
-| TMDB Trending badge     | Working     |
-| Watch-history badge      | Working     |
-| IMDb Top 250 badge      | Working     |
-| Movie overlays (badges) | Working     |
-| Settings page           | Working     |
-| Badge customization     | In progress |
-
----
-
-## Features
-
-* Native Jellyfin plugin
-* Runs inside Jellyfin
-* Uses Jellyfin scheduled tasks, with the **run time set from the plugin's own settings**
-* Per-library configuration
-* Poster overlays rendered with SkiaSharp
-* Status banners for TV series, with **solid / frosted-glass / neon** styles
-* Banner **shape** (pill / square / drop), **position**, **full-width band**, alignment, drop shadow,
-  font, text size, per-status colours, custom labels, and show/hide per status
-* A **live preview** in the settings page — dial in the look without running anything
-* Badge support for trending/ranked/watch-history metadata
-* No cron jobs
-* No separate upload server
-* No manual poster editing
-
----
-
-## Requirements
-
-* Jellyfin **10.11.9 or newer** (10.11.0–10.11.8 are not supported — the plugin uses user-manager APIs added in 10.11.9 and will not load on older builds)
-* **.NET 9**
-* A free **TMDB API key**
-
-Additional metadata sources may be required for some badges as they are added.
-
----
-
-## Installation
-
-### Add the plugin repository (recommended)
-
-In Jellyfin, go to **Dashboard → Plugins → Repositories**, click **+**, and add:
-
-* **Repository Name:** `Overcoat`
-* **Repository URL:**
-
-  ```
-  https://github.com/clm302002/jellyfin-plugin-overcoat/releases/latest/download/manifest.json
-  ```
-
-Then:
-
-1. Open **Dashboard → Plugins → Catalog**, find **Overcoat**, and click **Install**.
-2. **Restart Jellyfin.**
-3. Open **Plugins → Overcoat**, add your TMDB API key, and choose which libraries to process.
-4. Run the scheduled task: **Dashboard → Scheduled Tasks → Apply Overcoat Overlays**.
-
-After that it runs on its own once a day. Set the time under **Plugins → Overcoat → General →
-Schedule** (default 03:00 server time) — pick a quiet hour, since a full run on a large library takes
-a while. Prefer to drive it yourself? Untick **Run automatically every day** and Overcoat will leave
-the triggers in **Dashboard → Scheduled Tasks** alone, so you can use intervals or several run times.
-
-> ✅ Live now — the repository URL above works. (Prefer building it yourself? See **Build from
-> source** below.)
-
-### Beta channel (optional)
-
-Pre-release builds are published to a separate repository URL. Add it *alongside* the stable one:
-
-```
-https://github.com/clm302002/jellyfin-plugin-overcoat/releases/download/beta/manifest.json
-```
-
-Betas never reach the stable URL, so adding this is opt-in and reversible. With both added, the
-plugin catalogue lists every published build and you can move between them from the version
-dropdown — including rolling back if a release misbehaves.
-
-**To stay on beta permanently, add the beta URL and remove the stable one.** The beta channel is a
-superset: every stable release is published to it as well, so a beta-only subscriber still receives
-stable builds — just alongside the pre-release ones. Keeping both URLs is equally fine and simply
-lists everything twice.
-
-Beta versions carry the beta number in the fourth part (`0.7.0.1` = first beta of 0.7.0) while
-stable is always `.0` (`0.7.0.0`). That means a beta sorts *above* the matching stable, so when the
-stable ships you select it from the dropdown rather than being offered it as an update. Expect rough
-edges on betas, and keep the stable repository added.
-
----
-
-## Build from source
-
-Requires the **.NET 9 SDK**.
+Install the .NET 9 SDK, then run:
 
 ```bash
 dotnet build Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release
 ```
 
-Copy the built `Jellyfin.Plugin.Overcoat.dll` into a folder under Jellyfin's `plugins/` directory
-(e.g. `plugins/Overcoat_0.6.1.0/`), restart Jellyfin, then configure it under **Plugins → Overcoat**.
+For a normal installation, prefer the repository manifest: the release package includes matching
+metadata and follows Jellyfin's update flow. Developer and release details are in
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
----
+</details>
 
-## Roadmap
+## A candid note about the project
 
-Planned work includes:
-
-* Badge customization — styles, positioning, and selectable/custom badge art
-* Add more badge sources
-* Add better poster backup/restore behavior
-* Add multi-poster selection
-* Overlays on the wide home-page cards (Next Up / Continue Watching)
-
-Recently shipped: a full banner customization studio (styles, shape, colours, fonts, per-status
-labels) with a live preview, and the first public repository release.
-
----
-
-## Screenshots
-
-<div align="center">
-
-<img src="assets/status-banners.png" width="700" alt="Status banner examples" />
-
-<br /><br />
-
-<img src="assets/badge-examples.png" width="700" alt="Badge examples" />
-
-</div>
-
----
-
-## Attribution
-
-This product uses the TMDB API but is not endorsed or certified by TMDB.
-
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the third-party data sources, artwork and
-fonts Overcoat relies on.
-
----
-
-## Inspiration
-
-Overcoat is inspired by **Kometa** and the idea of turning a media library into something more visual, useful, and personalized.
-
-This project is not affiliated with Jellyfin, Kometa, TMDB, TVDB, or IMDb.
-
----
+Overcoat began as a vibe-coded tool for the maintainer's own server, and AI has assisted its
+development. It remains a hobby project used in a real library—not a promise that poster mutation is
+risk-free. Release builds and automated tests run in CI, the settings HTML has a dedicated checker,
+and dry-run/restore paths are part of the normal workflow. Backups and careful first runs still
+matter. Bug reports, test results, and code review from the community are welcome.
 
 ## Contributing
 
-Contributions, ideas, bug reports, and overlay designs are welcome.
+Issues, overlay designs, documentation fixes, and pull requests are welcome. Start with
+[CONTRIBUTING.md](CONTRIBUTING.md). Please include the Overcoat log and mention any other software
+that touches posters when reporting disappearing or replaced overlays.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+## Attribution and license
 
----
+Showcase poster artwork is sourced from TVDB and remains copyright its respective studios and
+distributors. TMDB, IMDb, Jellyfin, TVDB, and depicted titles do not endorse or sponsor this project.
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for data-source, mark, artwork, font, and package
+notices.
 
-## License
-
-[GPL-3.0-only](LICENSE)
+Overcoat is licensed under [GPL-3.0-only](LICENSE).

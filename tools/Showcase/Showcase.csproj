@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net9.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><RootNamespace>Jellyfin.Plugin.Overcoat</RootNamespace></PropertyGroup>
+  <ItemGroup><PackageReference Include="SkiaSharp" Version="2.88.8" /><PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.8" /></ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Jellyfin.Plugin.Overcoat\Services\OverlayRenderer.cs" /><Compile Include="..\..\Jellyfin.Plugin.Overcoat\Services\BadgeCompositor.cs" />
+    <EmbeddedResource Include="..\..\Jellyfin.Plugin.Overcoat\Resources\Fonts\Juventus-Fans-Bold.ttf"><LogicalName>Jellyfin.Plugin.Overcoat.Resources.Fonts.Juventus-Fans-Bold.ttf</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\badges\*.png"><LogicalName>Jellyfin.Plugin.Overcoat.Resources.Badges.%(Filename)%(Extension)</LogicalName></EmbeddedResource>
+  </ItemGroup>
+</Project>

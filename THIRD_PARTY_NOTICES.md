@@ -54,5 +54,11 @@ contains just `Jellyfin.Plugin.Overcoat.dll` and `meta.json`. The server provide
 
 ## Poster and screenshot imagery
 
-Screenshots and the hero image in this repository show real poster artwork whose copyright belongs to
-the respective studios and distributors. It appears for illustration of the plugin's output only.
+The public README showcase uses poster artwork sourced from TVDB. Raw clean posters are kept only in
+the private, gitignored developer input directory; the repository commits finished demonstration
+plates. Artwork copyright remains with the respective studios and distributors and is shown only to
+illustrate Overcoat's visual output. No affiliation with or endorsement by TVDB or any depicted title
+is implied.
+
+TVDB and TheTVDB.com are trademarks of TheTVDB.com, LLC. TVDB's terms are available at
+<https://thetvdb.com/terms-of-service>.
