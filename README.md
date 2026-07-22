@@ -77,24 +77,32 @@ edge-flush **drop** shape is the maintainer's favorite and is featured in the cu
 > Trending only, both side ribbons, and/or IMDb Top 250 for a library, but you cannot give one title
 > a unique banner or badge design.
 
-The Badges tab controls the **left-side** ribbon anchor (top, middle, or bottom), scale, and spacing.
-IMDb retains its supported corner placement. The gallery intentionally contains no right-side ribbon
-examples because the current ribbon artwork is designed for the left edge.
+The Badges tab keeps badge sources and layout together: the global switch, day/week/month TMDB
+window, watch-history rules, IMDb source lists, left-side ribbon anchor, scale, and spacing. IMDb
+retains its supported corner placement. The gallery intentionally contains no right-side ribbon
+examples because the current ribbon artwork is designed for the left edge. A random library poster
+selected in either live preview stays in place while you edit or switch between Banners and Badges;
+it changes only when you explicitly request another random poster.
 
 ### Settings tour
 
 Click any screenshot to open the full-size image.
 
 <p align="center">
-  <a href="assets/settings-banners.png"><img src="assets/settings-banners.png" width="31%" alt="Overcoat Banners settings with style, shape, font, colour, date-format, and preview controls" /></a>
-  <a href="assets/settings-badges.png"><img src="assets/settings-badges.png" width="31%" alt="Overcoat Badges settings with left-side anchor, scale, spacing, and preview controls" /></a>
-  <a href="assets/settings-libraries.png"><img src="assets/settings-libraries.png" width="31%" alt="Overcoat Libraries settings with fictional TV Shows and Movies library rows" /></a>
+  <a href="assets/settings-banners.png"><img src="assets/settings-banners.png" width="48%" alt="Overcoat Banners studio with appearance, placement, expanded advanced controls, and sticky live preview" /></a>
+  <a href="assets/settings-badges.png"><img src="assets/settings-badges.png" width="48%" alt="Overcoat Badges studio with source settings, watch-history rules, layout controls, and live preview" /></a>
+  <a href="assets/settings-libraries.png"><img src="assets/settings-libraries.png" width="48%" alt="Overcoat Libraries settings with fictional TV and movie libraries and indented per-library options" /></a>
+  <a href="assets/settings-maintenance.png"><img src="assets/settings-maintenance.png" width="48%" alt="Overcoat Maintenance settings with automation, scheduling, apply, restore, recovery, and targeting sections" /></a>
 </p>
 
 These are separate full-size captures of the real embedded configuration HTML in a standalone
 mocked shell. Every user, library, configuration value, preview response, and access token is
 synthetic. The capture tool has no real server address or API key, never logs in to Jellyfin, and
 never contacts a live server.
+
+Libraries expose their banner and badge choices only while **Process this library** is enabled. The
+Maintenance tab groups normal processing, scheduling, apply/restore actions, vault recovery, and
+advanced title targeting into separate sections.
 
 ## Compatibility and project status
 
