@@ -37,11 +37,37 @@ theme is the same one as 0.6.0/0.6.1: **an unknown must never be treated as an a
 - **Restore sends the correct image type.** Saved originals are whatever format the source poster
   was (mostly WebP and JPEG in practice), but every one was being handed to Jellyfin labelled PNG.
 - **Cancelling a run now stops it promptly** instead of being swallowed by error handling.
+- **Saving settings can no longer wipe your library configuration.** If the library list failed to
+  load, the page had no rows to read and Save wrote an empty list over your per-library settings.
+  The saved list is now preserved and the failure is explained on the page.
+- **Bad configuration values can't reach the renderer.** Font scale, badge size, blur, glow, scan
+  limits and colours are clamped server-side — the settings page only enforced them in the browser,
+  and the same values are reachable from a hand-edited config file.
+- **A malformed TMDB override is ignored instead of used.** A bad line parsed to TMDB id 0, and
+  every lookup for that title then failed permanently. Invalid lines are now skipped and logged.
+- **Changing the overlay artwork or drawing code now refreshes existing posters.** The skip cache
+  only tracked your settings, so a rendering change reached items that happened to change for some
+  other reason and silently left everything else on the old art.
 
 ### Changed
 - Releases now build with the exact version they publish, and fail if the two disagree — the
   mismatch that could make Jellyfin show one version while logging another.
 - Manual release runs must check out the tag they claim to publish, and are rejected otherwise.
+- The preview endpoints behind the settings page now require an administrator, matching Jellyfin's
+  own plugin endpoints. Previously any signed-in user could reach them.
+- **"Run automatically every day" is now "Let Overcoat set the run time".** The old label promised
+  something it didn't do: turning it off only stops Overcoat *managing* the trigger — it never
+  stopped the task running. The setting now says so.
+- Added **THIRD_PARTY_NOTICES.md** and the attribution TMDB requires. It also records two unresolved
+  licensing items honestly: the bundled font has no recorded licence, and the watch-history badge art
+  is derived from the Jellyfin logo. Both need resolving before wider promotion.
+
+### Added
+- **A test suite** (44 tests) covering the skip cache, the originals vault, atomic writes and state
+  recovery, image-format detection, and configuration clamping — the state machine every
+  overlay-loss bug so far has lived in. Runs in CI on every push and pull request.
+- CI also matrix-builds against the minimum supported Jellyfin version, and Dependabot now watches
+  Actions and NuGet.
 
 ## [0.6.1] — 2026-07-21
 

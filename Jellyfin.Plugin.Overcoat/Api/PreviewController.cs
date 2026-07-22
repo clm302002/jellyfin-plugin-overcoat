@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.Overcoat.Services;
+using MediaBrowser.Common.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SkiaSharp;
@@ -12,7 +13,10 @@ namespace Jellyfin.Plugin.Overcoat.Api;
 /// matches production output exactly.
 /// </summary>
 [ApiController]
-[Authorize]
+// These endpoints exist solely to drive the admin settings page, and they render images from
+// caller-supplied parameters. Plain [Authorize] let any signed-in user reach them; matching
+// Jellyfin's own PluginsController and requiring elevation keeps them to administrators. (A-28)
+[Authorize(Policy = Policies.RequiresElevation)]
 [Route("Overcoat")]
 [Produces("image/png")]
 public class PreviewController : ControllerBase

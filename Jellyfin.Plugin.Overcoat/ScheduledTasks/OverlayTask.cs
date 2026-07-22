@@ -88,6 +88,10 @@ public class OverlayTask : IScheduledTask
             return;
         }
 
+        // Clamp before anything reads these — the settings page limits are client-side only, and
+        // the XML can be hand-edited. (A-24)
+        ConfigurationSanitizer.Normalize(config);
+
         if (string.IsNullOrWhiteSpace(config.TmdbApiKey))
         {
             _logger.LogError("Overcoat: TMDB API key is not set; configure it on the plugin page.");
@@ -579,6 +583,13 @@ public class OverlayTask : IScheduledTask
             }));
         }
 
+        // Include the renderer revision so a change to drawing code or badge art actually refreshes
+        // existing posters. Without it the key only covers user settings, so shipping a rendering fix
+        // left every unchanged item displaying the old output forever — invisible, and impossible to
+        // clear short of telling users to disable the skip cache. Bump RendererRevision whenever
+        // output changes for identical settings. (A-22)
+        keyParts.Add("r" + OverlayRenderer.RendererRevision.ToString(inv));
+
         var appearanceKey = string.Join("||", keyParts);
 
         // A vanished poster must force a pass even when nothing else changed: NeedsProcessing compares
@@ -798,6 +809,18 @@ public class OverlayTask : IScheduledTask
 
         foreach (var ov in config.TmdbOverrides)
         {
+            // A malformed override line parses to TmdbId 0, which is not a real TMDB id — using it
+            // sends every lookup for that title to /tv/0 and fails forever. Ignore it instead, and
+            // say so, so a typo is visible rather than silently poisoning that title. (A-24)
+            if (ov.TmdbId <= 0)
+            {
+                _logger.LogWarning(
+                    "Overcoat: ignoring TMDB override for '{Name}' — '{Id}' is not a valid TMDB id.",
+                    ov.Name ?? "?",
+                    ov.TmdbId);
+                continue;
+            }
+
             if (string.Equals(ov.Name, name, StringComparison.OrdinalIgnoreCase) && (ov.Year == 0 || ov.Year == year))
             {
                 return ov.TmdbId;

@@ -86,9 +86,10 @@ The goal is simple:
 
 ## Current status
 
-Overcoat is early, but working.
+Overcoat is early, but working — and in daily use.
 
-The current focus is TV status overlays, with badges and movie overlays being actively built out.
+TV status banners, badges and movie overlays all work today. The current focus is badge
+customization and better recovery tooling.
 
 | Area                    | Status      |
 | ----------------------- | ----------- |
@@ -188,7 +189,7 @@ dotnet build Jellyfin.Plugin.Overcoat/Jellyfin.Plugin.Overcoat.csproj -c Release
 ```
 
 Copy the built `Jellyfin.Plugin.Overcoat.dll` into a folder under Jellyfin's `plugins/` directory
-(e.g. `plugins/Overcoat_0.2.0.0/`), restart Jellyfin, then configure it under **Plugins → Overcoat**.
+(e.g. `plugins/Overcoat_0.6.1.0/`), restart Jellyfin, then configure it under **Plugins → Overcoat**.
 
 ---
 
@@ -200,7 +201,7 @@ Planned work includes:
 * Add more badge sources
 * Add better poster backup/restore behavior
 * Add multi-poster selection
-* Finish movie overlay support
+* Overlays on the wide home-page cards (Next Up / Continue Watching)
 
 Recently shipped: a full banner customization studio (styles, shape, colours, fonts, per-status
 labels) with a live preview, and the first public repository release.
@@ -218,6 +219,15 @@ labels) with a live preview, and the first public repository release.
 <img src="assets/badge-examples.png" width="700" alt="Badge examples" />
 
 </div>
+
+---
+
+## Attribution
+
+This product uses the TMDB API but is not endorsed or certified by TMDB.
+
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the third-party data sources, artwork and
+fonts Overcoat relies on.
 
 ---
 

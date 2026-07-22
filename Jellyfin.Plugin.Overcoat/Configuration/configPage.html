@@ -162,10 +162,14 @@
                             the run can take a while.
                         </p>
                         <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ScheduleEnabled" /><span>Run automatically every day</span></label>
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ScheduleEnabled" /><span>Let Overcoat set the run time</span></label>
                             <div class="fieldDescription">
-                                Off hands scheduling back to Dashboard &rarr; Scheduled Tasks, where you can set
-                                your own triggers (intervals, multiple times, on&nbsp;startup). Overcoat won't touch them.
+                                On, Overcoat keeps the task on the daily time below. Off, it stops touching the
+                                schedule and you manage it yourself in Dashboard &rarr; Scheduled&nbsp;Tasks
+                                (intervals, several times a day, on&nbsp;startup).
+                                <strong>Turning this off does not stop the task running</strong> — any trigger
+                                already set there stays active. To stop automatic runs entirely, remove the
+                                triggers in Dashboard &rarr; Scheduled&nbsp;Tasks.
                             </div>
                         </div>
                         <div class="ovcRow" id="ScheduleTimeRow">
@@ -656,8 +660,17 @@
                 return row;
             }
 
+            // The library rows are the ONLY source collectLibraries() reads from. If the API call
+            // that builds them fails, the page has no rows and a Save would write an empty list over
+            // the user's per-library configuration. So the last saved list is kept here and handed
+            // back verbatim whenever the rows aren't trustworthy.
+            var savedLibraries = null;
+            var librariesLoaded = false;
+
             function loadLibraries(config) {
                 var container = page.querySelector('#OvercoatLibraries');
+                savedLibraries = (config.Libraries || []).slice();
+                librariesLoaded = false;
                 return ApiClient.getVirtualFolders().then(function (folders) {
                     var savedByName = {};
                     (config.Libraries || []).forEach(function (l) { savedByName[(l.Name || '').toLowerCase()] = l; });
@@ -671,10 +684,27 @@
                         shown++;
                     });
                     if (!shown) container.innerHTML = '<p class="ovcMuted">No TV or movie libraries found.</p>';
+                    librariesLoaded = true;
+                }, function (err) {
+                    // Do NOT rethrow: the rest of the settings page is still usable and saveable.
+                    librariesLoaded = false;
+                    container.innerHTML = '';
+                    var warn = document.createElement('p');
+                    warn.className = 'ovcMuted';
+                    warn.textContent = 'Could not load your libraries from Jellyfin, so library settings are '
+                        + 'shown as unavailable. Your saved library configuration is preserved — reload this '
+                        + 'page to try again. Everything else on this page can still be saved.';
+                    container.appendChild(warn);
+                    console.error('Overcoat: failed to load libraries', err);
                 });
             }
 
             function collectLibraries() {
+                // Rows never rendered (API failure) — return what was saved rather than wiping it.
+                if (!librariesLoaded) {
+                    return savedLibraries || [];
+                }
+
                 return Array.prototype.map.call(page.querySelectorAll('.ovcLib'), function (row) {
                     var statusEl = row.querySelector('.ovcStatus');
                     return {
@@ -768,7 +798,7 @@
                 page.querySelector('#ScheduleTimeRow').hidden = !on;
                 var summary = page.querySelector('#ScheduleSummary');
                 if (!on) {
-                    summary.textContent = 'Overcoat is not managing the schedule — set it in Dashboard → Scheduled Tasks.';
+                    summary.textContent = 'Overcoat is not managing the schedule. Any trigger already set in Dashboard → Scheduled Tasks stays active — this does not disable automatic runs.';
                     return;
                 }
                 var h = parseInt(page.querySelector('#ScheduleHour').value, 10) || 0;
