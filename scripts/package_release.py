@@ -98,6 +98,13 @@ def load_previous_versions(path, current_version):
         return []
 
 
+# Jellyfin skips a plugin entirely when working out available updates if its installed meta.json
+# says autoUpdate false (InstallationManager.GetAvailablePluginUpdates). Shipping false therefore
+# does not mean "let the user choose" — it means the Plugins page never offers an update at all and
+# the "Update Plugins" task ignores the plugin, so users silently sit on whatever they first
+# installed. Jellyfin's own default is true; matching it is what makes the repository URL useful.
+
+
 def main():
     tag = os.environ["TAG"]
     ver = os.environ["PLUGIN_VER"]
@@ -119,7 +126,7 @@ def main():
     meta = {
         "category": "Metadata", "guid": GUID, "name": NAME, "overview": OVERVIEW,
         "description": DESCRIPTION, "owner": OWNER, "targetAbi": TARGET_ABI,
-        "timestamp": ts, "version": ver, "status": "Active", "autoUpdate": False, "assemblies": [],
+        "timestamp": ts, "version": ver, "status": "Active", "autoUpdate": True, "assemblies": [],
     }
     meta_path = os.path.join(out, "meta.json")
     with open(meta_path, "w") as f:
