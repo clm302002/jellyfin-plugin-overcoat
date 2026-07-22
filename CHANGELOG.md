@@ -11,6 +11,7 @@ All notable changes to Overcoat are documented here. Format follows
   Jellyfin skips a plugin entirely when deciding which have updates available if that flag is off —
   so the Plugins page never offered an update and the "Update Plugins" task ignored Overcoat. Anyone
   who installed it stayed on that version indefinitely regardless of what the repository advertised.
+
 ### Changed
 - **The settings page now uses the whole screen.** Related controls are grouped into responsive
   cards across wide displays and collapse to one column on phones. Banner and badge previews stay
