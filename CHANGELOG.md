@@ -12,8 +12,11 @@ All notable changes to Overcoat are documented here. Format follows
   this unconditionally and it can't be turned off. Overcoat now watches for a scan (scheduled or a
   manual per-library scan) to finish and runs a follow-up pass, restoring the overlays within about a
   minute. It re-renders only the items the scan actually reverted (the rest are skipped by the cache),
-  it never writes into your media folders, and it never grows the saved-originals vault. New toggle on
-  the settings page — **Re-apply after a library scan** (on by default).
+  it never writes into your media folders, and it never grows the saved-originals vault. A per-library
+  scan re-overlays only that library; a full scan covers everything. New toggle on the settings page —
+  **Re-apply after a library scan** (on by default).
+- **FAQ in the README** covering the scan/overlay interaction, that media folders are never modified,
+  per-library follow-ups, and vault size.
 
 ### Fixed
 - **Movie and wide-card overlays that weren't showing up.** When an item's original artwork was a

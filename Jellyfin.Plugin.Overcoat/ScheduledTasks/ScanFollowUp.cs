@@ -45,6 +45,11 @@ public sealed class ScanFollowUp : IHostedService, IDisposable
     private bool _subscribed;
     private bool _pending;
 
+    // Library roots touched since the last fire. A full scan sets _fullScan; otherwise we re-overlay
+    // just these. Guarded by _gate.
+    private readonly HashSet<Guid> _affectedLibraries = new();
+    private bool _fullScan;
+
     public ScanFollowUp(ITaskManager taskManager, ILibraryManager libraryManager, ILogger<ScanFollowUp> logger)
     {
         _taskManager = taskManager;
@@ -79,6 +84,12 @@ public sealed class ScanFollowUp : IHostedService, IDisposable
     {
         if (string.Equals(e.Task?.ScheduledTask?.Key, LibraryScanTaskKey, StringComparison.Ordinal))
         {
+            // A full "Scan Media Library" could have touched anything, so cover everything.
+            lock (_gate)
+            {
+                _fullScan = true;
+            }
+
             ScheduleRun("a library scan finished");
         }
     }
@@ -102,6 +113,16 @@ public sealed class ScanFollowUp : IHostedService, IDisposable
         var kind = e.Item?.GetType().Name;
         if (kind is "Movie" or "Series")
         {
+            // Record which library this item lives in, so the follow-up can re-overlay only that one.
+            var libraryId = e.Item?.GetTopParent()?.Id;
+            if (libraryId is { } id && id != Guid.Empty)
+            {
+                lock (_gate)
+                {
+                    _affectedLibraries.Add(id);
+                }
+            }
+
             ScheduleRun("library images changed");
         }
     }
@@ -129,9 +150,15 @@ public sealed class ScanFollowUp : IHostedService, IDisposable
 
     private void Fire()
     {
+        bool full;
+        Guid[] libraries;
         lock (_gate)
         {
             _pending = false;
+            full = _fullScan;
+            libraries = _affectedLibraries.ToArray();
+            _fullScan = false;
+            _affectedLibraries.Clear();
         }
 
         // The scan may still be finishing, or Overcoat may already be running from the daily trigger.
@@ -144,8 +171,20 @@ public sealed class ScanFollowUp : IHostedService, IDisposable
 
         try
         {
+            // Scope the run: a full scan covers everything, otherwise just the scanned libraries.
+            if (full || libraries.Length == 0)
+            {
+                OverlayTask.RequestFullRun();
+            }
+            else
+            {
+                OverlayTask.RequestScopedRun(libraries);
+            }
+
             _taskManager.QueueIfNotRunning<OverlayTask>();
-            _logger.LogInformation("Overcoat: re-applying overlays after a library scan.");
+            _logger.LogInformation(
+                "Overcoat: re-applying overlays after a library scan ({Scope}).",
+                full || libraries.Length == 0 ? "all libraries" : libraries.Length + " scanned library(ies)");
         }
         catch (Exception ex)
         {

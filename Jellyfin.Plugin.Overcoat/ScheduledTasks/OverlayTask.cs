@@ -40,6 +40,56 @@ public class OverlayTask : IScheduledTask
         Unknown,
     }
 
+    // Optional scope for the NEXT run, set by ScanFollowUp so a per-library scan re-overlays only that
+    // library instead of walking the whole catalogue. Null (the default, e.g. the daily trigger) means
+    // "process everything". Consumed and cleared at the start of a run, so it never leaks past one.
+    private static readonly object _scopeGate = new();
+    private static HashSet<Guid>? _pendingLibraryScope;
+    private static bool _pendingFullRun;
+
+    /// <summary>Requests the next run cover the whole catalogue (e.g. after a full library scan).</summary>
+    public static void RequestFullRun()
+    {
+        lock (_scopeGate)
+        {
+            _pendingFullRun = true;
+            _pendingLibraryScope = null;
+        }
+    }
+
+    /// <summary>
+    /// Requests the next run cover only these library roots (their <c>vf.ItemId</c> GUIDs). Merges with
+    /// anything already pending; a pending full run wins.
+    /// </summary>
+    public static void RequestScopedRun(IEnumerable<Guid> libraryIds)
+    {
+        lock (_scopeGate)
+        {
+            if (_pendingFullRun)
+            {
+                return;
+            }
+
+            _pendingLibraryScope ??= new HashSet<Guid>();
+            foreach (var g in libraryIds)
+            {
+                _pendingLibraryScope.Add(g);
+            }
+        }
+    }
+
+    /// <summary>Takes the pending scope, clearing it. Null result = process everything.</summary>
+    private static HashSet<Guid>? TakePendingScope()
+    {
+        lock (_scopeGate)
+        {
+            var scope = _pendingFullRun ? null : _pendingLibraryScope;
+            _pendingFullRun = false;
+            _pendingLibraryScope = null;
+            return scope is { Count: > 0 } ? scope : null;
+        }
+    }
+
     private readonly ILogger<OverlayTask> _logger;
     private readonly ILibraryManager _libraryManager;
     private readonly IProviderManager _providerManager;
@@ -113,6 +163,15 @@ public class OverlayTask : IScheduledTask
         var ignore = new HashSet<string>(config.IgnoreTitles, StringComparer.OrdinalIgnoreCase);
         var limit = new HashSet<string>(config.LimitToTitles, StringComparer.OrdinalIgnoreCase);
 
+        // A per-library scan asks us to re-overlay just that library; anything else (the daily run, a
+        // full scan) covers everything. Cheap either way thanks to the cache, but this avoids even
+        // enumerating untouched libraries on a big catalogue.
+        var scope = TakePendingScope();
+        if (scope is not null)
+        {
+            file.Info($"Scoped run — {scope.Count} library(ies) that were just scanned.");
+        }
+
         // Resolve the enabled libraries to process (TV or movie).
         var plans = new List<(LibraryConfig Lib, Guid ParentId, string Type)>();
         foreach (var lib in config.Libraries.Where(l => l.Enabled))
@@ -132,7 +191,13 @@ public class OverlayTask : IScheduledTask
                 continue;
             }
 
-            plans.Add((lib, Guid.Parse(vf.ItemId), type));
+            var parentId = Guid.Parse(vf.ItemId);
+            if (scope is not null && !scope.Contains(parentId))
+            {
+                continue; // scoped run — this library wasn't the one scanned
+            }
+
+            plans.Add((lib, parentId, type));
         }
 
         // Fetch the badge data sets once, only those some enabled library actually needs.

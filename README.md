@@ -220,6 +220,38 @@ managed image that has no saved copy.
 
 ---
 
+## FAQ
+
+**My movie or wide-card overlays disappear after a library scan.**
+This is expected, and Overcoat handles it automatically. When a poster lives in your media folder
+(common with the *arr apps, or hand-placed art), Jellyfin re-adopts that file on every library scan
+and strips Overcoat's overlay off the affected items. Jellyfin does this unconditionally — there is no
+setting to disable it, and it applies to *any* overlay tool, not just Overcoat. So Overcoat watches
+for a scan to finish and **re-applies within about a minute**, touching only what the scan changed. If
+you'd rather it didn't, turn off **Settings → Maintenance → Re-apply after a library scan**.
+
+**Does Overcoat modify the posters in my media folders?**
+No — never. Overcoat only writes to Jellyfin's own metadata folder and keeps a clean backup of every
+image it overlays. Your media-folder artwork is never touched. (That's also why a scan can revert
+overlays: Jellyfin prefers the untouched media-folder copy.)
+
+**A manual scan of one library — does Overcoat re-do my whole library?**
+No. A per-library scan triggers a follow-up on **just that library**. A full "Scan Media Library"
+covers everything. Either way the run is cache-gated, so only items whose artwork actually changed are
+re-rendered.
+
+**Will all these saved copies fill up my disk?**
+No. Overcoat keeps **one** clean copy per overlaid image and overwrites it in place — re-scanning and
+re-overlaying the same items never adds more. Total backup size grows only with your library size, not
+with how often things run. **Settings → Maintenance → Recovery** shows the current size.
+
+**Overlays flicker off briefly during a scan.**
+That's the gap between Jellyfin reverting an image and Overcoat re-applying (up to ~a minute after the
+scan settles). It's cosmetic and resolves itself. Frequent flicker usually means very frequent library
+scans — consider how often that task really needs to run.
+
+---
+
 ## Attribution and license
 
 Showcase poster artwork is sourced from TVDB and remains copyright its respective studios and
