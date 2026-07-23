@@ -6,6 +6,13 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed
+- **Clearer schedule settings.** The daily run now always happens (it keeps status dates and
+  trending/watch-history badges current — things no library change touches), so the confusing toggle
+  that "un-managed" the schedule without actually disabling it is gone. In its place: a simple
+  **Set a custom run time** checkbox — off runs at a quiet 3:00 AM, on lets you pick. Applying overlays
+  is now driven by library scans (below), so the daily time no longer has to be lined up with them.
+
 ### Added
 - **Overlays are re-applied automatically after a library scan.** A Jellyfin scan re-adopts posters
   stored in your media folders and strips Overcoat's overlays off the affected items — Jellyfin does

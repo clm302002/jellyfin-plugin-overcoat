@@ -580,18 +580,16 @@
                     <div class="ovcCard">
                         <h3>Schedule</h3>
                         <p class="fieldDescription">
-                            When the overlay job runs automatically. Pick a quiet hour — on a large library
-                            the run can take a while.
+                            Overcoat runs once a day to keep status dates (AIRING / RETURNING), "airing today", and
+                            trending &amp; watch-history badges current — none of which come from a library scan.
+                            Overlays themselves are re-applied whenever your library changes (below), so the daily
+                            run is just background upkeep.
                         </p>
                         <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ScheduleEnabled" /><span>Let Overcoat set the run time</span></label>
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="CustomScheduleTime" /><span>Set a custom run time</span></label>
                             <div class="fieldDescription">
-                                On, Overcoat keeps the task on the daily time below. Off, it stops touching the
-                                schedule and you manage it yourself in Dashboard &rarr; Scheduled&nbsp;Tasks
-                                (intervals, several times a day, on&nbsp;startup).
-                                <strong>Turning this off does not stop the task running</strong> — any trigger
-                                already set there stays active. To stop automatic runs entirely, remove the
-                                triggers in Dashboard &rarr; Scheduled&nbsp;Tasks.
+                                Off, the daily run happens at a quiet <strong>3:00&nbsp;AM</strong>. Most people don't
+                                need to change this. Turn it on to pick your own time.
                             </div>
                         </div>
                         <div class="ovcRow" id="ScheduleTimeRow">
@@ -616,8 +614,13 @@
                                 A Jellyfin library scan re-adopts posters stored in your media folders and strips
                                 Overcoat's overlays off the affected items — Jellyfin does this automatically and it
                                 can't be turned off. With this on, Overcoat notices a scan finishing and re-applies
-                                within about a minute. It only re-does what the scan changed, and never touches your
+                                within about a minute, re-doing only what the scan changed and never touching your
                                 media-folder files. Recommended on.
+                            </div>
+                            <div class="ovcNotice" id="ReapplyWarning" hidden>
+                                <strong>Heads up:</strong> with this off, any library scan will strip the overlays off
+                                movies and wide cards whose artwork lives in a media folder, and they won't return
+                                until the next daily run. Leave it on unless you have a reason not to.
                             </div>
                         </div>
                     </div>
@@ -1284,17 +1287,19 @@
             }
 
             function updateScheduleUi() {
-                var on = page.querySelector('#ScheduleEnabled').checked;
-                page.querySelector('#ScheduleTimeRow').hidden = !on;
+                // The daily run ALWAYS happens; the checkbox only chooses default 3:00 AM vs a custom time.
+                var custom = page.querySelector('#CustomScheduleTime').checked;
+                page.querySelector('#ScheduleTimeRow').hidden = !custom;
                 var summary = page.querySelector('#ScheduleSummary');
-                if (!on) {
-                    summary.textContent = 'Overcoat is not managing the schedule. Any trigger already set in Dashboard → Scheduled Tasks stays active — this does not disable automatic runs.';
-                    return;
-                }
-                var h = parseInt(page.querySelector('#ScheduleHour').value, 10) || 0;
-                var m = parseInt(page.querySelector('#ScheduleMinute').value, 10) || 0;
+                var h = custom ? (parseInt(page.querySelector('#ScheduleHour').value, 10) || 0) : 3;
+                var m = custom ? (parseInt(page.querySelector('#ScheduleMinute').value, 10) || 0) : 0;
                 var hint = (h % 12 === 0 ? 12 : h % 12) + ':' + (m < 10 ? '0' + m : m) + (h < 12 ? ' AM' : ' PM');
-                summary.textContent = 'Runs daily at ' + hint + ' (server time). Takes effect as soon as you save.';
+                summary.textContent = 'Runs daily at ' + hint + ' (server time)'
+                    + (custom ? '. Takes effect as soon as you save.' : ' by default.');
+
+                // Warn only when the scan follow-up is turned off — that's when scans strip overlays.
+                var warn = page.querySelector('#ReapplyWarning');
+                if (warn) { warn.hidden = page.querySelector('#ReapplyAfterScan').checked; }
             }
 
             // Recovery panel. Read-only: it answers "can I still get my posters back?" and never
@@ -1381,7 +1386,7 @@
                     page.querySelector('#DryRun').checked = !!config.DryRun;
                     page.querySelector('#ForceRestore').checked = !!config.ForceRestore;
                     fillHours();
-                    page.querySelector('#ScheduleEnabled').checked = config.ScheduleEnabled !== false;
+                    page.querySelector('#CustomScheduleTime').checked = !!config.CustomScheduleTime;
                     page.querySelector('#ReapplyAfterScan').checked = config.ReapplyAfterScan !== false;
                     page.querySelector('#ScheduleHour').value = String(config.ScheduleHour != null ? config.ScheduleHour : 3);
                     page.querySelector('#ScheduleMinute').value = String(nearestQuarter(config.ScheduleMinute));
@@ -1557,7 +1562,7 @@
                 config.WatchHistoryMaxScan = parseInt(page.querySelector('#WatchHistoryMaxScan').value, 10) || 10000;
                 config.ImdbTop250TvListId = page.querySelector('#ImdbTop250TvListId').value;
                 config.ImdbTop250MovieListId = page.querySelector('#ImdbTop250MovieListId').value;
-                config.ScheduleEnabled = page.querySelector('#ScheduleEnabled').checked;
+                config.CustomScheduleTime = page.querySelector('#CustomScheduleTime').checked;
                 config.ReapplyAfterScan = page.querySelector('#ReapplyAfterScan').checked;
                 config.ScheduleHour = parseInt(page.querySelector('#ScheduleHour').value, 10);
                 if (isNaN(config.ScheduleHour)) { config.ScheduleHour = 3; }
@@ -1645,7 +1650,7 @@
                     });
                     page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
                     page.querySelector('#WatchHistoryAllUsers').addEventListener('change', updateUserRowVisibility);
-                    ['ScheduleEnabled', 'ScheduleHour', 'ScheduleMinute'].forEach(function (id) {
+                    ['CustomScheduleTime', 'ScheduleHour', 'ScheduleMinute', 'ReapplyAfterScan'].forEach(function (id) {
                         page.querySelector('#' + id).addEventListener('change', updateScheduleUi);
                     });
                     ['BannerStyle', 'BannerShape', 'BannerPosition', 'BannerAlign', 'BannerFullWidth',

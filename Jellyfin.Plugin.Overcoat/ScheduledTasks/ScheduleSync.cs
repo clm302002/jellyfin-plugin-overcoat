@@ -14,9 +14,10 @@ namespace Jellyfin.Plugin.Overcoat.ScheduledTasks;
 /// service writes the trigger directly onto the live task — once at startup, and again whenever the
 /// plugin configuration is saved.
 ///
-/// Setting <c>ScheduleEnabled</c> to false hands control back to Dashboard → Scheduled Tasks: we then
-/// leave the triggers completely alone, so a user who prefers to manage it there (or wants several
-/// triggers, or an interval instead of a daily time) isn't fought by the plugin.
+/// Overcoat always keeps a single daily trigger (the run refreshes status dates and badges, which no
+/// library scan does). The time is <c>EffectiveScheduleTime</c> — a fixed 03:00 by default, or the
+/// user's choice when they opt into a custom time. There is intentionally no "disable" switch; the
+/// old ScheduleEnabled toggle conflated "un-manage" with "disable" and is gone (A-26).
 /// </summary>
 public sealed class ScheduleSync : IHostedService, IDisposable
 {
@@ -61,7 +62,7 @@ public sealed class ScheduleSync : IHostedService, IDisposable
         try
         {
             var config = Plugin.Instance?.Configuration;
-            if (config is null || !config.ScheduleEnabled)
+            if (config is null)
             {
                 return;
             }
@@ -76,7 +77,7 @@ public sealed class ScheduleSync : IHostedService, IDisposable
                 return;
             }
 
-            var desired = OverlayTask.BuildDailyTrigger(config.ScheduleTimeOfDay);
+            var desired = OverlayTask.BuildDailyTrigger(config.EffectiveScheduleTime);
 
             var current = worker.Triggers;
             if (current.Count == 1
@@ -88,14 +89,14 @@ public sealed class ScheduleSync : IHostedService, IDisposable
                 // configured time already matches the default.
                 _logger.LogDebug(
                     "Overcoat: overlay task schedule already correct ({Time}); nothing to change.",
-                    config.ScheduleTimeOfDay.ToString(@"hh\:mm", System.Globalization.CultureInfo.InvariantCulture));
+                    config.EffectiveScheduleTime.ToString(@"hh\:mm", System.Globalization.CultureInfo.InvariantCulture));
                 return;
             }
 
             worker.Triggers = new[] { desired };
             _logger.LogInformation(
                 "Overcoat: overlay task scheduled daily at {Time}.",
-                config.ScheduleTimeOfDay.ToString(@"hh\:mm", System.Globalization.CultureInfo.InvariantCulture));
+                config.EffectiveScheduleTime.ToString(@"hh\:mm", System.Globalization.CultureInfo.InvariantCulture));
         }
         catch (Exception ex)
         {

@@ -403,7 +403,7 @@ public class OverlayTask : IScheduledTask
     /// </summary>
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
     {
-        yield return BuildDailyTrigger(Plugin.Instance?.Configuration.ScheduleTimeOfDay ?? TimeSpan.FromHours(3));
+        yield return BuildDailyTrigger(Plugin.Instance?.Configuration.EffectiveScheduleTime ?? PluginConfiguration.DefaultScheduleTime);
     }
 
     /// <summary>Builds the daily trigger for a given time of day.</summary>

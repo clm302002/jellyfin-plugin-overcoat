@@ -21,14 +21,22 @@ public class PluginConfiguration : BasePluginConfiguration
     // live task at startup and on every config save (see ScheduledTasks.ScheduleSync), which is what
     // makes the run time editable from the plugin page instead of only from Dashboard → Scheduled Tasks.
 
+    // Overcoat ALWAYS runs once a day — it is what keeps status dates (AIRING/RETURNING), "airing
+    // today", and the trending/watch-history badges current, none of which involve a library change.
+    // The daily run is no longer how overlays get applied (a scan triggers that now, see
+    // ReapplyAfterScan); it is background maintenance. So there is deliberately no "turn the schedule
+    // off" switch — only a choice of default vs custom time. (Replaces the old ScheduleEnabled, whose
+    // "hand it back to Dashboard → Scheduled Tasks" semantics confused disabling with un-managing;
+    // A-26. Old configs still deserialize — the removed element is ignored.)
+
+    /// <summary>Default daily run time when the user hasn't picked one: a quiet 03:00.</summary>
+    public static readonly TimeSpan DefaultScheduleTime = TimeSpan.FromHours(3);
+
     /// <summary>
-    /// Gets or sets a value indicating whether Overcoat manages the task's trigger.
-    ///
-    /// NOTE this is "who owns the schedule", NOT "is the task automatic". Turning it off makes
-    /// Overcoat stop writing the trigger; whatever trigger already exists keeps firing. Stopping
-    /// automatic runs entirely means removing the triggers in Dashboard → Scheduled Tasks. (A-26)
+    /// Gets or sets a value indicating whether a custom daily run time is used. False (default) runs
+    /// at <see cref="DefaultScheduleTime"/>; true uses <see cref="ScheduleHour"/>/<see cref="ScheduleMinute"/>.
     /// </summary>
-    public bool ScheduleEnabled { get; set; } = true;
+    public bool CustomScheduleTime { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether Overcoat re-applies overlays after a library scan.
@@ -40,20 +48,20 @@ public class PluginConfiguration : BasePluginConfiguration
     /// </summary>
     public bool ReapplyAfterScan { get; set; } = true;
 
-    /// <summary>Gets or sets the hour (0–23, server local time) the overlay task runs.</summary>
+    /// <summary>Gets or sets the hour (0–23, server local time) used when <see cref="CustomScheduleTime"/> is set.</summary>
     public int ScheduleHour { get; set; } = 3;
 
-    /// <summary>Gets or sets the minute (0–59) past <see cref="ScheduleHour"/> the overlay task runs.</summary>
+    /// <summary>Gets or sets the minute (0–59) used when <see cref="CustomScheduleTime"/> is set.</summary>
     public int ScheduleMinute { get; set; }
 
-    /// <summary>
-    /// Gets the configured run time as a trigger offset from midnight, clamped to a valid
-    /// time of day so a bad hand-edit of the XML can't produce an out-of-range trigger.
-    /// </summary>
+    /// <summary>The chosen custom time, clamped so a bad hand-edit can't produce an out-of-range trigger.</summary>
     public TimeSpan ScheduleTimeOfDay => new TimeSpan(
         Math.Clamp(ScheduleHour, 0, 23),
         Math.Clamp(ScheduleMinute, 0, 59),
         0);
+
+    /// <summary>The time the daily run actually fires: the custom time when chosen, otherwise the default.</summary>
+    public TimeSpan EffectiveScheduleTime => CustomScheduleTime ? ScheduleTimeOfDay : DefaultScheduleTime;
 
     // --- Global behaviour (was settings:) ---
 
