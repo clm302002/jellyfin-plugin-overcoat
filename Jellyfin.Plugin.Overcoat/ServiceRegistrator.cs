@@ -16,5 +16,9 @@ public sealed class ServiceRegistrator : IPluginServiceRegistrator
     {
         // Applies the configured run time to the live scheduled task at startup and on every save.
         serviceCollection.AddHostedService<ScheduleSync>();
+
+        // Re-applies overlays after a library scan reverts them (Jellyfin re-adopts media-folder art
+        // on every scan and this cannot be turned off — see ScanFollowUp).
+        serviceCollection.AddHostedService<ScanFollowUp>();
     }
 }

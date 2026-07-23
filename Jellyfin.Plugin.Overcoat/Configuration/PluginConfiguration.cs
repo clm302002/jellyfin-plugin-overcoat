@@ -30,6 +30,16 @@ public class PluginConfiguration : BasePluginConfiguration
     /// </summary>
     public bool ScheduleEnabled { get; set; } = true;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether Overcoat re-applies overlays after a library scan.
+    ///
+    /// A Jellyfin scan re-adopts media-folder artwork and strips overlays off the affected items
+    /// (this is hard-coded in Jellyfin and cannot be disabled). With this on, Overcoat notices a scan
+    /// finishing and runs a cache-gated follow-up, restoring the overlays within about a minute — it
+    /// re-renders only what the scan reverted, and never touches media-folder files. On by default.
+    /// </summary>
+    public bool ReapplyAfterScan { get; set; } = true;
+
     /// <summary>Gets or sets the hour (0–23, server local time) the overlay task runs.</summary>
     public int ScheduleHour { get; set; } = 3;
 

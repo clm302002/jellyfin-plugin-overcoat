@@ -610,6 +610,16 @@
                             </div>
                         </div>
                         <div class="fieldDescription" id="ScheduleSummary"></div>
+                        <div class="ovcCheck">
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ReapplyAfterScan" /><span>Re-apply after a library scan</span></label>
+                            <div class="fieldDescription">
+                                A Jellyfin library scan re-adopts posters stored in your media folders and strips
+                                Overcoat's overlays off the affected items — Jellyfin does this automatically and it
+                                can't be turned off. With this on, Overcoat notices a scan finishing and re-applies
+                                within about a minute. It only re-does what the scan changed, and never touches your
+                                media-folder files. Recommended on.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="ovcSectionHeading ovcWide">
@@ -1372,6 +1382,7 @@
                     page.querySelector('#ForceRestore').checked = !!config.ForceRestore;
                     fillHours();
                     page.querySelector('#ScheduleEnabled').checked = config.ScheduleEnabled !== false;
+                    page.querySelector('#ReapplyAfterScan').checked = config.ReapplyAfterScan !== false;
                     page.querySelector('#ScheduleHour').value = String(config.ScheduleHour != null ? config.ScheduleHour : 3);
                     page.querySelector('#ScheduleMinute').value = String(nearestQuarter(config.ScheduleMinute));
                     updateScheduleUi();
@@ -1547,6 +1558,7 @@
                 config.ImdbTop250TvListId = page.querySelector('#ImdbTop250TvListId').value;
                 config.ImdbTop250MovieListId = page.querySelector('#ImdbTop250MovieListId').value;
                 config.ScheduleEnabled = page.querySelector('#ScheduleEnabled').checked;
+                config.ReapplyAfterScan = page.querySelector('#ReapplyAfterScan').checked;
                 config.ScheduleHour = parseInt(page.querySelector('#ScheduleHour').value, 10);
                 if (isNaN(config.ScheduleHour)) { config.ScheduleHour = 3; }
                 config.ScheduleMinute = parseInt(page.querySelector('#ScheduleMinute').value, 10);

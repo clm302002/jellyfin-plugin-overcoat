@@ -6,6 +6,15 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+### Added
+- **Overlays are re-applied automatically after a library scan.** A Jellyfin scan re-adopts posters
+  stored in your media folders and strips Overcoat's overlays off the affected items — Jellyfin does
+  this unconditionally and it can't be turned off. Overcoat now watches for a scan (scheduled or a
+  manual per-library scan) to finish and runs a follow-up pass, restoring the overlays within about a
+  minute. It re-renders only the items the scan actually reverted (the rest are skipped by the cache),
+  it never writes into your media folders, and it never grows the saved-originals vault. New toggle on
+  the settings page — **Re-apply after a library scan** (on by default).
+
 ### Fixed
 - **Movie and wide-card overlays that weren't showing up.** When an item's original artwork was a
   different file type than the one Overcoat writes (Overcoat saves posters as `.png` and wide cards
