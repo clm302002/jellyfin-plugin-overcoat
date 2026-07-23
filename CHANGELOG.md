@@ -9,11 +9,13 @@ All notable changes to Overcoat are documented here. Format follows
 ### Added
 - **Wide cards can be styled independently of posters.** The settings page is now split into a
   **Posters** tab (all poster banner + badge settings) and a **Wide Cards** tab (all wide-card banner
-  + badge settings), each with its own live preview. Turn on **Customize wide cards separately** and
-  the wide-card banner style/shape/position/size/effects and badge placement/size become independent —
-  changing posters never affects wide cards and vice-versa. Off by default: wide cards keep matching
-  your posters exactly. Status colours, labels, which statuses/badges appear, date formats and badge
-  sources remain shared across both surfaces.
+  + badge settings). Each tab is a single scrolling column — banner controls on top, badges below —
+  beside **one** sticky live preview that composites the banner and badges together and follows you as
+  you scroll. Turn on **Customize wide cards separately** and the wide-card banner
+  style/shape/position/size/effects and badge placement/size become independent — changing posters
+  never affects wide cards and vice-versa. Off by default: wide cards keep matching your posters
+  exactly. Status colours, labels, which statuses/badges appear, date formats and badge sources remain
+  shared across both surfaces.
 - **Optional overlays for Jellyfin's wide Next Up and Continue Watching cards.** TV libraries can
   mirror their series overlays onto an existing series `Thumb`, with independent state, vault,
   preview, recovery reporting, landscape rendering, and restore support.

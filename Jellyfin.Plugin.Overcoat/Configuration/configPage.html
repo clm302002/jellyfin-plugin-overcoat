@@ -35,10 +35,11 @@
                 <div class="ovcPanel ovcActive" data-panel="posters">
                     <div class="ovcBannerLayout">
                         <div class="ovcCard ovcNotice ovcStudioNotice">
-                            <strong>Poster banner design</strong>
-                            <div class="fieldDescription">These controls apply to every enabled library's posters. Overcoat settings are never assigned to individual titles. Wide cards (Next Up / Continue Watching) have their own tab.</div>
+                            <strong>Poster design</strong>
+                            <div class="fieldDescription">Banner (top) and badges (below) for every enabled library's posters. Overcoat settings are never assigned to individual titles. Wide cards (Next Up / Continue Watching) have their own tab. The live preview on the right shows the full result and follows you as you scroll.</div>
                         </div>
                         <div class="ovcBannerControls ovcControlGrid">
+                            <div class="ovcSectionHeading ovcWide"><h3>Banner</h3></div>
                             <div class="ovcCard ovcDenseCard">
                             <h3>Style &amp; typography</h3>
                             <div class="selectContainer">
@@ -201,37 +202,7 @@
                                 </div>
                                 <div class="fieldDescription">Untick to skip a status entirely; edit the text to rename it (e.g. RETURNING → RETURNS).</div>
                             </div></details>
-                        </div>
-
-                        <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="banner">
-                            <h3>Live preview</h3>
-                            <div class="ovcStatusSwitch" id="OvercoatPreviewStatuses">
-                                <button type="button" class="ovcChip" data-status="NEW">NEW</button>
-                                <button type="button" class="ovcChip" data-status="AIRING">AIRING</button>
-                                <button type="button" class="ovcChip ovcChipActive" data-status="RETURNING">RETURNING</button>
-                                <button type="button" class="ovcChip" data-status="ENDED">ENDED</button>
-                                <button type="button" class="ovcChip" data-status="CANCELED">CANCELED</button>
-                            </div>
-                            <div class="ovcStatusSwitch">
-                                <button type="button" class="ovcChip ovcSourceBtn ovcChipActive" data-source="placeholder">Sample poster</button>
-                                <button type="button" class="ovcChip ovcSourceBtn" data-source="random">🎲 Random from my library</button>
-                            </div>
-                            <img id="BannerPreview" alt="Banner preview" />
-                            <div class="ovcMuted">
-                                Updates instantly — no run needed. Random picks a clean poster from your own
-                                library (click again for another); it never uses one Overcoat has already
-                                overlaid, so what you see is what a real run would produce.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Poster badges (same tab as poster banners) -->
-                    <div class="ovcBannerLayout">
-                        <div class="ovcCard ovcNotice ovcStudioNotice">
-                            <strong>Poster badge design</strong>
-                            <div class="fieldDescription">Layout applies to enabled libraries' posters; each library independently chooses which badge sources are active. Badge sources are shared with wide cards — only the placement below is poster-specific.</div>
-                        </div>
-                        <div class="ovcBannerControls">
+                            <div class="ovcSectionHeading ovcWide"><h3>Badges</h3></div>
                             <div class="ovcCard">
                                 <h3>Badge sources</h3>
                                 <div class="ovcCheck">
@@ -329,40 +300,45 @@
                         </div>
                         </div>
 
-                        <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="badge">
+                        <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="poster">
                             <h3>Live preview</h3>
+                            <div class="ovcStatusSwitch" id="OvercoatPreviewStatuses">
+                                <button type="button" class="ovcChip" data-status="NEW">NEW</button>
+                                <button type="button" class="ovcChip" data-status="AIRING">AIRING</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-status="RETURNING">RETURNING</button>
+                                <button type="button" class="ovcChip" data-status="ENDED">ENDED</button>
+                                <button type="button" class="ovcChip" data-status="CANCELED">CANCELED</button>
+                            </div>
                             <div class="ovcStatusSwitch" id="OvercoatPreviewBadges">
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="watch_history" aria-pressed="true">Watch History</button>
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="tmdb_trending" aria-pressed="true">TMDB Trending</button>
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="imdb_top250" aria-pressed="true">IMDb Top 250</button>
                             </div>
-                            <div class="fieldDescription">Independent preview toggles — show any one badge or any combination.</div>
+                            <div class="fieldDescription">Pick a status for the banner; toggle which badges show.</div>
                             <div class="ovcStatusSwitch">
                                 <button type="button" class="ovcChip ovcSourceBtn ovcChipActive" data-source="placeholder">Sample poster</button>
                                 <button type="button" class="ovcChip ovcSourceBtn" data-source="random">🎲 Random from my library</button>
                             </div>
-                            <img id="BadgePreview" alt="Badge preview" />
-                            <div class="ovcMuted">Shows your saved banner + the toggled badges. Updates instantly.</div>
+                            <img id="PostersPreview" alt="Poster preview" />
+                            <div class="ovcMuted">
+                                Banner + badges together, exactly as a real run would produce them. Random picks a
+                                clean poster from your own library (click again for another); it never uses one
+                                Overcoat has already overlaid.
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- ===================== WIDE CARDS (banners + badges) ===================== -->
                 <div class="ovcPanel" data-panel="wide">
-                    <div class="ovcCard ovcWide ovcNotice ovcStudioNotice">
-                        <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="WideCardCustomize" /><span>Customize wide cards separately</span></label>
-                        <div class="fieldDescription">Off: wide cards (Next Up / Continue Watching) look exactly like your posters. On: the controls below style wide cards independently — changing them never affects posters, and changing posters never affects wide cards. Wide-card overlays are still turned on per library on the Libraries tab.</div>
-                        <div class="fieldDescription">Status <strong>colours, labels, which statuses/badges appear, date formats and badge sources are shared with posters</strong> — set those on the Posters tab. This tab only controls how banners and badges are <em>laid out</em> on the 16:9 card.</div>
-                    </div>
-
-                    <div id="OvercoatWideBody" class="ovcWideBody">
-                    <!-- Wide-card banners -->
                     <div class="ovcBannerLayout">
                         <div class="ovcCard ovcNotice ovcStudioNotice">
-                            <strong>Wide-card banner design</strong>
-                            <div class="fieldDescription">Appearance of the status banner on the landscape series thumb.</div>
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="WideCardCustomize" /><span>Customize wide cards separately</span></label>
+                            <div class="fieldDescription">Off: wide cards (Next Up / Continue Watching) look exactly like your posters. On: the controls below style wide cards independently — changing them never affects posters, and changing posters never affects wide cards. Wide-card overlays are still turned on per library on the Libraries tab.</div>
+                            <div class="fieldDescription">Status <strong>colours, labels, which statuses/badges appear, date formats and badge sources are shared with posters</strong> — set those on the Posters tab. This tab only controls how banners and badges are <em>laid out</em> on the 16:9 card. The live preview on the right shows the full result.</div>
                         </div>
-                        <div class="ovcBannerControls ovcControlGrid">
+                        <div class="ovcBannerControls ovcControlGrid" id="OvercoatWideBody">
+                            <div class="ovcSectionHeading ovcWide"><h3>Wide-card banner</h3></div>
                             <div class="ovcCard ovcDenseCard">
                             <h3>Style &amp; typography</h3>
                             <div class="selectContainer">
@@ -461,36 +437,7 @@
                                 <input is="emby-input" type="number" id="WideBannerShadowStrength" min="0" max="100" step="1" />
                             </div>
                             </div></details>
-                        </div>
-
-                        <div class="ovcCard ovcBannerPreview ovcPreviewRail ovcWidePreview" data-preview-kind="wide-banner">
-                            <h3>Live preview</h3>
-                            <div class="ovcStatusSwitch" id="OvercoatWidePreviewStatuses">
-                                <button type="button" class="ovcChip" data-status="NEW">NEW</button>
-                                <button type="button" class="ovcChip" data-status="AIRING">AIRING</button>
-                                <button type="button" class="ovcChip ovcChipActive" data-status="RETURNING">RETURNING</button>
-                                <button type="button" class="ovcChip" data-status="ENDED">ENDED</button>
-                                <button type="button" class="ovcChip" data-status="CANCELED">CANCELED</button>
-                            </div>
-                            <div class="ovcStatusSwitch">
-                                <button type="button" class="ovcChip ovcWideSourceBtn ovcChipActive" data-source="placeholder">Sample card</button>
-                                <button type="button" class="ovcChip ovcWideSourceBtn" data-source="random">🎲 Random from my library</button>
-                            </div>
-                            <img id="WideBannerPreview" alt="Wide-card banner preview" />
-                            <div class="ovcMuted">
-                                A 16:9 wide card. Random picks a clean series thumb from your own library; it never
-                                uses one Overcoat has already overlaid, so what you see is what a real run produces.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Wide-card badges -->
-                    <div class="ovcBannerLayout">
-                        <div class="ovcCard ovcNotice ovcStudioNotice">
-                            <strong>Wide-card badge design</strong>
-                            <div class="fieldDescription">Placement of the side badges on the wide card. Which badges appear is shared with posters (Posters tab + Libraries tab).</div>
-                        </div>
-                        <div class="ovcBannerControls">
+                            <div class="ovcSectionHeading ovcWide"><h3>Wide-card badges</h3></div>
                             <div class="ovcCard ovcWide">
                             <h3>Badge layout</h3>
                             <p class="fieldDescription">
@@ -529,22 +476,31 @@
                         </div>
                         </div>
 
-                        <div class="ovcCard ovcBannerPreview ovcPreviewRail ovcWidePreview" data-preview-kind="wide-badge">
+                        <div class="ovcCard ovcBannerPreview ovcPreviewRail ovcWidePreview" data-preview-kind="wide">
                             <h3>Live preview</h3>
+                            <div class="ovcStatusSwitch" id="OvercoatWidePreviewStatuses">
+                                <button type="button" class="ovcChip" data-status="NEW">NEW</button>
+                                <button type="button" class="ovcChip" data-status="AIRING">AIRING</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-status="RETURNING">RETURNING</button>
+                                <button type="button" class="ovcChip" data-status="ENDED">ENDED</button>
+                                <button type="button" class="ovcChip" data-status="CANCELED">CANCELED</button>
+                            </div>
                             <div class="ovcStatusSwitch" id="OvercoatWidePreviewBadges">
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="watch_history" aria-pressed="true">Watch History</button>
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="tmdb_trending" aria-pressed="true">TMDB Trending</button>
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="imdb_top250" aria-pressed="true">IMDb Top 250</button>
                             </div>
-                            <div class="fieldDescription">Independent preview toggles — show any one badge or any combination.</div>
+                            <div class="fieldDescription">Pick a status for the banner; toggle which badges show.</div>
                             <div class="ovcStatusSwitch">
                                 <button type="button" class="ovcChip ovcWideSourceBtn ovcChipActive" data-source="placeholder">Sample card</button>
                                 <button type="button" class="ovcChip ovcWideSourceBtn" data-source="random">🎲 Random from my library</button>
                             </div>
-                            <img id="WideBadgePreview" alt="Wide-card badge preview" />
-                            <div class="ovcMuted">Shows the wide-card banner + the toggled badges. Updates instantly.</div>
+                            <img id="WidePreview" alt="Wide-card preview" />
+                            <div class="ovcMuted">
+                                Banner + badges on a 16:9 wide card. Random picks a clean series thumb from your own
+                                library; it never uses one Overcoat has already overlaid.
+                            </div>
                         </div>
-                    </div>
                     </div>
                 </div>
 
@@ -806,16 +762,16 @@
                     p.setAttribute('aria-hidden', on ? 'false' : 'true');
                     p.style.display = '';
                 });
-                if (name === 'posters') { refreshBannerPreview(); refreshBadgePreview(); }
-                if (name === 'wide') { refreshWideBannerPreview(); refreshWideBadgePreview(); }
+                if (name === 'posters') { refreshPostersPreview(); }
+                if (name === 'wide') { refreshWidePreview(); }
                 window.setTimeout(updateFloatingPreview, 0);
             }
 
             function syncFloatingPreview() {
                 if (!page) { return; }
                 var source = activeTab === 'posters'
-                    ? page.querySelector('#BannerPreview')
-                    : activeTab === 'wide' ? page.querySelector('#WideBannerPreview') : null;
+                    ? page.querySelector('#PostersPreview')
+                    : activeTab === 'wide' ? page.querySelector('#WidePreview') : null;
                 var target = page.querySelector('#OvercoatFloatingPreviewImage');
                 var label = page.querySelector('#OvercoatFloatingPreviewLabel');
                 if (source && target && source.src) {
@@ -828,7 +784,7 @@
                 if (!page) { return; }
                 var floating = page.querySelector('#OvercoatFloatingPreview');
                 var mobile = window.matchMedia('(max-width: 1099px)').matches;
-                var kind = activeTab === 'posters' ? 'banner' : activeTab === 'wide' ? 'wide-banner' : '';
+                var kind = activeTab === 'posters' ? 'poster' : activeTab === 'wide' ? 'wide' : '';
                 var card = kind ? page.querySelector('[data-preview-kind="' + kind + '"]') : null;
                 var show = !!(mobile && card && card.getBoundingClientRect().bottom < 72);
                 floating.classList.toggle('ovcVisible', show);
@@ -857,8 +813,7 @@
                 page.querySelectorAll('.ovcSourceBtn').forEach(function (b) {
                     b.classList.toggle('ovcChipActive', b.getAttribute('data-source') === next);
                 });
-                refreshBannerPreview();
-                refreshBadgePreview();
+                refreshPostersPreview();
             }
 
             function setWideSource(next) {
@@ -867,45 +822,29 @@
                 page.querySelectorAll('.ovcWideSourceBtn').forEach(function (b) {
                     b.classList.toggle('ovcChipActive', b.getAttribute('data-source') === next);
                 });
-                refreshWideBannerPreview();
-                refreshWideBadgePreview();
+                refreshWidePreview();
             }
 
-            function badgePreviewUrl() {
+            // The toggled badges in a preview card, as a CSV for the composite preview endpoint.
+            function activeBadges(containerId) {
                 var keys = [];
-                page.querySelectorAll('#OvercoatPreviewBadges .ovcChip.ovcChipActive').forEach(function (b) {
+                page.querySelectorAll('#' + containerId + ' .ovcChip.ovcChipActive').forEach(function (b) {
                     keys.push(b.getAttribute('data-badge'));
                 });
-                var qs = [
-                    'badges=' + encodeURIComponent(keys.join(',')),
-                    'side=' + encodeURIComponent(val('BadgeSide')),
-                    'vertical=' + encodeURIComponent(val('BadgeVertical')),
-                    'scale=' + encodeURIComponent(val('BadgeScale') || '100'),
-                    'gap=' + encodeURIComponent(val('BadgeGapPercent') || '1'),
-                    'source=' + encodeURIComponent(previewSource),
-                    'previewKey=' + encodeURIComponent(previewKey),
-                    'layout=portrait',
-                    'api_key=' + encodeURIComponent(ApiClient.accessToken()),
-                    '_=' + new Date().getTime()
-                ].join('&');
-                return ApiClient.getUrl('Overcoat/BadgePreview') + '?' + qs;
-            }
-            function refreshBadgePreview() {
-                var img = page && page.querySelector('#BadgePreview');
-                if (img) { img.src = badgePreviewUrl(); syncFloatingPreview(); }
+                return keys.join(',');
             }
 
-            // --- Wide-card previews. When "Customize wide cards separately" is off, a real run draws
+            // --- Wide-card preview. When "Customize wide cards separately" is off, a real run draws
             //     wide cards with the poster settings, so the preview reads the poster fields too — it
             //     always shows what an actual run would produce. When on, it reads the Wide* fields.
             function wideCustomize() { return page.querySelector('#WideCardCustomize').checked; }
             function wval(base) { return val((wideCustomize() ? 'Wide' : '') + base); }
             function wchecked(base) { return page.querySelector('#' + (wideCustomize() ? 'Wide' : '') + base).checked; }
 
-            function wideBannerPreviewUrl() {
+            function widePreviewUrl() {
                 var st = wideStatus;
-                var label = val(STATUS_LABEL[st]) || st;   // labels are shared with posters
-                var suf = sampleSuffix(st);                 // date format shared with posters
+                var label = val(STATUS_LABEL[st]) || st;   // labels/colours/date format shared with posters
+                var suf = sampleSuffix(st);
                 var text = suf ? (label + ' ' + suf) : label;
                 var qs = [
                     'style=' + encodeURIComponent(wval('BannerStyle')),
@@ -917,7 +856,7 @@
                     'status=' + encodeURIComponent(text),
                     'iconKey=' + encodeURIComponent(st),
                     'icons=' + (wchecked('BannerIcons') ? 'true' : 'false'),
-                    'color=' + encodeURIComponent(val(STATUS_COLOR[st]) || ''),   // colours shared
+                    'color=' + encodeURIComponent(val(STATUS_COLOR[st]) || ''),
                     'shadow=' + (wchecked('BannerShadow') ? 'true' : 'false'),
                     'shadowStrength=' + encodeURIComponent(wval('BannerShadowStrength') || '60'),
                     'glassTint=' + encodeURIComponent(wval('GlassTint') || ''),
@@ -925,6 +864,11 @@
                     'glassBlur=' + encodeURIComponent(wval('GlassBlur') || '50'),
                     'neonGlow=' + encodeURIComponent(wval('NeonGlow') || '60'),
                     'font=' + encodeURIComponent(wval('BannerFont')),
+                    'badges=' + encodeURIComponent(activeBadges('OvercoatWidePreviewBadges')),
+                    'side=' + encodeURIComponent(wval('BadgeSide')),
+                    'vertical=' + encodeURIComponent(wval('BadgeVertical')),
+                    'badgeScale=' + encodeURIComponent(wval('BadgeScale') || '100'),
+                    'badgeGap=' + encodeURIComponent(wval('BadgeGapPercent') || '1'),
                     'source=' + encodeURIComponent(wideSource),
                     'previewKey=' + encodeURIComponent(wideKey),
                     'layout=landscape',
@@ -933,33 +877,9 @@
                 ].join('&');
                 return ApiClient.getUrl('Overcoat/BannerPreview') + '?' + qs;
             }
-            function refreshWideBannerPreview() {
-                var img = page && page.querySelector('#WideBannerPreview');
-                if (img) { img.src = wideBannerPreviewUrl(); syncFloatingPreview(); }
-            }
-
-            function wideBadgePreviewUrl() {
-                var keys = [];
-                page.querySelectorAll('#OvercoatWidePreviewBadges .ovcChip.ovcChipActive').forEach(function (b) {
-                    keys.push(b.getAttribute('data-badge'));
-                });
-                var qs = [
-                    'badges=' + encodeURIComponent(keys.join(',')),
-                    'side=' + encodeURIComponent(wval('BadgeSide')),
-                    'vertical=' + encodeURIComponent(wval('BadgeVertical')),
-                    'scale=' + encodeURIComponent(wval('BadgeScale') || '100'),
-                    'gap=' + encodeURIComponent(wval('BadgeGapPercent') || '1'),
-                    'source=' + encodeURIComponent(wideSource),
-                    'previewKey=' + encodeURIComponent(wideKey),
-                    'layout=landscape',
-                    'api_key=' + encodeURIComponent(ApiClient.accessToken()),
-                    '_=' + new Date().getTime()
-                ].join('&');
-                return ApiClient.getUrl('Overcoat/BadgePreview') + '?' + qs;
-            }
-            function refreshWideBadgePreview() {
-                var img = page && page.querySelector('#WideBadgePreview');
-                if (img) { img.src = wideBadgePreviewUrl(); syncFloatingPreview(); }
+            function refreshWidePreview() {
+                var img = page && page.querySelector('#WidePreview');
+                if (img) { img.src = widePreviewUrl(); syncFloatingPreview(); }
             }
 
             // Grey out and disable the wide-card controls while inheriting from posters.
@@ -973,8 +893,7 @@
                         el.disabled = !on || el.id === 'WideBadgeSide';
                     });
                 }
-                refreshWideBannerPreview();
-                refreshWideBadgePreview();
+                refreshWidePreview();
             }
 
             // Style-specific options reveal only for their style (progressive disclosure).
@@ -1003,7 +922,7 @@
                 if (fmt === 'countdown') { return st === 'AIRING' ? '3d' : '21d'; }
                 return st === 'AIRING' ? '6/28' : '7/14'; // date
             }
-            function bannerPreviewUrl() {
+            function postersPreviewUrl() {
                 var st = previewStatus;
                 var label = val(STATUS_LABEL[st]) || st;
                 var suf = sampleSuffix(st);
@@ -1026,6 +945,11 @@
                     'glassBlur=' + encodeURIComponent(val('GlassBlur') || '50'),
                     'neonGlow=' + encodeURIComponent(val('NeonGlow') || '60'),
                     'font=' + encodeURIComponent(val('BannerFont')),
+                    'badges=' + encodeURIComponent(activeBadges('OvercoatPreviewBadges')),
+                    'side=' + encodeURIComponent(val('BadgeSide')),
+                    'vertical=' + encodeURIComponent(val('BadgeVertical')),
+                    'badgeScale=' + encodeURIComponent(val('BadgeScale') || '100'),
+                    'badgeGap=' + encodeURIComponent(val('BadgeGapPercent') || '1'),
                     'source=' + encodeURIComponent(previewSource),
                     'previewKey=' + encodeURIComponent(previewKey),
                     'layout=portrait',
@@ -1034,9 +958,9 @@
                 ].join('&');
                 return ApiClient.getUrl('Overcoat/BannerPreview') + '?' + qs;
             }
-            function refreshBannerPreview() {
-                var img = page && page.querySelector('#BannerPreview');
-                if (img) { img.src = bannerPreviewUrl(); syncFloatingPreview(); }
+            function refreshPostersPreview() {
+                var img = page && page.querySelector('#PostersPreview');
+                if (img) { img.src = postersPreviewUrl(); syncFloatingPreview(); }
             }
             function wireTabs() {
                 var tabs = Array.prototype.slice.call(page.querySelectorAll('.ovcTab'));
@@ -1528,7 +1452,7 @@
                     refreshVaultStats();
                     Promise.all([loadUsers(config), loadLibraries(config), refreshUserArtworkStatus()]).then(function () {
                         updateUserRowVisibility();
-                        refreshBannerPreview();
+                        refreshPostersPreview();
                         loading = false;
                         setSaveState('clean');
                         Dashboard.hideLoadingMsg();
@@ -1719,8 +1643,8 @@
                      'ColorNew', 'ColorAiring', 'ColorReturning', 'ColorEnded', 'ColorCanceled',
                      'LabelNew', 'LabelAiring', 'LabelReturning', 'LabelEnded', 'LabelCanceled'].forEach(function (id) {
                         var el = page.querySelector('#' + id);
-                        el.addEventListener('change', refreshBannerPreview);
-                        el.addEventListener('input', refreshBannerPreview);
+                        el.addEventListener('change', refreshPostersPreview);
+                        el.addEventListener('input', refreshPostersPreview);
                     });
                     page.querySelector('#BannerStyle').addEventListener('change', updateStyleOptions);
                     // Clicking "Random" again re-rolls: the handler always refreshes, and the
@@ -1736,19 +1660,19 @@
                             page.querySelectorAll('#OvercoatPreviewStatuses .ovcChip').forEach(function (b) {
                                 b.classList.toggle('ovcChipActive', b === btn);
                             });
-                            refreshBannerPreview();
+                            refreshPostersPreview();
                         });
                     });
                     ['BadgeSide', 'BadgeVertical', 'BadgeScale', 'BadgeGapPercent'].forEach(function (id) {
                         var el = page.querySelector('#' + id);
-                        el.addEventListener('change', refreshBadgePreview);
-                        el.addEventListener('input', refreshBadgePreview);
+                        el.addEventListener('change', refreshPostersPreview);
+                        el.addEventListener('input', refreshPostersPreview);
                     });
                     page.querySelectorAll('#OvercoatPreviewBadges .ovcChip').forEach(function (btn) {
                         btn.addEventListener('click', function () {
                             btn.classList.toggle('ovcChipActive');  // multi-toggle
                             btn.setAttribute('aria-pressed', btn.classList.contains('ovcChipActive') ? 'true' : 'false');
-                            refreshBadgePreview();
+                            refreshPostersPreview();
                         });
                     });
 
@@ -1758,14 +1682,14 @@
                      'WideBannerFont', 'WideBannerFontScale', 'WideBannerIcons', 'WideBannerShadow', 'WideBannerShadowStrength',
                      'WideGlassTint', 'WideGlassTintStrength', 'WideGlassBlur', 'WideNeonGlow'].forEach(function (id) {
                         var el = page.querySelector('#' + id);
-                        el.addEventListener('change', refreshWideBannerPreview);
-                        el.addEventListener('input', refreshWideBannerPreview);
+                        el.addEventListener('change', refreshWidePreview);
+                        el.addEventListener('input', refreshWidePreview);
                     });
                     page.querySelector('#WideBannerStyle').addEventListener('change', updateWideStyleOptions);
                     ['WideBadgeSide', 'WideBadgeVertical', 'WideBadgeScale', 'WideBadgeGapPercent'].forEach(function (id) {
                         var el = page.querySelector('#' + id);
-                        el.addEventListener('change', refreshWideBadgePreview);
-                        el.addEventListener('input', refreshWideBadgePreview);
+                        el.addEventListener('change', refreshWidePreview);
+                        el.addEventListener('input', refreshWidePreview);
                     });
                     page.querySelectorAll('.ovcWideSourceBtn').forEach(function (btn) {
                         btn.addEventListener('click', function () { setWideSource(btn.getAttribute('data-source')); });
@@ -1776,14 +1700,14 @@
                             page.querySelectorAll('#OvercoatWidePreviewStatuses .ovcChip').forEach(function (b) {
                                 b.classList.toggle('ovcChipActive', b === btn);
                             });
-                            refreshWideBannerPreview();
+                            refreshWidePreview();
                         });
                     });
                     page.querySelectorAll('#OvercoatWidePreviewBadges .ovcChip').forEach(function (btn) {
                         btn.addEventListener('click', function () {
                             btn.classList.toggle('ovcChipActive');  // multi-toggle
                             btn.setAttribute('aria-pressed', btn.classList.contains('ovcChipActive') ? 'true' : 'false');
-                            refreshWideBadgePreview();
+                            refreshWidePreview();
                         });
                     });
                 }
