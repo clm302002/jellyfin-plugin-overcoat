@@ -6,6 +6,16 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+### Fixed
+- **Movie and wide-card overlays that weren't showing up.** When an item's original artwork was a
+  different file type than the one Overcoat writes (Overcoat saves posters as `.png` and wide cards
+  as `.webp`, while many downloaded posters are `.jpg`), Jellyfin kept the original file alongside
+  Overcoat's overlaid one and went on displaying the original — so the overlay was rendered and saved
+  to disk but never shown. Overcoat now removes the shadowed original after a successful overlay, so
+  the version it produced is the one Jellyfin serves. Existing affected items heal themselves on the
+  next run; nothing was lost, and the saved clean originals were never touched. This only affected the
+  0.8.0 beta, which added movie and wide-card overlays; stable releases are unaffected.
+
 ### Added
 - **Wide cards can be styled independently of posters.** The settings page is now split into a
   **Posters** tab (all poster banner + badge settings) and a **Wide Cards** tab (all wide-card banner

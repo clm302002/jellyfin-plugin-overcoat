@@ -457,6 +457,14 @@ public class OverlayTask : IScheduledTask
         var id = item.Id.ToString("N");
         var currentSig = state.ImageSignature(item);
 
+        // The exact file Jellyfin currently serves for this image, captured before we overlay. We
+        // write the overlay as .png (posters) / .webp (wide cards); if the item's existing image was
+        // a different extension (e.g. poster.jpg), SaveImage creates a NEW file beside the old one
+        // instead of replacing it, Jellyfin's folder scan re-adopts the untouched original, and the
+        // overlay becomes invisible even though it is on disk. Recording the old path lets us remove
+        // that stale sibling after a successful save. (movie/wide-card overlays not showing, 0.8.x)
+        var previousImagePath = item.HasImage(imageType, 0) ? item.GetImagePath(imageType, 0) : null;
+
         // The mtime signature only tells us the file was touched, not that its bytes changed. Confirm
         // against the hash of what we last wrote before believing it — otherwise a library scan or a
         // metadata write is mistaken for someone replacing the art, and the re-baseline below
@@ -739,6 +747,12 @@ public class OverlayTask : IScheduledTask
 
         var produced = _libraryManager.GetItemById(item.Id) ?? item;
 
+        // Delete the original image file if our overlay landed at a different path (different
+        // extension). Otherwise both survive, Jellyfin keeps serving the un-overlaid original, and
+        // the overlay is invisible. Only fires when the path genuinely differs, so a same-format
+        // overwrite is untouched.
+        RemoveShadowedImage(previousImagePath, produced, imageType, item.Name);
+
         // Hash what actually landed on disk, not the bytes we handed to SaveImage — if Jellyfin
         // re-encodes or rewrites the file, hashing our intended bytes would never match on read-back
         // and the whole content check would silently degrade to the old mtime-only behaviour. An
@@ -839,6 +853,66 @@ public class OverlayTask : IScheduledTask
             "countdown" => $"{air.DaysUntil}d",
             _ => string.IsNullOrEmpty(air.Date) ? null : air.Date,
         };
+    }
+
+    /// <summary>
+    /// Removes the pre-overlay image file when our overlay was saved under a different name, so
+    /// Jellyfin cannot keep serving (or re-adopt) the un-overlaid original. Heavily guarded: it only
+    /// deletes a poster/landscape image sitting in the same directory as the file we just wrote, and
+    /// never the file Jellyfin now points at.
+    /// </summary>
+    /// <summary>
+    /// Pure decision for <see cref="RemoveShadowedImage"/>: is <paramref name="previousPath"/> a stale
+    /// original that should be deleted after our overlay landed at <paramref name="newPath"/>?
+    ///
+    /// True only when all hold — extracted and tested separately because a wrong "true" deletes a
+    /// user's file:
+    /// <list type="bullet">
+    /// <item>both paths are known;</item>
+    /// <item>they actually differ (a same-path overwrite leaves nothing to clean up);</item>
+    /// <item>they are in the same directory (never reach outside our output's folder);</item>
+    /// <item>the old file is the expected <c>poster</c>/<c>landscape</c> image, not something else.</item>
+    /// </list>
+    /// </summary>
+    public static bool IsShadowToRemove(string? previousPath, string? newPath, ImageType imageType)
+    {
+        if (string.IsNullOrEmpty(previousPath)
+            || string.IsNullOrEmpty(newPath)
+            || string.Equals(previousPath, newPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var expected = imageType == ImageType.Thumb ? "landscape" : "poster";
+        return string.Equals(Path.GetDirectoryName(newPath), Path.GetDirectoryName(previousPath), StringComparison.OrdinalIgnoreCase)
+            && string.Equals(Path.GetFileNameWithoutExtension(previousPath), expected, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void RemoveShadowedImage(string? previousPath, BaseItem produced, ImageType imageType, string? name)
+    {
+        if (string.IsNullOrEmpty(previousPath) || !File.Exists(previousPath))
+        {
+            return;
+        }
+
+        var newPath = produced.HasImage(imageType, 0) ? produced.GetImagePath(imageType, 0) : null;
+        if (!IsShadowToRemove(previousPath, newPath, imageType))
+        {
+            return;
+        }
+
+        try
+        {
+            File.Delete(previousPath);
+            _logger.LogInformation(
+                "Overcoat: removed the un-overlaid {Type} that was shadowing the overlay for '{Name}'.",
+                imageType == ImageType.Thumb ? "wide card" : "poster",
+                name ?? "?");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Overcoat: could not remove the shadowing image for '{Name}'.", name ?? "?");
+        }
     }
 
     /// <summary>Clean source poster: the Jellyfin file if present; for TV, else the TMDB poster (movies have no fallback).</summary>
