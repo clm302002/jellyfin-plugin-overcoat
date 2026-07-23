@@ -175,37 +175,40 @@ public class PreviewController : ControllerBase
         [FromQuery] string? layout = null,
         CancellationToken cancellationToken = default)
     {
-        using var bmp = await ResolveCanvasAsync(source, previewKey, string.Equals(layout, "landscape", StringComparison.OrdinalIgnoreCase), cancellationToken).ConfigureAwait(false);
+        var landscape = string.Equals(layout, "landscape", StringComparison.OrdinalIgnoreCase);
+        using var bmp = await ResolveCanvasAsync(source, previewKey, landscape, cancellationToken).ConfigureAwait(false);
         using var renderer = new OverlayRenderer();
 
         var config = Plugin.Instance?.Configuration;
 
         // Draw the banner using the saved settings (a representative RETURNING sample) so the badge
-        // preview shows the full composite the way it'll look in the library.
+        // preview shows the full composite the way it'll look in the library. A landscape preview uses
+        // the wide-card banner appearance so the wide badge preview matches the real wide-card output.
         if (config is not null)
         {
             const string identity = "RETURNING";
             if (config.IsStatusShown(identity))
             {
                 var label = config.LabelForStatus(identity);
+                var appear = config.AppearanceFor(landscape);
                 renderer.DrawStatusBanner(bmp, label + " 6/26", new OverlayRenderer.BannerOptions
                 {
-                    Style = config.BannerStyle,
-                    Shape = config.BannerShape,
-                    Position = config.BannerPosition,
-                    FontScale = config.BannerFontScale,
-                    ShowIcons = config.BannerIcons,
+                    Style = appear.BannerStyle,
+                    Shape = appear.BannerShape,
+                    Position = appear.BannerPosition,
+                    FontScale = appear.BannerFontScale,
+                    ShowIcons = appear.BannerIcons,
                     IconKey = identity,
                     ColorOverride = config.ColorForIdentity(identity),
-                    FullWidth = config.BannerFullWidth,
-                    Align = config.BannerAlign,
-                    Shadow = config.BannerShadow,
-                    ShadowStrength = config.BannerShadowStrength,
-                    GlassTint = config.GlassTint,
-                    GlassTintStrength = config.GlassTintStrength,
-                    GlassBlur = config.GlassBlur,
-                    NeonGlow = config.NeonGlow,
-                    Font = config.BannerFont,
+                    FullWidth = appear.BannerFullWidth,
+                    Align = appear.BannerAlign,
+                    Shadow = appear.BannerShadow,
+                    ShadowStrength = appear.BannerShadowStrength,
+                    GlassTint = appear.GlassTint,
+                    GlassTintStrength = appear.GlassTintStrength,
+                    GlassBlur = appear.GlassBlur,
+                    NeonGlow = appear.NeonGlow,
+                    Font = appear.BannerFont,
                 });
             }
         }
@@ -224,7 +227,7 @@ public class PreviewController : ControllerBase
                 scale,
                 gap,
                 bmp.Width > bmp.Height && config is not null && config.IsStatusShown("RETURNING")
-                    && !string.Equals(config.BannerPosition, "bottom", StringComparison.OrdinalIgnoreCase) ? 18 : 0));
+                    && !string.Equals(config.AppearanceFor(true).BannerPosition, "bottom", StringComparison.OrdinalIgnoreCase) ? 18 : 0));
         }
 
         return File(OverlayRenderer.EncodePng(bmp), "image/png");

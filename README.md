@@ -80,24 +80,31 @@ a later library scan or metadata tool can replace an overlaid poster until Overc
 
 ## Customize it
 
-The Banners tab covers solid, frosted-glass, and neon styles; pill, square, and edge-drop shapes;
-top/bottom placement; alignment; full-width bands; bundled/system fonts; text scale; icons; shadows;
-per-status colours and labels; glass blur/tint; neon glow; and airing/returning date formats. The
-edge-flush **drop** shape is the maintainer's favorite and is featured in the customization gallery.
+The **Posters** tab keeps all poster banner and badge controls together: solid, frosted-glass, and
+neon styles; pill, square, and edge-drop shapes; top/bottom placement; alignment; full-width bands;
+bundled/system fonts; text scale; icons; shadows; per-status colours and labels; glass blur/tint;
+neon glow; airing/returning date formats; plus badge sources (global switch, day/week/month TMDB
+window, watch-history rules, IMDb source lists) and the left-side ribbon anchor, scale, and spacing.
+The edge-flush **drop** shape is the maintainer's favorite. IMDb retains its supported corner
+placement; the gallery has no right-side ribbon examples because the current ribbon artwork is
+designed for the left edge.
+
+The **Wide Cards** tab styles Jellyfin's landscape Next Up / Continue Watching cards **independently**
+of posters. Turn on **Customize wide cards separately** and the wide-card banner style, shape,
+position, size, and effects, plus badge placement/size, become their own settings — adjusting posters
+never changes wide cards and vice-versa, each with its own live 16:9 preview. Left off (the default),
+wide cards match your poster design exactly. Status colours, labels, which statuses/badges appear,
+date formats, and badge sources are shared across both surfaces.
 
 > [!IMPORTANT]
-> Banner appearance and badge layout are **global settings**, not per-title settings. The Libraries
-> tab chooses which overlay and badge types each library receives; every eligible title in that
-> library then uses the same global appearance and layout. You can enable watch history only, TMDB
-> Trending only, both side ribbons, and/or IMDb Top 250 for a library, but you cannot give one title
-> a unique banner or badge design.
+> Appearance is a **global setting per surface**, not a per-title setting. The Libraries tab chooses
+> which overlay and badge types each library receives; every eligible title then uses the same global
+> poster design (and wide-card design, if separately enabled). You can enable watch history only, TMDB
+> Trending only, both side ribbons, and/or IMDb Top 250 for a library, but you cannot give one title a
+> unique banner or badge design.
 
-The Badges tab keeps badge sources and layout together: the global switch, day/week/month TMDB
-window, watch-history rules, IMDb source lists, left-side ribbon anchor, scale, and spacing. IMDb
-retains its supported corner placement. The gallery intentionally contains no right-side ribbon
-examples because the current ribbon artwork is designed for the left edge. A random library poster
-selected in either live preview stays in place while you edit or switch between Banners and Badges;
-it changes only when you explicitly request another random poster.
+A random library image selected in any live preview stays in place while you edit or switch between
+the Posters and Wide Cards tabs; it changes only when you explicitly request another random one.
 
 ### Settings tour
 

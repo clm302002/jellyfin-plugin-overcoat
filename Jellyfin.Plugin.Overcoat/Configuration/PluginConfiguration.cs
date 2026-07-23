@@ -290,6 +290,48 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets the gap between stacked badges as a percentage of poster height (0–10).</summary>
     public int BadgeGapPercent { get; set; } = 1;
 
+    // --- Wide-card (landscape Thumb) appearance overrides ---
+    //
+    // Posters (Primary) and wide cards (Series Thumb) share every appearance field above by default.
+    // When WideCardCustomize is on, the Thumb channel draws with the WideCard values instead, so the
+    // two surfaces can be tuned independently. Only *appearance/layout* is split — status colours,
+    // labels, per-status show flags, date formats and badge sources stay shared (a RETURNING show is
+    // RETURNING on both). See AppearanceFor.
+
+    /// <summary>
+    /// Gets or sets a value indicating whether wide cards use their own appearance settings
+    /// (<see cref="WideCard"/>) instead of the poster ones. Off = wide cards look exactly like posters.
+    /// </summary>
+    public bool WideCardCustomize { get; set; }
+
+    /// <summary>Gets or sets the wide-card appearance overrides (applied only when <see cref="WideCardCustomize"/> is on).</summary>
+    public WideCardStyle WideCard { get; set; } = new();
+
+    /// <summary>
+    /// The effective banner + badge appearance for a channel: the poster fields, or the
+    /// <see cref="WideCard"/> overrides when rendering a Thumb and <see cref="WideCardCustomize"/> is on.
+    /// Semantic settings (colours, labels, show flags, date formats, badge sources) are resolved
+    /// separately from the shared fields and are not part of this.
+    /// </summary>
+    public OverlayAppearance AppearanceFor(bool thumb)
+    {
+        if (thumb && WideCardCustomize)
+        {
+            var w = WideCard;
+            return new OverlayAppearance(
+                w.BannerStyle, w.BannerShape, w.BannerPosition, w.BannerFontScale, w.BannerIcons,
+                w.BannerFullWidth, w.BannerAlign, w.BannerShadow, w.BannerShadowStrength,
+                w.GlassTint, w.GlassTintStrength, w.GlassBlur, w.NeonGlow, w.BannerFont,
+                w.BadgeSide, w.BadgeVertical, w.BadgeScale, w.BadgeGapPercent);
+        }
+
+        return new OverlayAppearance(
+            BannerStyle, BannerShape, BannerPosition, BannerFontScale, BannerIcons,
+            BannerFullWidth, BannerAlign, BannerShadow, BannerShadowStrength,
+            GlassTint, GlassTintStrength, GlassBlur, NeonGlow, BannerFont,
+            BadgeSide, BadgeVertical, BadgeScale, BadgeGapPercent);
+    }
+
     // --- Selection (was jellyfin.libraries / ignore_shows / tmdb_overrides) ---
 
     /// <summary>Gets or sets the per-library overlay/badge selection.</summary>
@@ -353,6 +395,18 @@ public static class ConfigurationSanitizer
         c.LabelReturning = SafeLabel(c.LabelReturning, "RETURNING");
         c.LabelEnded = SafeLabel(c.LabelEnded, "ENDED");
         c.LabelCanceled = SafeLabel(c.LabelCanceled, "CANCELED");
+
+        // The wide-card overrides are reachable the same three ways (settings page, preview endpoint,
+        // hand-edited XML) and hit the same renderer, so they need the same clamps as the poster fields.
+        var w = c.WideCard ??= new WideCardStyle();
+        w.BannerFontScale = Math.Clamp(double.IsFinite(w.BannerFontScale) ? w.BannerFontScale : 1.0, 0.2, 3.0);
+        w.BannerShadowStrength = Math.Clamp(w.BannerShadowStrength, 0, 100);
+        w.GlassTintStrength = Math.Clamp(w.GlassTintStrength, 0, 100);
+        w.GlassBlur = Math.Clamp(w.GlassBlur, 0, 100);
+        w.NeonGlow = Math.Clamp(w.NeonGlow, 0, 100);
+        w.BadgeScale = Math.Clamp(w.BadgeScale, 10, 300);
+        w.BadgeGapPercent = Math.Clamp(w.BadgeGapPercent, 0, 50);
+        w.GlassTint = SafeColor(w.GlassTint, "#0E1018");
     }
 
     /// <summary>A #RGB / #RRGGBB / #AARRGGBB value, or the supplied default.</summary>
@@ -435,3 +489,92 @@ public class TmdbOverride
     /// <summary>Gets or sets the TMDB id to force.</summary>
     public int TmdbId { get; set; }
 }
+
+/// <summary>
+/// Wide-card (landscape Series Thumb) appearance overrides. Mirrors the poster appearance/layout
+/// fields on <see cref="PluginConfiguration"/>; every default matches the poster default so enabling
+/// <see cref="PluginConfiguration.WideCardCustomize"/> changes nothing until a value is actually
+/// edited. Semantic fields (colours, labels, show flags, date formats, badge sources) are shared and
+/// deliberately absent here.
+/// </summary>
+public class WideCardStyle
+{
+    /// <summary>Gets or sets the banner fill treatment: "solid", "glass", or "neon".</summary>
+    public string BannerStyle { get; set; } = "solid";
+
+    /// <summary>Gets or sets the banner shape: "pill", "square", or "drop".</summary>
+    public string BannerShape { get; set; } = "pill";
+
+    /// <summary>Gets or sets where the banner sits: "top" or "bottom".</summary>
+    public string BannerPosition { get; set; } = "top";
+
+    /// <summary>Gets or sets the banner font-size multiplier.</summary>
+    public double BannerFontScale { get; set; } = 1.0;
+
+    /// <summary>Gets or sets a value indicating whether the per-status icon is drawn.</summary>
+    public bool BannerIcons { get; set; } = true;
+
+    /// <summary>Gets or sets a value indicating whether the banner spans the full card width.</summary>
+    public bool BannerFullWidth { get; set; }
+
+    /// <summary>Gets or sets the horizontal alignment: "left", "center", or "right".</summary>
+    public string BannerAlign { get; set; } = "center";
+
+    /// <summary>Gets or sets a value indicating whether a drop shadow is drawn under the banner.</summary>
+    public bool BannerShadow { get; set; }
+
+    /// <summary>Gets or sets the drop-shadow strength (0–100).</summary>
+    public int BannerShadowStrength { get; set; } = 60;
+
+    /// <summary>Gets or sets the glass frost tint colour (hex).</summary>
+    public string GlassTint { get; set; } = "#0E1018";
+
+    /// <summary>Gets or sets the glass frost tint strength (0–100).</summary>
+    public int GlassTintStrength { get; set; } = 49;
+
+    /// <summary>Gets or sets the glass frost blur amount (0–100).</summary>
+    public int GlassBlur { get; set; } = 50;
+
+    /// <summary>Gets or sets the neon glow intensity (0–100).</summary>
+    public int NeonGlow { get; set; } = 60;
+
+    /// <summary>Gets or sets the banner font: "default", "sans", "serif", or "mono".</summary>
+    public string BannerFont { get; set; } = "default";
+
+    /// <summary>Gets or sets the side the badge ribbons sit on: "left" or "right".</summary>
+    public string BadgeSide { get; set; } = "left";
+
+    /// <summary>Gets or sets the vertical anchor of the badge stack: "top", "middle", or "bottom".</summary>
+    public string BadgeVertical { get; set; } = "middle";
+
+    /// <summary>Gets or sets the badge size as a percentage of the calibrated size.</summary>
+    public int BadgeScale { get; set; } = 100;
+
+    /// <summary>Gets or sets the gap between stacked badges as a percentage of card height.</summary>
+    public int BadgeGapPercent { get; set; } = 1;
+}
+
+/// <summary>
+/// The resolved banner + badge appearance for one render channel (poster or wide card). Produced by
+/// <see cref="PluginConfiguration.AppearanceFor"/> so the renderer, cache fingerprint and preview all
+/// read a single set of values without repeating the poster-vs-wide branch.
+/// </summary>
+public readonly record struct OverlayAppearance(
+    string BannerStyle,
+    string BannerShape,
+    string BannerPosition,
+    double BannerFontScale,
+    bool BannerIcons,
+    bool BannerFullWidth,
+    string BannerAlign,
+    bool BannerShadow,
+    int BannerShadowStrength,
+    string GlassTint,
+    int GlassTintStrength,
+    int GlassBlur,
+    int NeonGlow,
+    string BannerFont,
+    string BadgeSide,
+    string BadgeVertical,
+    int BadgeScale,
+    int BadgeGapPercent);

@@ -612,19 +612,26 @@ public class OverlayTask : IScheduledTask
         // never needlessly reprocesses them. (Label changes are caught via cacheText below.)
         var inv = System.Globalization.CultureInfo.InvariantCulture;
         var bannerColor = iconKey.Length == 0 ? string.Empty : config.ColorForIdentity(iconKey);
+
+        // Resolve the effective appearance for this channel: the poster fields, or the wide-card
+        // overrides when this is a Thumb and separate customization is on. Colours/labels stay shared
+        // (bannerColor above). With customization off the wide values equal the poster values, so the
+        // fingerprint is unchanged and existing thumbs never needlessly re-render.
+        var appear = config.AppearanceFor(imageType == ImageType.Thumb);
+
         var keyParts = new List<string>();
         if (text is not null)
         {
             keyParts.Add(string.Join("|", new[]
             {
-                config.BannerStyle, config.BannerShape, config.BannerPosition,
-                ((int)Math.Round(config.BannerFontScale * 1000)).ToString(inv),
-                config.BannerIcons.ToString(), bannerColor,
-                config.BannerFullWidth.ToString(), config.BannerAlign,
-                config.BannerShadow ? config.BannerShadowStrength.ToString(inv) : "0",
-                config.GlassTint, config.GlassTintStrength.ToString(inv),
-                config.GlassBlur.ToString(inv),
-                config.NeonGlow.ToString(inv), config.BannerFont,
+                appear.BannerStyle, appear.BannerShape, appear.BannerPosition,
+                ((int)Math.Round(appear.BannerFontScale * 1000)).ToString(inv),
+                appear.BannerIcons.ToString(), bannerColor,
+                appear.BannerFullWidth.ToString(), appear.BannerAlign,
+                appear.BannerShadow ? appear.BannerShadowStrength.ToString(inv) : "0",
+                appear.GlassTint, appear.GlassTintStrength.ToString(inv),
+                appear.GlassBlur.ToString(inv),
+                appear.NeonGlow.ToString(inv), appear.BannerFont,
             }));
         }
 
@@ -633,8 +640,8 @@ public class OverlayTask : IScheduledTask
         {
             keyParts.Add(string.Join("|", new[]
             {
-                "badges", config.BadgeSide, config.BadgeVertical,
-                config.BadgeScale.ToString(inv), config.BadgeGapPercent.ToString(inv),
+                "badges", appear.BadgeSide, appear.BadgeVertical,
+                appear.BadgeScale.ToString(inv), appear.BadgeGapPercent.ToString(inv),
             }));
         }
 
@@ -690,31 +697,31 @@ public class OverlayTask : IScheduledTask
         {
             renderer.DrawStatusBanner(bmp, text, new OverlayRenderer.BannerOptions
             {
-                Style = config.BannerStyle,
-                Shape = config.BannerShape,
-                Position = config.BannerPosition,
-                FontScale = config.BannerFontScale,
-                ShowIcons = config.BannerIcons,
+                Style = appear.BannerStyle,
+                Shape = appear.BannerShape,
+                Position = appear.BannerPosition,
+                FontScale = appear.BannerFontScale,
+                ShowIcons = appear.BannerIcons,
                 IconKey = iconKey,
                 ColorOverride = bannerColor,
-                FullWidth = config.BannerFullWidth,
-                Align = config.BannerAlign,
-                Shadow = config.BannerShadow,
-                ShadowStrength = config.BannerShadowStrength,
-                GlassTint = config.GlassTint,
-                GlassTintStrength = config.GlassTintStrength,
-                GlassBlur = config.GlassBlur,
-                NeonGlow = config.NeonGlow,
-                Font = config.BannerFont,
+                FullWidth = appear.BannerFullWidth,
+                Align = appear.BannerAlign,
+                Shadow = appear.BannerShadow,
+                ShadowStrength = appear.BannerShadowStrength,
+                GlassTint = appear.GlassTint,
+                GlassTintStrength = appear.GlassTintStrength,
+                GlassBlur = appear.GlassBlur,
+                NeonGlow = appear.NeonGlow,
+                Font = appear.BannerFont,
             });
         }
 
         badges.Apply(renderer, bmp, badgeSet, new BadgeCompositor.BadgeLayout(
-            string.Equals(config.BadgeSide, "right", StringComparison.OrdinalIgnoreCase),
-            config.BadgeVertical,
-            config.BadgeScale,
-            config.BadgeGapPercent,
-            imageType == ImageType.Thumb && text is not null && !string.Equals(config.BannerPosition, "bottom", StringComparison.OrdinalIgnoreCase) ? 18 : 0));
+            string.Equals(appear.BadgeSide, "right", StringComparison.OrdinalIgnoreCase),
+            appear.BadgeVertical,
+            appear.BadgeScale,
+            appear.BadgeGapPercent,
+            imageType == ImageType.Thumb && text is not null && !string.Equals(appear.BannerPosition, "bottom", StringComparison.OrdinalIgnoreCase) ? 18 : 0));
         var output = imageType == ImageType.Thumb
             ? OverlayRenderer.EncodeWideCardWebp(bmp)
             : OverlayRenderer.EncodePng(bmp);

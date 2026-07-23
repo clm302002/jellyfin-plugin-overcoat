@@ -78,6 +78,10 @@
 #OvercoatConfigPage .ovcBannerPreview { grid-area:preview; text-align:center; }
 #OvercoatConfigPage .ovcPreviewRail { position:sticky; top:9.2rem; }
 #OvercoatConfigPage .ovcBannerPreview img { width:100%; max-width:320px; border-radius:.55rem; box-shadow:0 8px 30px rgba(0,0,0,.42); }
+/* Wide-card previews are 16:9, so let them use the full preview rail rather than the portrait cap. */
+#OvercoatConfigPage .ovcWidePreview img { max-width:340px; }
+/* While wide cards inherit poster settings, dim the (disabled) override controls as a visual cue. */
+#OvercoatConfigPage .ovcWideBody.ovcWideLocked { opacity:.55; }
 #OvercoatConfigPage .ovcDenseCard, #OvercoatConfigPage .ovcFieldGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
 #OvercoatConfigPage .ovcDenseCard > h3, #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column:1/-1; }
 #OvercoatConfigPage .ovcStatusSwitch, #OvercoatConfigPage .ovcRowButtons { display:flex; flex-wrap:wrap; gap:.45rem; justify-content:center; margin:.5rem 0 1rem; }
