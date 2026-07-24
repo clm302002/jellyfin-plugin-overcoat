@@ -179,9 +179,11 @@ titles that need a different treatment, or anything you never want Overcoat to c
 | Originals vault, dry run, restore task | Working for posters and managed series Thumbs |
 | Badge art/style selection | Planned |
 
-Current release: **v0.8.0** (`0.8.0.500`) on the stable channel. It adds the series Thumb wide-card
-pipeline, all-current-user artwork controls, automatic re-apply after a library scan, and independent
-wide-card styling. Prereleases of upcoming work land on the optional beta channel (below).
+Current release: **v0.9.0** (`0.9.0.500`) on the stable channel. It adds the purpose-based settings
+studio, matching Poster and Wide Card design surfaces, exact-title testing and exclusions, the
+modern Libraries/Data Sources/Automation/Recovery workspaces, and a hard artwork-write boundary
+that keeps Overcoat output in Jellyfin's internal metadata storage even when a library is configured
+to save artwork beside media. Prereleases of upcoming work land on the optional beta channel (below).
 
 A TMDB API key is required for status and TMDB-backed lists. Overcoat is tested against the pinned
 Jellyfin 10.11 API surface; newer Jellyfin releases may require a plugin update.
