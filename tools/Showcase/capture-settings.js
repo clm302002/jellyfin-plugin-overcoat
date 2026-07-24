@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 // Standalone capture of the real embedded settings HTML. No server URL, login, or live API exists.
 //
-// Updated for the beta.5+ tab model: the old Banners/Badges tabs are merged into ONE **Posters** tab,
-// with a separate **Wide Cards** tab. Tab buttons still carry data-tab; the current names are
-// posters / wide / libraries / apikeys / maintenance. Previews are #PostersPreview (data-preview-kind
-// "poster") and #WidePreview ("wide") — the old #BannerPreview / #BadgePreview ids are gone.
+// Captures the 0.9 purpose-based shell: Design, Libraries, Data Sources, Automation, and Recovery.
+// Poster/Wide Card are surfaces inside Design. Previews remain the real embedded-page hooks
+// #PostersPreview and #WidePreview, backed here by a credential-free local image.
 const path = require('path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = path.resolve(__dirname, '../..');
@@ -38,13 +37,14 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       CustomScheduleTime:false, ScheduleHour:3, ScheduleMinute:0,
       CacheEnabled:true, DryRun:false, ReapplyAfterScan:true, ForceRestore:false,
       IgnoreTitles:'', LimitToTitles:'', TmdbOverrides:'', TmdbApiKey:'',
+      FutureSetting:'preserve-me',
       Libraries:[
         {Name:'TV Shows',Enabled:true,StatusOverlays:true,TrendingBadge:true,WatchHistoryBadge:true,ImdbTop250Badge:false},
         {Name:'Movies',Enabled:true,StatusOverlays:false,TrendingBadge:true,WatchHistoryBadge:true,ImdbTop250Badge:true}
       ]
     };
     window.__captureUpdates = [];
-    window.ApiClient = { accessToken:()=> 'synthetic-capture-token', getUrl:(route)=>route.includes('configPage.css') ? cssUrl : previewUrl, getJSON:()=>Promise.resolve([]), ajax:()=>Promise.resolve({}), getPluginConfiguration:()=>Promise.resolve(config), updatePluginConfiguration:(_id, next)=>{ window.__captureUpdates.push(next); return Promise.resolve(next); }, getVirtualFolders:()=>Promise.resolve([{Name:'TV Shows',CollectionType:'tvshows'},{Name:'Movies',CollectionType:'movies'}]), getUsers:()=>Promise.resolve([{Id:'demo',Name:'Demo user'}]), getScheduledTasks:()=>Promise.resolve([]) };
+    window.ApiClient = { accessToken:()=> 'synthetic-capture-token', getUrl:(route)=>route.includes('configPage.css') ? cssUrl : previewUrl, getJSON:()=>Promise.resolve([]), ajax:()=>Promise.resolve({}), getPluginConfiguration:()=>Promise.resolve(config), updatePluginConfiguration:(_id, next)=>{ window.__captureUpdates.push(next); Object.assign(config, next); return Promise.resolve(next); }, getVirtualFolders:()=>Promise.resolve([{Name:'TV Shows',CollectionType:'tvshows'},{Name:'Movies',CollectionType:'movies'}]), getUsers:()=>Promise.resolve([{Id:'demo',Name:'Demo user'}]), getScheduledTasks:()=>Promise.resolve([]) };
     window.Dashboard = { showLoadingMsg(){}, hideLoadingMsg(){}, processPluginConfigurationUpdateResult(){}, alert(){}, confirm(_m,_t,cb){cb(false);} };
   }, {previewUrl:'file://' + path.join(root, 'private/showcase-input/breaking-bad.jpg'), cssUrl:'file://' + path.join(root, 'Jellyfin.Plugin.Overcoat/Configuration/configPage.css')});
   await page.goto('file://' + path.join(root, 'Jellyfin.Plugin.Overcoat/Configuration/configPage.html'));
@@ -57,47 +57,48 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
   // Wait for the real library-row builder to render the fictional API response. This exercises the
   // same enable/collapse behavior as Jellyfin instead of replacing it with showcase-only markup.
   await page.locator('#OvercoatLibraries .ovcLib').first().waitFor({state:'attached'});
-  const captureTabs = process.env.SHOWCASE_CAPTURE_ALL === '1'
-    ? ['posters','wide','apikeys','libraries','maintenance']
-    : ['posters','wide','libraries','maintenance'];
-  for (const tab of captureTabs) {
+  const captures = process.env.SHOWCASE_CAPTURE_ALL === '1'
+    ? [{tab:'design',name:'posters'},{tab:'design',surface:'wide',name:'wide'},{tab:'sources',name:'sources'},{tab:'libraries',name:'libraries'},{tab:'automation',name:'automation'},{tab:'recovery',name:'recovery'}]
+    : [{tab:'design',name:'posters'},{tab:'design',surface:'wide',name:'wide'},{tab:'libraries',name:'libraries'},{tab:'automation',name:'maintenance'}];
+  for (const capture of captures) {
     await page.evaluate(() => { window.scrollTo(0, 0); const shell = document.querySelector('.jellyfinViewport'); if (shell) shell.scrollTop = 0; });
-    await page.locator(`button[data-tab="${tab}"]`).click();
+    await page.locator(`button[data-tab="${capture.tab}"]`).click();
+    if (capture.surface) await page.locator(`[data-panel="${capture.tab}"] button[data-surface="${capture.surface}"]`).click();
     await page.evaluate(() => { window.scrollTo(0, 0); const shell = document.querySelector('.jellyfinViewport'); if (shell) shell.scrollTop = 0; });
     await page.waitForTimeout(250);
-    await page.screenshot({ path:path.join(out,`settings-${tab}.png`), fullPage:true });
+    await page.screenshot({ path:path.join(out,`settings-${capture.name}.png`), fullPage:true });
   }
   if (process.env.SHOWCASE_CAPTURE_DETAILS === '1') {
-    await page.locator('button[data-tab="posters"]').click();
-    const posterEffects = page.locator('[data-panel="posters"] details').filter({has:page.locator('summary', {hasText:'Effects'})});
-    const statusDesign = page.locator('[data-panel="posters"] details').filter({has:page.locator('summary', {hasText:'Colours & labels'})});
+    await page.locator('button[data-tab="design"]').click();
+    const posterEffects = page.locator('[data-panel="design"] details').filter({has:page.locator('summary', {hasText:'Effects'})});
+    const statusDesign = page.locator('[data-panel="design"] details').filter({has:page.locator('summary', {hasText:'Colours & labels'})});
     await posterEffects.screenshot({path:path.join(out, 'settings-posters-effects.png')});
     await statusDesign.screenshot({path:path.join(out, 'settings-posters-colours-labels.png')});
-    await page.locator('button[data-tab="wide"]').click();
+    await page.locator('[data-panel="design"] button[data-surface="wide"]').click();
     const wideEffects = page.locator('[data-panel="wide"] details').filter({has:page.locator('summary', {hasText:'Effects'})});
     await wideEffects.screenshot({path:path.join(out, 'settings-wide-effects.png')});
   }
   if (process.env.SHOWCASE_VERIFY_SCROLL === '1') {
-    for (const tab of ['posters','wide','apikeys','libraries','maintenance']) {
+    for (const tab of ['design','libraries','sources','automation','recovery']) {
       await page.locator(`button[data-tab="${tab}"]`).click();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       if (overflow > 1) throw new Error(`${tab} has ${overflow}px of horizontal overflow.`);
     }
-    if (await page.locator('button[data-tab="maintenance"]').getAttribute('aria-selected') !== 'true') {
+    if (await page.locator('button[data-tab="recovery"]').getAttribute('aria-selected') !== 'true') {
       throw new Error('Tab ARIA selection state did not update.');
     }
-    await page.locator('button[data-tab="posters"]').focus();
+    await page.locator('button[data-tab="design"]').focus();
     await page.keyboard.press('ArrowRight');
-    if (await page.locator('button[data-tab="wide"]').getAttribute('aria-selected') !== 'true') {
+    if (await page.locator('button[data-tab="libraries"]').getAttribute('aria-selected') !== 'true') {
       throw new Error('Keyboard tab navigation failed.');
     }
-    await page.locator('button[data-tab="apikeys"]').click();
+    await page.locator('button[data-tab="sources"]').click();
     if (await page.locator('#TmdbApiKey').getAttribute('type') !== 'password') throw new Error('TMDB key is not masked by default.');
     await page.locator('#ToggleTmdbApiKey').click();
     if (await page.locator('#TmdbApiKey').getAttribute('type') !== 'text') throw new Error('TMDB key reveal control failed.');
     await page.locator('#ToggleTmdbApiKey').click();
     if (await page.locator('#TmdbApiKey').getAttribute('type') !== 'password') throw new Error('TMDB key hide control failed.');
-    await page.locator('button[data-tab="posters"]').click();
+    await page.locator('button[data-tab="design"]').click();
     await page.evaluate(() => {
       window.scrollTo(0, Math.floor(document.body.scrollHeight * .35));
       const shell = document.querySelector('.jellyfinViewport');
@@ -114,13 +115,13 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (state.mobile && !state.floating) throw new Error('Mobile floating preview did not appear after scrolling.');
     if (!state.mobile && (state.previewTop < 100 || state.previewTop > 600)) throw new Error(`Desktop preview is not sticky below the page chrome (top=${state.previewTop}).`);
     console.log(`scroll preview ok: ${state.mobile ? 'floating mobile' : 'sticky desktop'}`);
-    await page.locator('button[data-tab="maintenance"]').click();
+    await page.locator('button[data-tab="automation"]').click();
     const computed = await page.evaluate(() => ({
       form: document.querySelector('#OvercoatConfigForm').getBoundingClientRect().width,
       available: document.querySelector('.content-primary').getBoundingClientRect().width,
-      minCard: Math.min(...[...document.querySelectorAll('[data-panel="maintenance"] > .ovcCard')].map(x=>x.getBoundingClientRect().width)),
+      minCard: Math.min(...[...document.querySelectorAll('[data-panel="automation"] > .ovcCard')].map(x=>x.getBoundingClientRect().width)),
       badgeOptions: [...document.querySelectorAll('#BadgeSide option')].map(x=>x.value),
-      details: document.querySelectorAll('[data-panel="posters"] details.ovcCard').length,
+      details: document.querySelectorAll('[data-panel="design"] details.ovcCard').length,
     }));
     if (computed.form < Math.min(1200, computed.available - 8)) throw new Error(`Jellyfin's 54em form cap was not overridden (${computed.form}px).`);
     if (page.viewportSize().width >= 1200 && computed.minCard < 470) throw new Error(`Maintenance card is narrower than its 480px design minimum (${computed.minCard}px).`);
@@ -134,27 +135,27 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (await library.locator('.ovcLibOpts').getAttribute('hidden') === null) throw new Error('Disabled library options did not collapse.');
     await libraryEnabled.click();
     if (await library.locator('.ovcLibOpts').getAttribute('hidden') !== null) throw new Error('Enabled library options did not expand.');
-    await page.locator('button[data-tab="posters"]').click();
-    await page.locator('[data-panel="posters"] .ovcSourceBtn[data-source="random"]').click();
+    await page.locator('button[data-tab="design"]').click();
+    await page.locator('[data-panel="design"] .ovcSourceBtn[data-source="random"]').click();
     const posterKey = new URL(await page.locator('#PostersPreview').getAttribute('src')).searchParams.get('previewKey');
     await page.locator('[data-for="BannerShape"] button[data-v="square"]').click();
     const keyAfterEdit = new URL(await page.locator('#PostersPreview').getAttribute('src')).searchParams.get('previewKey');
-    await page.locator('button[data-tab="wide"]').click();
+    await page.locator('[data-panel="design"] button[data-surface="wide"]').click();
     const wideKeyBefore = new URL(await page.locator('#WidePreview').getAttribute('src')).searchParams.get('previewKey');
     if (!posterKey || posterKey !== keyAfterEdit) throw new Error('Random poster key changed during an edit.');
     await page.locator('[data-panel="wide"] .ovcWideSourceBtn[data-source="random"]').click();
     const rerolledKey = new URL(await page.locator('#WidePreview').getAttribute('src')).searchParams.get('previewKey');
     if (rerolledKey === wideKeyBefore) throw new Error('Explicit Random click did not select a new wide-card key.');
-    await page.locator('button[data-tab="posters"]').click();
-    const dateDetails = page.locator('[data-panel="posters"] details').filter({hasText:'Status dates'});
+    await page.locator('[data-panel="wide"] button[data-surface="design"]').click();
+    const dateDetails = page.locator('[data-panel="design"] details').filter({hasText:'Status dates'});
     const wasOpen = await dateDetails.getAttribute('open');
     await dateDetails.locator('summary').click();
     if ((await dateDetails.getAttribute('open')) === wasOpen) throw new Error('Banner accordion did not toggle.');
-    await page.locator('button[data-tab="maintenance"]').click();
+    await page.locator('button[data-tab="automation"]').click();
     await page.locator('#CacheEnabled').click();
     await page.locator('#CacheEnabled').dispatchEvent('input');
     const dirtyText = await page.locator('#OvercoatSaveState').textContent();
-    if (!/Unsaved/.test(dirtyText)) throw new Error(`Dirty-state feedback did not appear (${dirtyText}).`);
+    if (!/unsaved/i.test(dirtyText)) throw new Error(`Dirty-state feedback did not appear (${dirtyText}).`);
     await page.locator('#OvercoatConfigForm button[type="submit"]').click();
     await page.waitForTimeout(30);
     if (!/saved/i.test(await page.locator('#OvercoatSaveState').textContent())) throw new Error('Saved confirmation did not appear.');
@@ -162,12 +163,54 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (!update || update.BannerShape !== 'square' || update.BadgesEnabled !== true || update.Libraries?.length !== 2) {
       throw new Error('Saved configuration did not contain the edited shape, badge switch, and libraries.');
     }
+    if (update.FutureSetting !== 'preserve-me') throw new Error('Saving dropped an unknown future configuration field.');
+    await page.locator('button[data-tab="design"]').click();
+    await page.locator('[data-panel="design"] .ovcPreset[data-preset="ribbon"]').click();
+    if (await page.locator('#BannerShape').inputValue() !== 'drop'
+        || !await page.locator('#BannerFullWidth').isChecked()
+        || await page.locator('#BannerIcons').isChecked()) {
+      throw new Error('Ribbon preset did not update the documented appearance fields.');
+    }
+    await page.locator('#OvercoatDiscard').click();
+    await page.waitForTimeout(100);
+    if (await page.locator('#BannerStyle').inputValue() !== 'glass'
+        || await page.locator('#BannerShape').inputValue() !== 'square'
+        || await page.locator('#BannerFullWidth').isChecked()) {
+      throw new Error('Discard did not restore the server-backed configuration.');
+    }
+    await page.locator('button[data-tab="sources"]').click();
+    await page.locator('#TmdbOverrides').fill('Broken | year | id');
+    await page.locator('#OvercoatConfigForm button[type="submit"]').click();
+    await page.waitForTimeout(30);
+    if (await page.locator('#TmdbOverrides').getAttribute('aria-invalid') !== 'true'
+        || !await page.locator('#TmdbOverridesError').isVisible()) {
+      throw new Error('Invalid TMDB override syntax was not explained inline.');
+    }
+    await page.locator('#OvercoatDiscard').click();
+    await page.waitForTimeout(300);
+    await page.locator('button[data-tab="design"]').click();
     const collision = await page.evaluate(() => {
       const a=document.querySelector('#OvercoatSaveDock').getBoundingClientRect();
       const b=document.querySelector('#OvercoatFloatingPreview').getBoundingClientRect();
       return b.width > 0 && !(a.right < b.left || b.right < a.left || a.bottom < b.top || b.bottom < a.top);
     });
     if (collision) throw new Error('Floating preview collides with the save dock.');
+    await page.locator('#LabelNew').fill('DRAFT NEW');
+    await page.locator('#LabelNew').dispatchEvent('input');
+    await page.waitForTimeout(30);
+    if (!await page.evaluate(() => !!sessionStorage.getItem('overcoat-ui-draft-v1'))) {
+      throw new Error('Unsaved draft was not written to session storage.');
+    }
+    await page.reload();
+    await page.addStyleTag({path:path.join(root, 'Jellyfin.Plugin.Overcoat/Configuration/configPage.css')});
+    await page.locator('#OvercoatConfigPage').evaluate(el => { const shell=document.createElement('div'); shell.className='jellyfinViewport'; el.parentNode.insertBefore(shell,el); shell.appendChild(el); });
+    await page.locator('#OvercoatConfigPage').evaluate(el => el.dispatchEvent(new Event('viewshow')));
+    await page.locator('#OvercoatLibraries .ovcLib').first().waitFor({state:'attached'});
+    await page.waitForTimeout(100);
+    if (await page.locator('#LabelNew').inputValue() !== 'DRAFT NEW') {
+      throw new Error('Unsaved draft did not restore after reloading the configuration page.');
+    }
+    await page.locator('#OvercoatDiscard').click();
   }
   await browser.close();
 })().catch(e => { console.error(e); process.exit(1); });

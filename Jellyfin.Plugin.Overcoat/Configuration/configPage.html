@@ -18,27 +18,40 @@
                     <div class="ovcHeaderTop">
                         <div>
                             <h2 class="ovcTitle">Overcoat</h2>
-                            <p class="ovcSubtitle fieldDescription">Configure poster banners and badges, then run Overcoat from Maintenance or Scheduled Tasks.</p>
+                            <p class="ovcSubtitle">Design overlays, choose where they appear, and keep the artwork recoverable.</p>
                         </div>
-                        <button is="emby-button" type="button" id="OvercoatDescriptions" class="raised ovcDescriptionToggle" aria-pressed="true"><span class="ovcIcon" aria-hidden="true">notes</span> Help On</button>
+                        <div class="ovcHeaderStatus"><span class="ovcStatusDot"></span><span>Configuration studio</span></div>
                     </div>
                 </header>
                     <div class="ovcTabs" role="tablist" aria-label="Overcoat settings">
-                        <button type="button" class="ovcTab ovcActive" data-tab="posters" role="tab"><span class="ovcIcon" aria-hidden="true">image</span><span class="ovcTabLabel">Posters</span></button>
-                        <button type="button" class="ovcTab" data-tab="wide" role="tab"><span class="ovcIcon" aria-hidden="true">crop_16_9</span><span class="ovcTabLabel">Wide Cards</span></button>
+                        <button type="button" class="ovcTab ovcActive" data-tab="design" role="tab"><span class="ovcIcon" aria-hidden="true">palette</span><span class="ovcTabLabel">Design</span></button>
                         <button type="button" class="ovcTab" data-tab="libraries" role="tab"><span class="ovcIcon" aria-hidden="true">video_library</span><span class="ovcTabLabel">Libraries</span></button>
-                        <button type="button" class="ovcTab" data-tab="apikeys" role="tab"><span class="ovcIcon" aria-hidden="true">key</span><span class="ovcTabLabel">TMDB API</span></button>
-                        <button type="button" class="ovcTab" data-tab="maintenance" role="tab"><span class="ovcIcon" aria-hidden="true">build</span><span class="ovcTabLabel">Maintenance</span></button>
+                        <button type="button" class="ovcTab" data-tab="sources" role="tab"><span class="ovcIcon" aria-hidden="true">database</span><span class="ovcTabLabel">Data Sources</span></button>
+                        <button type="button" class="ovcTab" data-tab="automation" role="tab"><span class="ovcIcon" aria-hidden="true">schedule</span><span class="ovcTabLabel">Automation</span></button>
+                        <button type="button" class="ovcTab" data-tab="recovery" role="tab"><span class="ovcIcon" aria-hidden="true">restore</span><span class="ovcTabLabel">Recovery</span></button>
                     </div>
 
                 <!-- ===================== POSTERS (banners + badges) ===================== -->
-                <div class="ovcPanel ovcActive" data-panel="posters">
+                <div class="ovcPanel ovcActive" data-panel="design">
                     <div class="ovcBannerLayout">
+                        <div class="ovcSurfaceBar" role="tablist" aria-label="Design surface">
+                            <button type="button" class="ovcSurface ovcActive" data-surface="design" role="tab" aria-selected="true"><span class="ovcIcon">image</span>Poster</button>
+                            <button type="button" class="ovcSurface" data-surface="wide" role="tab" aria-selected="false"><span class="ovcIcon">crop_16_9</span>Wide card</button>
+                        </div>
                         <div class="ovcCard ovcNotice ovcStudioNotice">
-                            <strong>Poster design</strong>
-                            <div class="fieldDescription">Banner (top) and badges (below) for every enabled library's posters. Overcoat settings are never assigned to individual titles. Wide cards (Next Up / Continue Watching) have their own tab. The live preview on the right shows the full result and follows you as you scroll.</div>
+                            <strong>Poster studio</strong>
+                            <div class="fieldDescription">Build the banner and badge treatment once, preview the rendered result, then apply when it feels right.</div>
                         </div>
                         <div class="ovcBannerControls ovcControlGrid">
+                            <div class="ovcPresetBar ovcWide">
+                                <div><span class="ovcEyebrow">Quick looks</span><strong>Start with a direction</strong></div>
+                                <div class="ovcPresetActions">
+                                    <button type="button" class="ovcPreset" data-preset="clean">Clean</button>
+                                    <button type="button" class="ovcPreset" data-preset="glass">Glass</button>
+                                    <button type="button" class="ovcPreset" data-preset="neon">Neon</button>
+                                    <button type="button" class="ovcPreset" data-preset="ribbon">Ribbon</button>
+                                </div>
+                            </div>
                             <div class="ovcSectionHeading ovcWide"><h3>Banner</h3></div>
                             <div class="ovcCard ovcDenseCard">
                             <h3>Style &amp; typography</h3>
@@ -207,7 +220,7 @@
                             </div>
                             </div></details>
                             <div class="ovcSectionHeading ovcWide"><h3>Badges</h3></div>
-                            <div class="ovcCard">
+                            <div class="ovcCard" id="OvercoatBadgeSourcesCard">
                                 <h3>Badge sources</h3>
                                 <div class="ovcCheck">
                                     <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BadgesEnabled" /><span>Enable badges globally</span></label>
@@ -229,7 +242,7 @@
                                 </div>
                             </div>
 
-                            <div class="ovcCard">
+                            <div class="ovcCard" id="OvercoatWatchHistoryCard">
                                 <h3>Watch History badge</h3>
                                 <div class="ovcFormStack">
                                 <div class="ovcField">
@@ -251,7 +264,7 @@
                                 </div>
                             </div>
 
-                            <details class="ovcCard">
+                            <details class="ovcCard" id="OvercoatImdbListsCard">
                                 <summary>IMDb Top 250 source lists</summary>
                                 <div class="ovcDetailsBody ovcFieldGrid">
                                     <div class="inputContainer">
@@ -335,12 +348,25 @@
                 <!-- ===================== WIDE CARDS (banners + badges) ===================== -->
                 <div class="ovcPanel" data-panel="wide">
                     <div class="ovcBannerLayout">
+                        <div class="ovcSurfaceBar" role="tablist" aria-label="Design surface">
+                            <button type="button" class="ovcSurface" data-surface="design" role="tab" aria-selected="false"><span class="ovcIcon">image</span>Poster</button>
+                            <button type="button" class="ovcSurface ovcActive" data-surface="wide" role="tab" aria-selected="true"><span class="ovcIcon">crop_16_9</span>Wide card</button>
+                        </div>
                         <div class="ovcCard ovcNotice ovcStudioNotice">
                             <label class="checkboxContainer ovcChoiceToggle"><input is="emby-checkbox" type="checkbox" id="WideCardCustomize" /><span>Customize wide cards separately</span></label>
                             <div class="fieldDescription">Off: wide cards inherit the poster design. On: this tab gets its own banner and badge layout. Wide-card overlays are still enabled per library on the Libraries tab.</div>
                             <div class="fieldDescription"><strong>Shared with Posters:</strong> status colours, labels, visibility, date formats, and badge sources. This tab controls only the 16:9 appearance.</div>
                         </div>
                         <div class="ovcBannerControls ovcControlGrid" id="OvercoatWideBody">
+                            <div class="ovcPresetBar ovcWide">
+                                <div><span class="ovcEyebrow">Quick looks</span><strong>Style this surface</strong></div>
+                                <div class="ovcPresetActions">
+                                    <button type="button" class="ovcPreset" data-preset="clean" data-wide="true">Clean</button>
+                                    <button type="button" class="ovcPreset" data-preset="glass" data-wide="true">Glass</button>
+                                    <button type="button" class="ovcPreset" data-preset="neon" data-wide="true">Neon</button>
+                                    <button type="button" class="ovcPreset" data-preset="ribbon" data-wide="true">Ribbon</button>
+                                </div>
+                            </div>
                             <div class="ovcSectionHeading ovcWide"><h3>Wide-card banner</h3></div>
                             <div class="ovcCard ovcDenseCard">
                             <h3>Style &amp; typography</h3>
@@ -445,7 +471,8 @@
                 </div>
 
                 <!-- ===================== TMDB API ===================== -->
-                <div class="ovcPanel" data-panel="apikeys">
+                <div class="ovcPanel" data-panel="sources">
+                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Data sources</span><h2>Connect the signals behind every overlay</h2><p>Credentials, activity windows, rankings, and matching rules live here.</p></div>
                     <div class="ovcCard">
                         <h3>TMDB connection</h3>
                         <div class="ovcSecretRow">
@@ -460,11 +487,12 @@
                                     aria-controls="TmdbApiKey" aria-pressed="false"><span>Show key</span></button>
                         </div>
                     </div>
-
+                    <div id="OvercoatDataSourcesBody" class="ovcPurposeGrid ovcWide"></div>
                 </div>
 
                 <!-- ===================== LIBRARIES ===================== -->
                 <div class="ovcPanel" data-panel="libraries">
+                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Libraries</span><h2>Choose where Overcoat works</h2><p>Enable only the surfaces and signals each library should receive.</p></div>
                     <div class="ovcCard ovcWide">
                         <h3>Next Up &amp; Continue Watching artwork</h3>
                         <p class="fieldDescription">
@@ -497,14 +525,15 @@
                         </p>
                         <div id="OvercoatLibraries" class="ovcGrid"><p class="ovcMuted">Loading libraries…</p></div>
                     </div>
+                    <details class="ovcCard ovcWide ovcAdvanced">
+                        <summary>Advanced targeting</summary>
+                        <div class="ovcDetailsBody ovcPurposeGrid" id="OvercoatTargetingBody"></div>
+                    </details>
                 </div>
 
                 <!-- ===================== MAINTENANCE ===================== -->
-                <div class="ovcPanel" data-panel="maintenance">
-                    <div class="ovcSectionHeading ovcWide">
-                        <h3>Automation</h3>
-                        <div class="fieldDescription">Control how Overcoat processes posters and when its scheduled task runs.</div>
-                    </div>
+                <div class="ovcPanel" data-panel="automation">
+                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Automation</span><h2>Run quietly, recover visibly</h2><p>Control background upkeep and start a focused overlay pass.</p></div>
                     <div class="ovcCard">
                         <h3>Behaviour</h3>
                         <div class="ovcCheck">
@@ -565,18 +594,18 @@
                         </div>
                     </div>
 
-                    <div class="ovcSectionHeading ovcWide">
+                    <div class="ovcSectionHeading ovcWide" id="OvercoatRunRestoreHeading">
                         <h3>Run &amp; restore</h3>
                         <div class="fieldDescription">These actions save the settings on every tab before starting their scheduled task.</div>
                     </div>
-                    <div class="ovcCard ovcWide ovcCaution">
+                    <div class="ovcCard ovcWide ovcCaution" id="OvercoatRunRestoreCard">
                         <div class="ovcActionGrid">
-                            <div class="ovcActionTile">
+                            <div class="ovcActionTile" id="OvercoatApplyTile">
                                 <h3>Apply overlays</h3>
                                 <p class="fieldDescription">Process enabled libraries now using the settings currently shown on this page.</p>
                                 <button is="emby-button" type="button" id="OvercoatRunNow" class="raised"><span>▶ Apply Overcoat Overlays now</span></button>
                             </div>
-                            <div class="ovcActionTile ovcRestoreTile">
+                            <div class="ovcActionTile ovcRestoreTile" id="OvercoatRestoreTile">
                                 <h3>Restore originals</h3>
                                 <p class="fieldDescription">Put back clean posters saved in Overcoat's originals vault.</p>
                                 <button is="emby-button" type="button" id="OvercoatRestore" class="raised"><span>↩ Restore original posters</span></button>
@@ -588,7 +617,7 @@
                         </div>
                     </div>
 
-                    <div class="ovcCard ovcWide">
+                    <div class="ovcCard ovcWide" id="OvercoatRecoveryCard">
                         <h3>Recovery</h3>
                         <p class="fieldDescription">
                             Overcoat keeps a clean copy of every poster before it overlays it. This is what
@@ -626,11 +655,11 @@
                         </details>
                     </div>
 
-                    <div class="ovcSectionHeading ovcWide">
+                    <div class="ovcSectionHeading ovcWide" id="OvercoatTargetingHeading">
                         <h3>Targeting &amp; matching</h3>
                         <div class="fieldDescription">Optional advanced filters for testing, exclusions, and correcting TMDB matches.</div>
                     </div>
-                    <div class="ovcCard">
+                    <div class="ovcCard" id="OvercoatLimitCard">
                         <h3>Limit to specific shows/movies</h3>
                         <textarea is="emby-textarea" id="LimitToTitles" rows="4"></textarea>
                         <div class="fieldDescription">
@@ -639,23 +668,31 @@
                         </div>
                     </div>
 
-                    <div class="ovcCard">
+                    <div class="ovcCard" id="OvercoatIgnoreCard">
                         <h3>Ignore titles</h3>
                         <textarea is="emby-textarea" id="IgnoreTitles" rows="4"></textarea>
                         <div class="fieldDescription">One title per line. Matching items are skipped entirely.</div>
                     </div>
 
-                    <div class="ovcCard">
+                    <div class="ovcCard" id="OvercoatOverridesCard">
                         <h3>TMDB overrides</h3>
                         <textarea is="emby-textarea" id="TmdbOverrides" rows="4"></textarea>
                         <div class="fieldDescription">One per line as <code>Title | year | tmdbId</code> (year may be 0). Forces a specific TMDB match.</div>
+                        <div class="ovcInlineError" id="TmdbOverridesError" role="alert" hidden>Use one entry per line as: Title | year | tmdbId.</div>
                     </div>
+                </div>
+
+                <div class="ovcPanel" data-panel="recovery">
+                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Recovery</span><h2>Your originals remain the source of truth</h2><p>Inspect the vault before restoring and keep destructive choices isolated.</p></div>
+                    <div id="OvercoatRecoveryActions" class="ovcPurposeGrid ovcWide"></div>
+                    <div id="OvercoatRecoveryBody" class="ovcPurposeGrid ovcWide"></div>
                 </div>
 
                 <div class="ovcSaveDock" id="OvercoatSaveDock">
                     <span class="ovcSaveState" id="OvercoatSaveState" role="status">No unsaved changes</span>
+                    <button is="emby-button" type="button" class="ovcDiscard" id="OvercoatDiscard"><span>Discard</span></button>
                     <button is="emby-button" type="submit" class="raised button-submit">
-                        <span>Save Changes</span>
+                        <span>Apply Changes</span>
                     </button>
                 </div>
             </form>
@@ -670,18 +707,48 @@
         (function () {
             var pluginId = "604f4e22-a0a1-490d-b383-d60336318eaa";
             var page;
-            var activeTab = 'posters';
+            var activeTab = 'design';
             var loading = false;
+            var loadedConfig = null;
+            var draftKey = 'overcoat-ui-draft-v1';
+            var isDirty = false;
+            var baselineSnapshot = null;
+
+            function moveInto(id, targetId) {
+                var el = page.querySelector('#' + id);
+                var target = page.querySelector('#' + targetId);
+                if (el && target) { target.appendChild(el); }
+            }
+
+            function organizePurposeAreas() {
+                ['OvercoatBadgeSourcesCard', 'OvercoatWatchHistoryCard', 'OvercoatImdbListsCard', 'OvercoatOverridesCard']
+                    .forEach(function (id) { moveInto(id, 'OvercoatDataSourcesBody'); });
+                ['OvercoatLimitCard', 'OvercoatIgnoreCard']
+                    .forEach(function (id) { moveInto(id, 'OvercoatTargetingBody'); });
+                moveInto('OvercoatRestoreTile', 'OvercoatRecoveryActions');
+                moveInto('OvercoatRecoveryCard', 'OvercoatRecoveryBody');
+                var targetingHeading = page.querySelector('#OvercoatTargetingHeading');
+                if (targetingHeading) { targetingHeading.remove(); }
+                var runHeading = page.querySelector('#OvercoatRunRestoreHeading');
+                if (runHeading) {
+                    runHeading.querySelector('h3').textContent = 'Run now';
+                    runHeading.querySelector('.fieldDescription').textContent = 'Apply the current draft, then start an overlay pass.';
+                }
+                var actionGrid = page.querySelector('#OvercoatRunRestoreCard .ovcActionGrid');
+                if (actionGrid) { actionGrid.classList.add('ovcSingleAction'); }
+            }
 
             function setSaveState(state, message) {
                 var dock = page.querySelector('#OvercoatSaveDock');
                 var text = page.querySelector('#OvercoatSaveState');
                 dock.dataset.ovcState = state;
+                isDirty = state === 'dirty' || state === 'error';
                 dock.classList.toggle('ovcDirty', state === 'dirty');
                 dock.classList.toggle('ovcError', state === 'error');
                 var acknowledged = state === 'clean' && !!message;
                 dock.classList.toggle('ovcVisible', state === 'dirty' || state === 'saving' || state === 'error' || acknowledged);
-                text.textContent = message || (state === 'dirty' ? 'Unsaved changes' : 'No unsaved changes');
+                var count = state === 'dirty' ? dirtyCount() : 0;
+                text.textContent = message || (state === 'dirty' ? count + ' unsaved change' + (count === 1 ? '' : 's') : 'No unsaved changes');
                 if (acknowledged) {
                     window.setTimeout(function () {
                         if (dock.dataset.ovcState === 'clean') { dock.classList.remove('ovcVisible'); }
@@ -689,19 +756,72 @@
                 }
             }
 
+            function captureDraft() {
+                var controls = {};
+                page.querySelectorAll('input[id], select[id], textarea[id]').forEach(function (el) {
+                    if (el.type === 'checkbox') { controls[el.id] = !!el.checked; }
+                    else { controls[el.id] = el.value; }
+                });
+                return { controls: controls, libraries: collectLibraries(), savedAt: Date.now() };
+            }
+
+            function dirtyCount() {
+                if (!baselineSnapshot) { return 1; }
+                var current = captureDraft();
+                var count = Object.keys(current.controls).reduce(function (total, id) {
+                    return total + (String(current.controls[id]) === String(baselineSnapshot.controls[id]) ? 0 : 1);
+                }, 0);
+                if (JSON.stringify(current.libraries) !== JSON.stringify(baselineSnapshot.libraries)) { count++; }
+                return Math.max(1, count);
+            }
+
+            function saveDraft() {
+                if (loading || !isDirty) { return; }
+                try { sessionStorage.setItem(draftKey, JSON.stringify(captureDraft())); } catch (_) { }
+            }
+
+            function clearDraft() {
+                try { sessionStorage.removeItem(draftKey); } catch (_) { }
+            }
+
+            function restoreDraft() {
+                var draft;
+                try { draft = JSON.parse(sessionStorage.getItem(draftKey) || 'null'); } catch (_) { draft = null; }
+                if (!draft || !draft.controls) { return false; }
+                Object.keys(draft.controls).forEach(function (id) {
+                    var el = page.querySelector('#' + id);
+                    if (!el) { return; }
+                    if (el.type === 'checkbox') { el.checked = !!draft.controls[id]; }
+                    else { el.value = draft.controls[id]; }
+                });
+                (draft.libraries || []).forEach(function (saved) {
+                    var row = Array.prototype.slice.call(page.querySelectorAll('.ovcLib')).find(function (x) {
+                        return x.getAttribute('data-name') === saved.Name;
+                    });
+                    if (!row) { return; }
+                    var mapping = { Enabled:'ovcEnabled', StatusOverlays:'ovcStatus', WideCardOverlays:'ovcWideCard', TrendingBadge:'ovcTrending', WatchHistoryBadge:'ovcWatch', ImdbTop250Badge:'ovcImdb' };
+                    Object.keys(mapping).forEach(function (key) {
+                        var input = row.querySelector('.' + mapping[key]);
+                        if (input && saved[key] != null) { input.checked = !!saved[key]; }
+                    });
+                });
+                syncSegments();
+                syncSliders();
+                updateStyleOptions();
+                updateWideStyleOptions();
+                updateWideControlsEnabled();
+                updateScheduleUi();
+                updateUserRowVisibility();
+                setSaveState('dirty', 'Unsaved draft restored');
+                refreshPostersPreview();
+                refreshWidePreview();
+                return true;
+            }
+
             function detectTheme() {
                 var rgb = getComputedStyle(document.body).backgroundColor.match(/\d+/g) || [20,20,20];
                 var light = (Number(rgb[0]) * 299 + Number(rgb[1]) * 587 + Number(rgb[2]) * 114) / 1000 > 150;
                 page.classList.toggle('ovcLight', light);
-            }
-
-            function toggleDescriptions() {
-                var hidden = !page.classList.contains('ovcNoDescriptions');
-                page.classList.toggle('ovcNoDescriptions', hidden);
-                var button = page.querySelector('#OvercoatDescriptions');
-                button.setAttribute('aria-pressed', hidden ? 'false' : 'true');
-                button.lastChild.textContent = hidden ? ' Help Off' : ' Help On';
-                try { localStorage.setItem('overcoatDescriptions', hidden ? 'off' : 'on'); } catch (_) { }
             }
 
             // Preview state: which status the live preview renders, and how each maps to text + colour picker.
@@ -713,7 +833,7 @@
             function showTab(name) {
                 activeTab = name;
                 page.querySelectorAll('.ovcTab').forEach(function (t) {
-                    var selected = t.getAttribute('data-tab') === name;
+                    var selected = t.getAttribute('data-tab') === (name === 'wide' ? 'design' : name);
                     t.classList.toggle('ovcActive', selected);
                     t.setAttribute('aria-selected', selected ? 'true' : 'false');
                     t.setAttribute('tabindex', selected ? '0' : '-1');
@@ -724,7 +844,12 @@
                     p.setAttribute('aria-hidden', on ? 'false' : 'true');
                     p.style.display = '';
                 });
-                if (name === 'posters') { refreshPostersPreview(); }
+                page.querySelectorAll('.ovcSurface').forEach(function (button) {
+                    var selected = button.getAttribute('data-surface') === name;
+                    button.classList.toggle('ovcActive', selected);
+                    button.setAttribute('aria-selected', selected ? 'true' : 'false');
+                });
+                if (name === 'design') { refreshPostersPreview(); }
                 if (name === 'wide') { refreshWidePreview(); }
                 // Jellyfin hosts the page in a nested scroll container. A tab change should start at
                 // that panel's heading instead of retaining a deep scroll position from another tab.
@@ -740,7 +865,7 @@
 
             function syncFloatingPreview() {
                 if (!page) { return; }
-                var source = activeTab === 'posters'
+                var source = activeTab === 'design'
                     ? page.querySelector('#PostersPreview')
                     : activeTab === 'wide' ? page.querySelector('#WidePreview') : null;
                 var target = page.querySelector('#OvercoatFloatingPreviewImage');
@@ -755,7 +880,7 @@
                 if (!page) { return; }
                 var floating = page.querySelector('#OvercoatFloatingPreview');
                 var mobile = window.matchMedia('(max-width: 1099px)').matches;
-                var kind = activeTab === 'posters' ? 'poster' : activeTab === 'wide' ? 'wide' : '';
+                var kind = activeTab === 'design' ? 'poster' : activeTab === 'wide' ? 'wide' : '';
                 var card = kind ? page.querySelector('[data-preview-kind="' + kind + '"]') : null;
                 var show = !!(mobile && card && card.getBoundingClientRect().bottom < 72);
                 floating.classList.toggle('ovcVisible', show);
@@ -991,6 +1116,51 @@
                 var img = page && page.querySelector('#PostersPreview');
                 if (img) { img.src = postersPreviewUrl(); syncFloatingPreview(); }
             }
+
+            function assignControl(id, value) {
+                var el = page.querySelector('#' + id);
+                if (!el) { return; }
+                if (el.type === 'checkbox') { el.checked = !!value; }
+                else { el.value = String(value); }
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            function applyPreset(button) {
+                var wide = button.getAttribute('data-wide') === 'true';
+                if (wide && !page.querySelector('#WideCardCustomize').checked) { return; }
+                var prefix = wide ? 'Wide' : '';
+                var presets = {
+                    clean:  { style:'solid', shape:'pill', font:'default', icons:true,  band:false, shadow:false, strength:60 },
+                    glass:  { style:'glass', shape:'pill', font:'default', icons:true,  band:false, shadow:true,  strength:40 },
+                    neon:   { style:'neon',  shape:'pill', font:'default', icons:true,  band:false, shadow:false, strength:60 },
+                    ribbon: { style:'solid', shape:'drop', font:'sans',    icons:false, band:true,  shadow:true,  strength:35 }
+                };
+                var p = presets[button.getAttribute('data-preset')];
+                if (!p) { return; }
+                assignControl(prefix + 'BannerStyle', p.style);
+                assignControl(prefix + 'BannerShape', p.shape);
+                assignControl(prefix + 'BannerPosition', 'top');
+                assignControl(prefix + 'BannerAlign', 'center');
+                assignControl(prefix + 'BannerFont', p.font);
+                assignControl(prefix + 'BannerFontScale', 1);
+                assignControl(prefix + 'BannerIcons', p.icons);
+                assignControl(prefix + 'BannerFullWidth', p.band);
+                assignControl(prefix + 'BannerShadow', p.shadow);
+                assignControl(prefix + 'BannerShadowStrength', p.strength);
+                if (p.style === 'glass') {
+                    assignControl(prefix + 'GlassTint', '#0E1018');
+                    assignControl(prefix + 'GlassTintStrength', 49);
+                    assignControl(prefix + 'GlassBlur', 50);
+                }
+                if (p.style === 'neon') { assignControl(prefix + 'NeonGlow', 60); }
+                syncSegments();
+                syncSliders();
+                if (wide) { updateWideStyleOptions(); refreshWidePreview(); }
+                else { updateStyleOptions(); refreshPostersPreview(); }
+                setSaveState('dirty', button.textContent.trim() + ' look applied — review, then apply changes');
+                saveDraft();
+            }
+
             function wireTabs() {
                 var tabs = Array.prototype.slice.call(page.querySelectorAll('.ovcTab'));
                 var tablist = page.querySelector('.ovcTabs');
@@ -1000,7 +1170,7 @@
                     var name = panel.getAttribute('data-panel');
                     panel.id = 'OvercoatPanel-' + name;
                     panel.setAttribute('role', 'tabpanel');
-                    panel.setAttribute('aria-labelledby', 'OvercoatTab-' + name);
+                    panel.setAttribute('aria-labelledby', 'OvercoatTab-' + (name === 'wide' ? 'design' : name));
                 });
                 tabs.forEach(function (tab, index) {
                     var name = tab.getAttribute('data-tab');
@@ -1020,7 +1190,7 @@
                         showTab(tabs[next].getAttribute('data-tab'));
                     });
                 });
-                showTab('posters');
+                showTab('design');
             }
 
             function toggleApiKeyVisibility() {
@@ -1269,6 +1439,8 @@
                 Dashboard.showLoadingMsg();
                 setSaveState('saving', 'Saving settings…');
                 persist().then(function () {
+                    clearDraft();
+                    baselineSnapshot = captureDraft();
                     setSaveState('clean', 'Settings saved');
                     return ApiClient.getScheduledTasks();
                 }).then(function (tasks) {
@@ -1399,6 +1571,7 @@
                 loading = true;
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                    loadedConfig = JSON.parse(JSON.stringify(config));
                     page.querySelector('#TmdbApiKey').type = 'password';
                     page.querySelector('#TmdbApiKey').value = config.TmdbApiKey || '';
                     page.querySelector('#ToggleTmdbApiKey').setAttribute('aria-pressed', 'false');
@@ -1487,6 +1660,7 @@
                     page.querySelector('#TmdbOverrides').value = (config.TmdbOverrides || []).map(function (o) {
                         return o.Name + ' | ' + (o.Year || 0) + ' | ' + (o.TmdbId || 0);
                     }).join('\n');
+                    validateDraft();
                     syncSegments();
                     syncSliders();
                     refreshVaultStats();
@@ -1494,7 +1668,8 @@
                         updateUserRowVisibility();
                         refreshPostersPreview();
                         loading = false;
-                        setSaveState('clean');
+                        baselineSnapshot = captureDraft();
+                        if (!restoreDraft()) { setSaveState('clean'); }
                         Dashboard.hideLoadingMsg();
                     }, function () { loading = false; Dashboard.hideLoadingMsg(); });
                 });
@@ -1602,9 +1777,27 @@
 
             // Persist the current form to the plugin config; resolves when saved.
             function persist() {
+                var validation = validateDraft();
+                if (validation) { return Promise.reject(new Error(validation)); }
                 return ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                     return ApiClient.updatePluginConfiguration(pluginId, applyForm(config));
                 });
+            }
+
+            function validateDraft() {
+                var invalidNumber = Array.prototype.slice.call(page.querySelectorAll('input[type="number"]')).find(function (el) {
+                    return !el.checkValidity();
+                });
+                if (invalidNumber) { return 'Check the highlighted numeric setting before applying.'; }
+                var badOverride = linesToList(page.querySelector('#TmdbOverrides').value).find(function (line) {
+                    var parts = line.split('|').map(function (x) { return x.trim(); });
+                    return parts.length !== 3 || !parts[0] || !/^\d+$/.test(parts[1]) || !/^[1-9]\d*$/.test(parts[2]);
+                });
+                var overrides = page.querySelector('#TmdbOverrides');
+                var overrideError = page.querySelector('#TmdbOverridesError');
+                overrides.setAttribute('aria-invalid', badOverride ? 'true' : 'false');
+                overrideError.hidden = !badOverride;
+                return badOverride ? 'TMDB overrides must use: Title | year | tmdbId.' : '';
             }
 
             function save(e) {
@@ -1612,10 +1805,13 @@
                 Dashboard.showLoadingMsg();
                 setSaveState('saving', 'Saving settings…');
                 persist().then(function (result) {
+                    loadedConfig = result || loadedConfig;
+                    clearDraft();
+                    baselineSnapshot = captureDraft();
                     setSaveState('clean', 'Changes saved');
                     Dashboard.processPluginConfigurationUpdateResult(result);
                 }, function (err) {
-                    setSaveState('error', 'Could not save settings. Try again.');
+                    setSaveState('error', err && err.message ? err.message : 'Could not save settings. Try again.');
                     console.error('Overcoat: configuration save failed', err);
                 }).then(function () {
                     Dashboard.hideLoadingMsg();
@@ -1647,16 +1843,35 @@
                         }, function () { /* styling only — never surface this */ });
                     }
                     detectTheme();
+                    organizePurposeAreas();
                     wireTabs();
-                    page.querySelector('#OvercoatDescriptions').addEventListener('click', toggleDescriptions);
-                    try { if (localStorage.getItem('overcoatDescriptions') === 'off') { toggleDescriptions(); } } catch (_) { }
                     page.querySelector('#OvercoatConfigForm').addEventListener('input', function (event) {
-                        if (!loading && !event.target.closest('#OvercoatPreviewStatuses, #OvercoatPreviewBadges, #OvercoatWidePreviewStatuses, #OvercoatWidePreviewBadges')) { setSaveState('dirty'); }
+                        if (!loading && !event.target.closest('#OvercoatPreviewStatuses, #OvercoatPreviewBadges, #OvercoatWidePreviewStatuses, #OvercoatWidePreviewBadges')) {
+                            setSaveState('dirty');
+                            window.setTimeout(saveDraft, 0);
+                        }
                     });
                     page.querySelector('#OvercoatConfigForm').addEventListener('change', function () {
-                        if (!loading) { setSaveState('dirty'); }
+                        if (!loading) { setSaveState('dirty'); window.setTimeout(saveDraft, 0); }
+                    });
+                    page.querySelectorAll('.ovcSurface').forEach(function (button) {
+                        button.addEventListener('click', function () { showTab(button.getAttribute('data-surface')); });
+                    });
+                    page.querySelectorAll('.ovcPreset').forEach(function (button) {
+                        button.addEventListener('click', function () { applyPreset(button); });
+                    });
+                    page.querySelector('#OvercoatDiscard').addEventListener('click', function () {
+                        clearDraft();
+                        setSaveState('clean');
+                        load();
+                    });
+                    window.addEventListener('beforeunload', function (event) {
+                        if (!isDirty) { return; }
+                        event.preventDefault();
+                        event.returnValue = '';
                     });
                     page.querySelector('#ToggleTmdbApiKey').addEventListener('click', toggleApiKeyVisibility);
+                    page.querySelector('#TmdbOverrides').addEventListener('input', validateDraft);
                     window.addEventListener('scroll', updateFloatingPreview, { passive: true });
                     window.addEventListener('resize', updateFloatingPreview);
                     var ancestor = page.parentElement;

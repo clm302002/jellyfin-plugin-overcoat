@@ -88,10 +88,12 @@ again after creating them.
 - **Settings capture:** with Playwright/Chromium installed, run
   `SHOWCASE_CAPTURE_ALL=1 SHOWCASE_VERIFY_SCROLL=1 node tools/Showcase/capture-settings.js /tmp/overcoat-settings`
   to exercise the real embedded page in a mocked, credential-free shell. The verification covers tab
-  navigation, sticky/floating previews, segmented controls, library option collapsing, API-key reveal,
-  save feedback, and that an edited value is sent to `updatePluginConfiguration`. Set
+  navigation, Design surfaces and presets, sticky/floating previews, library option collapsing,
+  API-key reveal, unknown-field preservation, Apply/Discard, reload-safe drafts, and that an edited
+  value is sent to `updatePluginConfiguration`. Set
   `SHOWCASE_VIEWPORT_WIDTH=390 SHOWCASE_VIEWPORT_HEIGHT=844` for the mobile pass; use
-  `SHOWCASE_THEME=light` to inspect the light-theme tokens.
+  `SHOWCASE_THEME=light` to inspect the light-theme tokens and `SHOWCASE_CAPTURE_DETAILS=1` for
+  focused Design-section captures.
 - **End-to-end:** install the built DLL on a test Jellyfin, run the **Apply Overcoat Overlays** task
   on a small/limited library, and confirm posters update. For wide cards, also enable the library's
   Series Thumb option, exercise both all-user artwork buttons, verify Next Up/Continue Watching,
@@ -113,7 +115,7 @@ Releases are cut by pushing a tag; **pushing to a branch publishes nothing.**
 | `v0.7.0` | `0.7.0.500` | stable | `releases/latest/download/manifest.json` |
 | `v0.8.0-beta.1` | `0.8.0.1` | beta | next line starts over |
 | `v0.8.0-beta.2` | `0.8.0.2` | beta | wide-card test build |
-| `v0.8.1-beta.2` | `0.8.1.2` | beta | current settings studio test build |
+| `v0.9.0-beta.1` | `0.9.0.1` | beta | purpose-based creative studio rebuild |
 
 GitHub's "latest" excludes prereleases, so a beta can never appear on the stable URL. The beta channel
 is a **superset** — stable releases are published there too — so subscribing to the beta URL alone is

@@ -18,7 +18,8 @@
     --ov-warning: #f4bd58;
     --ov-danger: #ef6c78;
     --ov-success: #69d49a;
-    --ov-radius: 14px;
+    --ov-radius: 16px;
+    --ov-rail: 188px;
     color: var(--ov-text);
     background: var(--ov-bg);
     font-size: 15px;
@@ -56,12 +57,16 @@
     max-width: none !important;
     min-width: 0;
     margin: 0 auto !important;
+    display: grid;
+    grid-template-columns: var(--ov-rail) minmax(0, 1fr);
+    gap: 0 1.35rem;
 }
 
 #OvercoatConfigPage *, #OvercoatConfigPage *::before, #OvercoatConfigPage *::after { box-sizing: border-box; }
 
 /* ---------- Product header and navigation ---------- */
 #OvercoatConfigPage .ovcHeader {
+    grid-column: 1 / -1;
     margin: 0 0 1.45rem;
     padding: 1.35rem 0 .8rem;
     background: linear-gradient(180deg, var(--ov-bg), rgba(13, 17, 23, .86));
@@ -71,19 +76,24 @@
 #OvercoatConfigPage .ovcHeaderTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 #OvercoatConfigPage .ovcTitle { margin: 0; font-size: 1.9rem; font-weight: 850; letter-spacing: -.035em; line-height: 1.05; }
 #OvercoatConfigPage .ovcSubtitle { max-width: 58rem; margin: .45rem 0 0; color: var(--ov-muted); font-size: .96rem; }
-#OvercoatConfigPage .ovcDescriptionToggle { flex: 0 0 auto; white-space: nowrap; }
+#OvercoatConfigPage .ovcHeaderStatus {
+    display: inline-flex; align-items: center; gap: .55rem; flex: 0 0 auto; margin-top: .2rem;
+    padding: .55rem .8rem; border: 1px solid var(--ov-border); border-radius: 99px;
+    color: var(--ov-muted); background: var(--ov-surface); font-size: .78rem; font-weight: 750;
+}
+#OvercoatConfigPage .ovcStatusDot { width: .48rem; height: .48rem; border-radius: 50%; background: var(--ov-success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ov-success) 15%, transparent); }
 #OvercoatConfigPage .ovcTabs {
-    position: sticky; top: 0; z-index: 1000;
-    display: flex; gap: .35rem; margin-top: 1.2rem; padding: .35rem;
-    overflow-x: auto; scrollbar-width: thin;
+    position: sticky; top: 1rem; z-index: 1000; grid-column: 1; align-self: start;
+    display: flex; flex-direction: column; gap: .28rem; margin: 0; padding: .45rem;
+    overflow: hidden;
     background: color-mix(in srgb, var(--ov-surface) 94%, transparent);
     border: 1px solid var(--ov-border); border-radius: 14px;
     box-shadow: 0 12px 32px -24px rgba(0, 0, 0, .9);
     backdrop-filter: blur(18px);
 }
 #OvercoatConfigPage .ovcTab {
-    display: flex; align-items: center; justify-content: center; gap: .45rem;
-    flex: 0 0 auto; min-height: 2.55rem; padding: .55rem 1rem;
+    display: flex; align-items: center; justify-content: flex-start; gap: .65rem;
+    flex: 0 0 auto; width: 100%; min-height: 2.8rem; padding: .65rem .75rem;
     border: 1px solid transparent; border-radius: 10px;
     background: transparent; color: var(--ov-muted); cursor: pointer;
     font: inherit; font-size: .9rem; font-weight: 700; letter-spacing: .01em;
@@ -101,13 +111,13 @@
 /* ---------- Panels and cards ---------- */
 #OvercoatConfigPage .ovcPanel { display: none; }
 #OvercoatConfigPage .ovcPanel.ovcActive {
+    grid-column: 2;
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.1rem; align-items: start;
 }
-#OvercoatConfigPage [data-panel="posters"].ovcActive,
+#OvercoatConfigPage [data-panel="design"].ovcActive,
 #OvercoatConfigPage [data-panel="wide"].ovcActive { display: block; }
-#OvercoatConfigPage [data-panel="apikeys"].ovcActive { max-width: 860px; margin-inline: auto; }
-#OvercoatConfigPage [data-panel="apikeys"] > .ovcCard { grid-column: 1 / -1; width: 100%; }
+#OvercoatConfigPage [data-panel="sources"] > .ovcCard { grid-column: 1 / -1; width: 100%; }
 #OvercoatConfigPage .ovcCard,
 #OvercoatConfigPage details.ovcCard,
 #OvercoatConfigPage fieldset.ovcCard {
@@ -155,13 +165,22 @@
 
 /* ---------- Design workbench ---------- */
 #OvercoatConfigPage .ovcBannerLayout {
-    display: grid; grid-template-columns: minmax(0, 1fr) 370px;
-    grid-template-areas: 'notice notice' 'controls preview'; gap: 1.1rem; align-items: start;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(390px, 44%);
+    grid-template-areas: 'surface surface' 'notice notice' 'controls preview'; gap: 1.1rem; align-items: start;
 }
+#OvercoatConfigPage .ovcSurfaceBar {
+    grid-area: surface; display: inline-flex; width: max-content; padding: .3rem; gap: .25rem;
+    border: 1px solid var(--ov-border); border-radius: 13px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage .ovcSurface {
+    display: inline-flex; align-items: center; gap: .45rem; min-height: 2.4rem; padding: .5rem .9rem;
+    border: 0; border-radius: 9px; color: var(--ov-muted); background: transparent; cursor: pointer; font-weight: 800;
+}
+#OvercoatConfigPage .ovcSurface.ovcActive { color: var(--ov-text); background: var(--ov-raised); box-shadow: inset 0 0 0 1px var(--ov-border-strong); }
 #OvercoatConfigPage .ovcStudioNotice { grid-area: notice; }
 #OvercoatConfigPage .ovcBannerControls {
     grid-area: controls; min-width: 0; display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem;
+    grid-template-columns: 1fr; gap: 1.1rem;
 }
 #OvercoatConfigPage .ovcBannerControls > .ovcWide,
 #OvercoatConfigPage .ovcBannerControls > details,
@@ -178,20 +197,41 @@
 #OvercoatConfigPage .ovcBannerPreview {
     grid-area: preview; position: sticky; top: 4.5rem; z-index: 2;
     display: flex; flex-direction: column; align-items: stretch; gap: .35rem;
-    padding: 1.05rem; text-align: center;
+    min-height: 620px; padding: 1.2rem; text-align: center;
     background: linear-gradient(155deg, var(--ov-surface-2), var(--ov-surface));
     border-color: var(--ov-border-strong); border-radius: 18px;
     box-shadow: 0 25px 65px -38px rgba(0, 0, 0, .95);
 }
 #OvercoatConfigPage .ovcBannerPreview > h3 { order: 0; justify-content: flex-start; }
-#OvercoatConfigPage .ovcBannerPreview img { order: 1; display: block; width: 100%; max-width: 310px; margin: .25rem auto .55rem; border-radius: 12px; box-shadow: 0 22px 45px -24px rgba(0, 0, 0, .95); }
-#OvercoatConfigPage .ovcWidePreview img { max-width: 350px; }
+#OvercoatConfigPage .ovcBannerPreview img { order: 1; display: block; width: 100%; max-width: 360px; margin: .5rem auto .8rem; border-radius: 14px; box-shadow: 0 28px 60px -28px rgba(0, 0, 0, .98); }
+#OvercoatConfigPage .ovcWidePreview { min-height: 460px; }
+#OvercoatConfigPage .ovcWidePreview img { max-width: 440px; }
 #OvercoatConfigPage .ovcBannerPreview .ovcStatusSwitch,
 #OvercoatConfigPage .ovcBannerPreview > .fieldDescription,
 #OvercoatConfigPage .ovcBannerPreview > .ovcMuted { order: 2; }
 #OvercoatConfigPage .ovcBannerPreview .ovcStatusSwitch { margin: .2rem 0; }
 #OvercoatConfigPage .ovcWideLocked { opacity: .58; filter: saturate(.7); }
 #OvercoatConfigPage .ovcPreviewHint { margin: .2rem 0 .45rem; color: var(--ov-faint); font-size: .72rem; text-transform: uppercase; letter-spacing: .09em; }
+#OvercoatConfigPage .ovcPresetBar {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.1rem;
+    border: 1px solid var(--ov-border); border-radius: 14px;
+    background: linear-gradient(120deg, color-mix(in srgb, var(--ov-accent) 7%, var(--ov-surface)), var(--ov-surface));
+}
+#OvercoatConfigPage .ovcPresetBar strong { display: block; margin-top: .18rem; font-size: .94rem; }
+#OvercoatConfigPage .ovcEyebrow { display: block; color: var(--ov-accent); font-size: .66rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+#OvercoatConfigPage .ovcPresetActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .4rem; }
+#OvercoatConfigPage .ovcPreset {
+    min-height: 2.3rem; padding: .45rem .8rem; border: 1px solid var(--ov-border-strong); border-radius: 99px;
+    color: var(--ov-muted); background: var(--ov-canvas); cursor: pointer; font-weight: 800;
+}
+#OvercoatConfigPage .ovcPreset:hover { color: var(--ov-text); border-color: var(--ov-accent); }
+#OvercoatConfigPage .ovcPageIntro { padding: .3rem 0 .5rem; }
+#OvercoatConfigPage .ovcPageIntro h2 { margin: .25rem 0 .35rem; font-size: clamp(1.45rem, 2.2vw, 2.15rem); letter-spacing: -.035em; }
+#OvercoatConfigPage .ovcPageIntro p { max-width: 46rem; margin: 0; color: var(--ov-muted); }
+#OvercoatConfigPage .ovcPurposeGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem; }
+#OvercoatConfigPage .ovcPurposeGrid > .ovcWide,
+#OvercoatConfigPage .ovcPurposeGrid > details { grid-column: 1 / -1; }
+#OvercoatConfigPage .ovcAdvanced { margin-top: .2rem; }
 
 /* ---------- Form controls ---------- */
 #OvercoatConfigPage .ovcDenseCard,
@@ -314,6 +354,7 @@
 #OvercoatConfigPage .ovcLibOpts { display: grid; gap: .55rem; margin: .8rem 0 0 .45rem; padding: .85rem 1rem; border-left: 3px solid var(--ov-accent); border-radius: 0 10px 10px 0; background: var(--ov-canvas); }
 #OvercoatConfigPage .ovcLibOpts[hidden] { display: none; }
 #OvercoatConfigPage .ovcActionGrid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+#OvercoatConfigPage .ovcActionGrid.ovcSingleAction { grid-template-columns: 1fr; }
 #OvercoatConfigPage .ovcActionTile { min-width: 0; padding: 1.15rem; border: 1px solid var(--ov-border); border-radius: 13px; background: linear-gradient(155deg, var(--ov-hi), transparent 44%), var(--ov-surface); }
 #OvercoatConfigPage .ovcActionTile h3 { margin: 0 0 .35rem; }
 #OvercoatConfigPage .ovcActionTile button { margin: .7rem 0; }
@@ -321,6 +362,7 @@
 #OvercoatConfigPage .ovcMuted,
 #OvercoatConfigPage .fieldDescription { color: var(--ov-faint); overflow-wrap: anywhere; font-size: .84rem; line-height: 1.52; }
 #OvercoatConfigPage .fieldDescription { margin-top: .32rem; }
+#OvercoatConfigPage .ovcInlineError { margin-top: .5rem; color: var(--ov-danger); font-size: .82rem; font-weight: 750; }
 #OvercoatConfigPage .ovcNoDescriptions .fieldDescription { display: none !important; }
 #OvercoatConfigPage .ovcSecretRow { display: flex; align-items: flex-end; gap: .7rem; }
 #OvercoatConfigPage .ovcSecretRow .inputContainer { flex: 1; min-width: 0; }
@@ -346,6 +388,8 @@
 }
 #OvercoatConfigPage .ovcSaveDock.ovcVisible { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
 #OvercoatConfigPage .ovcSaveDock button { flex: 0 0 auto; margin: 0; }
+#OvercoatConfigPage .ovcSaveDock .ovcDiscard { color: var(--ov-muted); background: transparent; border: 0; }
+#OvercoatConfigPage .ovcSaveDock .ovcDiscard:hover { color: var(--ov-text); }
 #OvercoatConfigPage .ovcSaveState { flex: 1; color: var(--ov-muted); font-size: .9rem; }
 #OvercoatConfigPage .ovcSaveDock.ovcDirty .ovcSaveState { color: var(--ov-warning); }
 #OvercoatConfigPage .ovcSaveDock.ovcError .ovcSaveState { color: var(--ov-danger); }
@@ -353,8 +397,16 @@
 #OvercoatConfigPage .ovcFloatingPreview.ovcVisible { display: block; }
 #OvercoatConfigPage .ovcFloatingPreview img { display: block; width: 100%; border-radius: 8px; }
 
+@media (max-width: 1199px) {
+    #OvercoatConfigPage #OvercoatConfigForm { display: block; }
+    #OvercoatConfigPage .ovcTabs {
+        position: sticky; top: 0; display: flex; flex-direction: row; gap: .3rem;
+        margin: 0 0 1.15rem; overflow-x: auto; border-radius: 14px;
+    }
+    #OvercoatConfigPage .ovcTab { width: auto; justify-content: center; padding-inline: .9rem; }
+}
 @media (max-width: 1099px) {
-    #OvercoatConfigPage .ovcBannerLayout { grid-template-columns: 1fr; grid-template-areas: 'notice' 'preview' 'controls'; }
+    #OvercoatConfigPage .ovcBannerLayout { grid-template-columns: 1fr; grid-template-areas: 'surface' 'notice' 'preview' 'controls'; }
     #OvercoatConfigPage .ovcBannerPreview { position: static; }
     #OvercoatConfigPage .ovcBannerControls { grid-template-columns: 1fr; }
     #OvercoatConfigPage .ovcBannerControls > .ovcWide,
@@ -371,14 +423,26 @@
     #OvercoatConfigPage .ovcFieldGrid,
     #OvercoatConfigPage .ovcSplit,
     #OvercoatConfigPage .ovcActionGrid,
-    #OvercoatConfigPage .ovcRow { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcRow,
+    #OvercoatConfigPage .ovcPurposeGrid { grid-template-columns: 1fr; }
     #OvercoatConfigPage .ovcDenseCard > h3,
     #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column: auto; }
     #OvercoatConfigPage .ovcStatusHeader,
     #OvercoatConfigPage .ovcStatusRow2 { grid-template-columns: 3rem 5.3rem minmax(0,1fr) 3.25rem; gap: .5rem; }
     #OvercoatConfigPage .ovcTab { min-width: 7rem; padding-inline: .75rem; }
-    #OvercoatConfigPage .ovcSaveDock { bottom: .5rem; width: calc(100% - 1rem); }
-    #OvercoatConfigPage .ovcFloatingPreview { right: .55rem; bottom: 5rem; }
+    #OvercoatConfigPage .content-primary { padding-bottom: 10rem !important; }
+    #OvercoatConfigPage .ovcTabs {
+        position: fixed; z-index: 1045; top: auto; right: .5rem; bottom: .5rem; left: .5rem;
+        display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); margin: 0; overflow: visible;
+    }
+    #OvercoatConfigPage .ovcTab { flex-direction: column; gap: .15rem; min-width: 0; min-height: 3.65rem; padding: .35rem .15rem; font-size: .66rem; }
+    #OvercoatConfigPage .ovcSaveDock { bottom: 4.8rem; width: calc(100% - 1rem); }
+    #OvercoatConfigPage .ovcFloatingPreview { right: .55rem; bottom: 9.4rem; }
+    #OvercoatConfigPage .ovcPresetBar { align-items: flex-start; flex-direction: column; }
+    #OvercoatConfigPage .ovcPresetActions { justify-content: flex-start; }
+    #OvercoatConfigPage .ovcBannerPreview { min-height: 0; }
+    #OvercoatConfigPage .ovcBannerPreview img { max-width: 235px; }
+    #OvercoatConfigPage .ovcWidePreview img { max-width: 100%; }
 }
 @media (max-width: 520px) {
     #OvercoatConfigPage .ovcStatusHeader { display: none; }

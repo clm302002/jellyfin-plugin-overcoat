@@ -9,20 +9,27 @@ All notable changes to Overcoat are documented here. Format follows
 ### Added
 - **Overcoat now appears in the dashboard's left sidebar.** Its settings page is linked directly in
   the admin navigation (with a layers icon), not only buried in the plugin list.
+- **Four editable Quick Looks.** Clean, Glass, Neon, and Ribbon presets update only the active
+  Poster or Wide Card appearance and remain fully adjustable before applying.
+- **Recoverable unsaved drafts.** Edits survive an accidental page reload or trip elsewhere in the
+  Jellyfin dashboard until they are applied or explicitly discarded.
 
 ### Changed
-- **Settings studio redesign.** The configuration page now uses a consistent, higher-contrast cinematic
-  workspace across Posters, Wide Cards, Libraries, TMDB API, and Maintenance. The tab rail stays
-  available while scrolling, utility pages use appropriate widths, previews lead the design workspace,
-  and the layout stacks cleanly on mobile and in light themes.
+- **The settings page is now a purpose-based creative studio.** Design, Libraries, Data Sources,
+  Automation, and Recovery replace the old form-oriented tabs. Poster and Wide Card are surfaces in
+  one preview-first Design workspace, while destructive recovery is isolated from everyday automation.
+- **The responsive shell is rebuilt for each screen size.** Large screens use a navigation rail,
+  inspector, and persistent artwork stage; tablets use a sticky horizontal navigator; phones keep the
+  complete feature set with a compact preview and bottom navigation.
 - **Wide Cards controls now match Posters.** Wide-card treatments, shapes, layout choices, typography,
   effects, badge anchors, and numeric tuning use the same segmented controls and sliders as the Posters
   tab. Inherited poster settings remain the default and are clearly reflected in the Wide Cards panel.
 - **Poster detail sections are visually consistent.** Effects now uses the same balanced, explanatory
   layout as Wide Cards. Colours & Labels is a labelled status table with clear colour, name, label, and
   visibility columns, plus a compact stacked layout on phones.
-- **Save feedback is contextual.** The save action is hidden while the page is clean, appears after an
-  edit, reports saving and failure states, and no longer permanently covers the settings being edited.
+- **Applying changes is explicit and resilient.** A counted dirty-state bar offers Apply and Discard,
+  validates numeric and TMDB-override input, preserves unknown future configuration fields, reports
+  failures without losing the draft, and applies pending settings before run/restore actions.
 - **Settings screenshots and capture checks were refreshed.** The README gallery now reflects the current
   embedded page, and the standalone capture verifies visible segmented controls, responsive previews,
   random-preview stability, library collapsing, and that edited values reach the plugin configuration update.

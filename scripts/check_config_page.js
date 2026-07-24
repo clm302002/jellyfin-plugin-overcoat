@@ -74,7 +74,10 @@ const requiredPatterns = [
   ['wide-card composite preview has sticky hook', /data-preview-kind="wide"/],
   ['wide-card preview image exists', /id="WidePreview"/],
   ['external stylesheet is linked', /id="OvercoatStylesheet"[^>]*configPage\.css/],
-  ['descriptions toggle exists', /id="OvercoatDescriptions"/],
+  ['purpose-based navigation exists', /data-tab="design"[\s\S]*data-tab="libraries"[\s\S]*data-tab="sources"[\s\S]*data-tab="automation"[\s\S]*data-tab="recovery"/],
+  ['design surface switch exists', /data-surface="design"[\s\S]*data-surface="wide"/],
+  ['explicit discard action exists', /id="OvercoatDiscard"/],
+  ['session draft persistence exists', /sessionStorage\.setItem\(draftKey/],
   ['full form serialization exists', /config\.Libraries\s*=\s*collectLibraries\(\)/],
   ['segmented controls expose radio state', /setAttribute\('aria-checked'/],
   ['save dock exposes status feedback', /id="OvercoatSaveState"[^>]*role="status"/],
@@ -94,22 +97,26 @@ for (const [label, pattern] of requiredPatterns) {
   }
 }
 
-// Badge sources are shared with wide cards but their controls live only on the Posters tab; guard that
-// they did not leak into Maintenance (where the old General tab was folded).
-const maintenanceMarkup = html.slice(html.indexOf('data-panel="maintenance"'));
-const postersMarkup = html.slice(html.indexOf('data-panel="posters"'), html.indexOf('data-panel="wide"'));
+// Badge-source controls are moved into the purpose-based Data Sources area at initialization. Guard
+// both their stable grouping hooks and the relocation map so a markup cleanup cannot strand them.
 for (const id of ['BadgesEnabled', 'TrendingTimeWindow', 'WatchHistoryDays', 'WatchHistoryAllUsers', 'ImdbTop250TvListId']) {
-  if (maintenanceMarkup.includes(`id="${id}"`) || !postersMarkup.includes(`id="${id}"`)) {
-    console.error(`FAIL badge setting ${id} is not grouped exclusively on the Posters tab`);
+  if (!html.includes(`id="${id}"`) || !/OvercoatBadgeSourcesCard|OvercoatWatchHistoryCard|OvercoatImdbListsCard/.test(html)) {
+    console.error(`FAIL data-source setting ${id} has no purpose-area grouping hook`);
     failures++;
   }
 }
+if (!/OvercoatBadgeSourcesCard'[\s\S]*OvercoatDataSourcesBody/.test(html)
+    || !/OvercoatOverridesCard'[\s\S]*OvercoatDataSourcesBody/.test(html)) {
+  console.error('FAIL source cards are not relocated into Data Sources'); failures++;
+} else { console.log('ok   source cards relocate into Data Sources'); }
 
 const cssPatterns = [
   ['form width overrides Jellyfin cap', /#OvercoatConfigPage #OvercoatConfigForm[\s\S]*max-width:\s*none/],
   ['save dock is revealable', /\.ovcSaveDock\.ovcVisible/],
   ['plugin overflow is corrected', /overflow:\s*visible\s*!important/],
   ['desktop preview is sticky', /\.ovcBannerPreview\s*\{[^}]*position:\s*sticky/],
+  ['desktop shell has a navigation rail', /grid-template-columns:\s*var\(--ov-rail\)\s+minmax\(0,\s*1fr\)/],
+  ['mobile shell has bottom navigation', /@media\s*\(max-width:\s*700px\)[\s\S]*\.ovcTabs\s*\{[\s\S]*position:\s*fixed/],
   ['studio stacks below 1100px', /@media\s*\(max-width:\s*1099px\)/],
   ['responsive cards use a bounded minimum', /minmax\(min\(100%,\s*440px\)\s*,\s*1fr\)/],
 ];
@@ -157,12 +164,14 @@ if (!/<details class="ovcCard" open>\s*<summary>Status dates/.test(html)
     || !/<details class="ovcCard" open>\s*<summary>Colours &amp; labels/.test(html)) {
   console.error('FAIL status dates and colours/labels must default open'); failures++;
 } else { console.log('ok   requested banner accordions default open'); }
-const postersTabAt = html.indexOf('data-tab="posters"');
-const wideTabAt = html.indexOf('data-tab="wide"');
+const designTabAt = html.indexOf('data-tab="design"');
 const librariesTabAt = html.indexOf('data-tab="libraries"');
-const apiTabAt = html.indexOf('data-tab="apikeys"');
-if (!(postersTabAt !== -1 && postersTabAt < wideTabAt && wideTabAt < librariesTabAt && librariesTabAt < apiTabAt)) {
-  console.error('FAIL tab order must be Posters, Wide Cards, Libraries, TMDB API'); failures++;
-} else { console.log('ok   tab order is Posters → Wide Cards → Libraries → TMDB API'); }
+const sourcesTabAt = html.indexOf('data-tab="sources"');
+const automationTabAt = html.indexOf('data-tab="automation"');
+const recoveryTabAt = html.indexOf('data-tab="recovery"');
+if (!(designTabAt !== -1 && designTabAt < librariesTabAt && librariesTabAt < sourcesTabAt
+    && sourcesTabAt < automationTabAt && automationTabAt < recoveryTabAt)) {
+  console.error('FAIL tab order must be Design, Libraries, Data Sources, Automation, Recovery'); failures++;
+} else { console.log('ok   purpose navigation order is correct'); }
 
 process.exit(failures ? 1 : 0);

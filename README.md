@@ -70,10 +70,10 @@ wide cards, or return all current users to episode stills.
 
 2. Open **Catalog**, install **Overcoat**, and restart Jellyfin.
 3. Open **Dashboard → Plugins → Overcoat**. Add a free TMDB API key and select your libraries.
-4. Start conservatively: enable **Dry run**, save, then use **Maintenance → Run now**.
+4. Start conservatively: enable **Dry run**, apply the change, then use **Automation → Run now**.
 5. Review the Overcoat log. Disable dry run and run **Apply Overcoat Overlays** again when ready.
 6. The daily run happens automatically at a quiet 3:00 AM. To pick a different time, use
-   **Maintenance → Schedule → Set a custom run time**.
+   **Automation → Schedule → Set a custom run time**.
 
 Overcoat runs once daily to keep status dates and badges current. If a library scan or metadata tool
 later replaces an overlaid poster, Overcoat re-applies the overlay automatically within about a minute
@@ -105,18 +105,20 @@ date formats, and badge sources are shared across both surfaces.
 > Trending only, both side ribbons, and/or IMDb Top 250 for a library, but you cannot give one title a
 > unique banner or badge design.
 
-A random library image selected in any live preview stays in place while you edit or switch between
-the Posters and Wide Cards tabs; it changes only when you explicitly request another random one.
+A random library image selected in either Design surface stays in place while you edit or switch
+between Poster and Wide Card; it changes only when you explicitly request another random one.
 
 ### Settings tour
 
 Click any screenshot to open the full-size image.
 
 <p align="center">
-  <a href="assets/settings-posters.png"><img src="assets/settings-posters.png" width="48%" alt="Overcoat Posters tab with banner style, shape, and layout controls beside a sticky live preview" /></a>
-  <a href="assets/settings-wide.png"><img src="assets/settings-wide.png" width="48%" alt="Overcoat Wide Cards tab with independent wide-card banner and badge controls and a 16:9 live preview" /></a>
+  <a href="assets/settings-posters.png"><img src="assets/settings-posters.png" width="48%" alt="Overcoat Design studio on the Poster surface with Quick Looks and a persistent live preview" /></a>
+  <a href="assets/settings-wide.png"><img src="assets/settings-wide.png" width="48%" alt="Overcoat Design studio on the Wide Card surface with independent controls and a 16:9 live preview" /></a>
   <a href="assets/settings-libraries.png"><img src="assets/settings-libraries.png" width="48%" alt="Overcoat Libraries tab with all-user wide-card controls and per-library overlay and badge options" /></a>
-  <a href="assets/settings-maintenance.png"><img src="assets/settings-maintenance.png" width="48%" alt="Overcoat Maintenance tab with automation, schedule, scan re-apply, and run and restore actions" /></a>
+  <a href="assets/settings-sources.png"><img src="assets/settings-sources.png" width="48%" alt="Overcoat Data Sources area with TMDB, badge, activity, and ranking configuration" /></a>
+  <a href="assets/settings-automation.png"><img src="assets/settings-automation.png" width="48%" alt="Overcoat Automation area with run behaviour, schedule, scan re-apply, and apply-now controls" /></a>
+  <a href="assets/settings-recovery.png"><img src="assets/settings-recovery.png" width="48%" alt="Overcoat Recovery area with vault health and guarded original-artwork restore controls" /></a>
 </p>
 
 These are separate full-size captures of the real embedded configuration HTML in a standalone
@@ -124,15 +126,14 @@ mocked shell. Every user, library, configuration value, preview response, and ac
 synthetic. The capture tool has no real server address or API key, never logs in to Jellyfin, and
 never contacts a live server.
 
-The current development settings studio is designed around the same workflow as the renderer: choose
-an appearance, see the real composite preview, then tune the shared status/badge rules. Posters and
-Wide Cards use the same visual controls, the preview stays prominent while editing, and the save bar
-appears only when there are unsaved changes. The page is scoped to Overcoat's configuration view, so
-it does not restyle the rest of Jellyfin's dashboard.
+The development studio is organized by purpose: **Design**, **Libraries**, **Data Sources**,
+**Automation**, and **Recovery**. Poster and Wide Card share one preview-first workspace with editable
+Quick Looks. The Apply bar appears only for a draft, offers Discard, and can restore an unsaved session
+after a reload. All styling remains scoped to Overcoat's configuration view.
 
-Libraries expose their banner and badge choices only while **Process this library** is enabled. The
-Maintenance tab groups normal processing, scheduling, apply/restore actions, vault recovery, and
-advanced title targeting into separate sections.
+Libraries expose their banner and badge choices only while **Process this library** is enabled.
+Normal processing and scheduling live in Automation; originals-vault health and restoration live in
+Recovery; advanced library targeting is collapsed beneath the detected libraries.
 
 The Libraries tab also reports how many current users see series wide cards versus episode stills.
 **Use Overcoat wide cards for all current users** changes Jellyfin's Next Up/Continue Watching
@@ -162,7 +163,7 @@ Jellyfin 10.11 API surface; newer Jellyfin releases may require a plugin update.
 ### Restoring or removing Overcoat
 
 1. Stop tools or scans that might rewrite posters.
-2. Run **Plugins → Overcoat → Maintenance → Restore original artwork** (or the identically named
+2. Run **Plugins → Overcoat → Recovery → Restore original artwork** (or the identically named
    scheduled task) and let it finish.
 3. Verify a few posters, then uninstall the plugin and restart Jellyfin.
 
@@ -216,7 +217,7 @@ Overcoat saves a clean copy of every poster and Series Thumb before overlaying i
 survive uninstalling the plugin** — they live outside the versioned install folder. Poster and Thumb
 recovery are tracked independently, so restoring one image type cannot consume the other's backup.
 
-**Settings → Maintenance → Recovery** reports poster and wide-card backups separately and flags any
+**Settings → Recovery** reports poster and wide-card backups separately and flags any
 managed image that has no saved copy.
 
 | Situation | What to do |
@@ -236,7 +237,7 @@ This is expected, and Overcoat handles it automatically. When a poster lives in 
 and strips Overcoat's overlay off the affected items. Jellyfin does this unconditionally — there is no
 setting to disable it, and it applies to *any* overlay tool, not just Overcoat. So Overcoat watches
 for a scan to finish and **re-applies within about a minute**, touching only what the scan changed. If
-you'd rather it didn't, turn off **Settings → Maintenance → Re-apply after a library scan**.
+you'd rather it didn't, turn off **Settings → Automation → Re-apply after a library scan**.
 
 **Does Overcoat modify the posters in my media folders?**
 No — never. Overcoat only writes to Jellyfin's own metadata folder and keeps a clean backup of every
@@ -251,7 +252,7 @@ re-rendered.
 **Will all these saved copies fill up my disk?**
 No. Overcoat keeps **one** clean copy per overlaid image and overwrites it in place — re-scanning and
 re-overlaying the same items never adds more. Total backup size grows only with your library size, not
-with how often things run. **Settings → Maintenance → Recovery** shows the current size.
+with how often things run. **Settings → Recovery** shows the current size.
 
 **Overlays flicker off briefly during a scan.**
 That's the gap between Jellyfin reverting an image and Overcoat re-applying (up to ~a minute after the
