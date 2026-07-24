@@ -34,13 +34,22 @@
                 <!-- ===================== POSTERS (banners + badges) ===================== -->
                 <div class="ovcPanel ovcActive" data-panel="design">
                     <div class="ovcBannerLayout">
+                        <div class="ovcPageIntro ovcDesignIntro">
+                            <span class="ovcEyebrow">Design studio</span>
+                            <h2>Build artwork that feels native</h2>
+                            <p>Shape one visual language for status banners and badges, then verify the real rendered result before it reaches your library.</p>
+                        </div>
                         <div class="ovcSurfaceBar" role="tablist" aria-label="Design surface">
                             <button type="button" class="ovcSurface ovcActive" data-surface="design" role="tab" aria-selected="true"><span class="ovcIcon">image</span>Poster</button>
                             <button type="button" class="ovcSurface" data-surface="wide" role="tab" aria-selected="false"><span class="ovcIcon">crop_16_9</span>Wide card</button>
                         </div>
-                        <div class="ovcCard ovcNotice ovcStudioNotice">
-                            <strong>Poster studio</strong>
-                            <div class="fieldDescription">Build the banner and badge treatment once, preview the rendered result, then apply when it feels right.</div>
+                        <div class="ovcCard ovcNotice ovcStudioNotice ovcDesignHero">
+                            <span class="ovcDesignHeroIcon ovcIcon" aria-hidden="true">auto_awesome</span>
+                            <div>
+                                <span class="ovcEyebrow">Poster canvas</span>
+                                <strong>Design the library’s primary look</strong>
+                                <div class="fieldDescription">Tune the banner, status language, and badge stack while the pinned preview renders the complete poster.</div>
+                            </div>
                         </div>
                         <div class="ovcBannerControls ovcControlGrid">
                             <div class="ovcPresetBar ovcWide">
@@ -220,6 +229,7 @@
                             </div></details>
                             <div class="ovcSectionHeading ovcWide"><h3>Badges</h3></div>
                             <div class="ovcCard" id="OvercoatBadgeSourcesCard">
+                                <span class="ovcEyebrow">Badge engine</span>
                                 <h3>Badge sources</h3>
                                 <div class="ovcCheck">
                                     <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BadgesEnabled" /><span>Enable badges globally</span></label>
@@ -242,7 +252,8 @@
                             </div>
 
                             <div class="ovcCard" id="OvercoatWatchHistoryCard">
-                                <h3>Watch History badge</h3>
+                                <span class="ovcEyebrow">Playback signal</span>
+                                <h3>Watch history</h3>
                                 <div class="ovcFormStack">
                                 <div class="ovcField">
                                     <span class="inputLabel">Look-back period (days)</span>
@@ -316,7 +327,8 @@
                         </div>
 
                         <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="poster">
-                            <h3>Live preview</h3>
+                            <div class="ovcPreviewHeading"><span class="ovcEyebrow">Rendered by Overcoat</span><h3>Poster preview</h3><p>Switch the sample state and signals without changing saved settings.</p></div>
+                            <div class="ovcPreviewToolbar">
                             <div class="ovcStatusSwitch" id="OvercoatPreviewStatuses">
                                 <button type="button" class="ovcChip" data-status="NEW">NEW</button>
                                 <button type="button" class="ovcChip" data-status="AIRING">AIRING</button>
@@ -333,6 +345,7 @@
                                 <button type="button" class="ovcChip ovcSourceBtn ovcChipActive" data-source="placeholder">Sample poster</button>
                                 <button type="button" class="ovcChip ovcSourceBtn" data-source="random">🎲 Random from my library</button>
                             </div>
+                            </div>
                             <img id="PostersPreview" alt="Poster preview" />
                             <div class="ovcMuted">
                                 Banner and badges together. Random uses a clean, unmodified poster from your library.
@@ -344,14 +357,22 @@
                 <!-- ===================== WIDE CARDS (banners + badges) ===================== -->
                 <div class="ovcPanel" data-panel="wide">
                     <div class="ovcBannerLayout">
+                        <div class="ovcPageIntro ovcDesignIntro">
+                            <span class="ovcEyebrow">Design studio</span>
+                            <h2>Carry the same look into 16:9</h2>
+                            <p>Let wide cards inherit the poster language or give them a purpose-built layout for home-screen rows.</p>
+                        </div>
                         <div class="ovcSurfaceBar" role="tablist" aria-label="Design surface">
                             <button type="button" class="ovcSurface" data-surface="design" role="tab" aria-selected="false"><span class="ovcIcon">image</span>Poster</button>
                             <button type="button" class="ovcSurface ovcActive" data-surface="wide" role="tab" aria-selected="true"><span class="ovcIcon">crop_16_9</span>Wide card</button>
                         </div>
-                        <div class="ovcCard ovcNotice ovcStudioNotice">
-                            <label class="checkboxContainer ovcChoiceToggle"><input is="emby-checkbox" type="checkbox" id="WideCardCustomize" /><span>Customize wide cards separately</span></label>
-                            <div class="fieldDescription">Off: wide cards inherit the poster design. On: this tab gets its own banner and badge layout. Wide-card overlays are still enabled per library on the Libraries tab.</div>
-                            <div class="fieldDescription"><strong>Shared with Posters:</strong> status colours, labels, visibility, date formats, and badge sources. This tab controls only the 16:9 appearance.</div>
+                        <div class="ovcCard ovcNotice ovcStudioNotice ovcDesignHero ovcWideModeHero">
+                            <span class="ovcDesignHeroIcon ovcIcon" aria-hidden="true">aspect_ratio</span>
+                            <div class="ovcWideModeCopy">
+                                <span class="ovcEyebrow">Wide-card canvas</span>
+                                <label class="checkboxContainer ovcChoiceToggle"><input is="emby-checkbox" type="checkbox" id="WideCardCustomize" /><span>Customize wide cards separately</span></label>
+                                <div class="fieldDescription">Off inherits the Poster design. On unlocks a dedicated 16:9 banner and badge layout. Status colours, labels, dates, and badge sources remain shared.</div>
+                            </div>
                         </div>
                         <div class="ovcBannerControls ovcControlGrid" id="OvercoatWideBody">
                             <div class="ovcPresetBar ovcWide">
@@ -439,7 +460,8 @@
                         </div>
 
                         <div class="ovcCard ovcBannerPreview ovcPreviewRail ovcWidePreview" data-preview-kind="wide">
-                            <h3>Live preview</h3>
+                            <div class="ovcPreviewHeading"><span class="ovcEyebrow">Rendered by Overcoat</span><h3>Wide-card preview</h3><p>Test the 16:9 treatment against a real composite before applying it.</p></div>
+                            <div class="ovcPreviewToolbar">
                             <div class="ovcStatusSwitch" id="OvercoatWidePreviewStatuses">
                                 <button type="button" class="ovcChip" data-status="NEW">NEW</button>
                                 <button type="button" class="ovcChip" data-status="AIRING">AIRING</button>
@@ -456,6 +478,7 @@
                                 <button type="button" class="ovcChip ovcWideSourceBtn ovcChipActive" data-source="placeholder">Sample card</button>
                                 <button type="button" class="ovcChip ovcWideSourceBtn" data-source="random">🎲 Random from my library</button>
                             </div>
+                            </div>
                             <img id="WidePreview" alt="Wide-card preview" />
                             <div class="ovcMuted">
                                 Banner and badges together. Random uses a clean series thumb from your library.
@@ -466,15 +489,19 @@
 
                 <!-- ===================== TMDB API ===================== -->
                 <div class="ovcPanel" data-panel="sources">
-                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Data sources</span><h2>Connect the signals behind every overlay</h2><p>Credentials, activity windows, rankings, and matching rules live here.</p></div>
-                    <div class="ovcCard">
-                        <h3>TMDB connection</h3>
+                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Data sources</span><h2>Connect the signals behind every overlay</h2><p>Manage the credentials, activity, rankings, and matching rules that power Overcoat.</p></div>
+                    <div class="ovcCard ovcSourceHero" id="OvercoatTmdbCard">
+                        <div class="ovcSourceHeroCopy">
+                            <span class="ovcEyebrow">Primary connection</span>
+                            <h3>TMDB</h3>
+                            <p class="fieldDescription">One API key powers status dates, trending signals, metadata matching, and Top 250 list lookups.</p>
+                        </div>
                         <div class="ovcSecretRow">
                             <div class="inputContainer">
                                 <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">TMDB API Key</label>
                                 <input is="emby-input" type="password" id="TmdbApiKey" autocomplete="off" />
                                 <div class="fieldDescription">
-                                    Free from themoviedb.org → account Settings → API. Required for status, trending and Top 250 data.
+                                    Get a free key from themoviedb.org → account Settings → API.
                                 </div>
                             </div>
                             <button is="emby-button" type="button" id="ToggleTmdbApiKey" class="raised ovcSecretToggle"
@@ -486,33 +513,45 @@
 
                 <!-- ===================== LIBRARIES ===================== -->
                 <div class="ovcPanel" data-panel="libraries">
-                    <div class="ovcCard ovcWide">
-                        <h3>Next Up &amp; Continue Watching artwork</h3>
-                        <p class="fieldDescription">
-                            Choose whether current users see Overcoat's series wide cards or normal episode
-                            stills in Next Up and Continue Watching. This changes only Jellyfin's display
-                            preference; episode artwork is never edited.
-                        </p>
-                        <div class="ovcRowButtons">
-                            <button is="emby-button" type="button" id="OvercoatUseWideCardsAll" class="raised ovcWarningAction">
-                                <span>Use Overcoat wide cards for all users</span>
-                            </button>
-                            <button is="emby-button" type="button" id="OvercoatUseEpisodeStillsAll" class="raised ovcWarningAction">
-                                <span>Use episode stills for all users</span>
-                            </button>
+                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Libraries</span><h2>Choose where Overcoat works</h2><p>Control home-screen artwork, library features, and exact exclusions from one place.</p></div>
+                    <div class="ovcCard ovcWide ovcMediaSafety" role="status">
+                        <span class="ovcMediaSafetyIcon ovcIcon" aria-hidden="true">verified_user</span>
+                        <div>
+                            <span class="ovcEyebrow">Media-folder safety</span>
+                            <h3>Your media artwork stays untouched</h3>
+                            <p>Overcoat forces every overlay and restore into Jellyfin's internal metadata storage—even if <strong>Save artwork into media folders</strong> is enabled in Jellyfin.</p>
+                            <small>You do not need to change that Jellyfin setting for Overcoat. Newly discovered libraries also remain off here until you explicitly enable <strong>Process library</strong>.</small>
                         </div>
-                        <p class="ovcMuted" id="OvercoatUserArtworkStatus" role="status">Checking current users…</p>
-                        <p class="ovcMuted">
-                            Applies to users that exist now. Run it again after adding a user. Other clients
-                            may choose artwork differently.
-                        </p>
                     </div>
-                    <div class="ovcCard ovcWide">
-                        <h3>Libraries</h3>
-                        <p class="fieldDescription">
-                            Enable each library Overcoat should process, then choose its overlays and badges.
-                            Status banners are available for TV libraries only.
-                        </p>
+                    <div class="ovcCard ovcWide ovcLibraryHero" id="OvercoatArtworkChoiceCard">
+                        <div class="ovcLibraryHeroCopy">
+                            <span class="ovcEyebrow">Home-screen artwork</span>
+                            <h3>Next Up &amp; Continue Watching</h3>
+                            <p class="fieldDescription">
+                                Set the artwork style for every current Jellyfin user. This changes a display
+                                preference only—episode images are never edited.
+                            </p>
+                        </div>
+                        <div class="ovcArtworkDecision">
+                            <div class="ovcArtworkActions">
+                                <button is="emby-button" type="button" id="OvercoatUseWideCardsAll" class="raised ovcWarningAction">
+                                    <span>Use Overcoat wide cards for all users</span>
+                                </button>
+                                <button is="emby-button" type="button" id="OvercoatUseEpisodeStillsAll" class="raised ovcWarningAction">
+                                    <span>Use episode stills for all users</span>
+                                </button>
+                            </div>
+                            <div class="ovcArtworkStatus">
+                                <p id="OvercoatUserArtworkStatus" role="status">Checking current users…</p>
+                                <small>Run this again after adding a user. Some clients may choose artwork differently.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ovcCard ovcWide ovcLibrariesWorkspace" id="OvercoatLibrariesCard">
+                        <div class="ovcWorkspaceHeading">
+                            <div><span class="ovcEyebrow">Per-library control</span><h3>Your libraries</h3></div>
+                            <p>Turn processing on, then choose the artwork and signals each library receives.</p>
+                        </div>
                         <div id="OvercoatLibraries" class="ovcGrid"><p class="ovcMuted">Loading libraries…</p></div>
                     </div>
                     <div id="OvercoatTargetingBody" class="ovcPurposeGrid ovcWide"></div>
@@ -520,8 +559,9 @@
 
                 <!-- ===================== MAINTENANCE ===================== -->
                 <div class="ovcPanel" data-panel="automation">
-                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Automation</span><h2>Run overlays and keep them current</h2><p>Start a focused pass or choose how Overcoat runs in the background.</p></div>
-                    <div class="ovcCard">
+                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Automation</span><h2>Run overlays and stay current</h2><p>Start a focused pass or choose how Overcoat runs in the background.</p></div>
+                    <div class="ovcCard ovcAutomationCard" id="OvercoatBehaviorCard">
+                        <span class="ovcEyebrow">Run behaviour</span>
                         <h3>Behaviour</h3>
                         <div class="ovcCheck">
                             <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="CacheEnabled" /><span>Use skip cache <span class="ovcRecommended">Recommended on</span></span></label>
@@ -537,13 +577,12 @@
                         </div>
                     </div>
 
-                    <div class="ovcCard">
+                    <div class="ovcCard ovcAutomationCard" id="OvercoatScheduleCard">
+                        <span class="ovcEyebrow">Background upkeep</span>
                         <h3>Schedule</h3>
                         <p class="fieldDescription">
-                            Overcoat runs once a day to keep status dates (AIRING / RETURNING), "airing today", and
-                            trending &amp; watch-history badges current — none of which come from a library scan.
-                            Overlays themselves are re-applied whenever your library changes (below), so the daily
-                            run is just background upkeep.
+                            A quiet daily pass keeps status dates, trending, and watch-history signals current.
+                            Library-scan follow-up restores overlays when Jellyfin adopts artwork again.
                         </p>
                         <div class="ovcCheck">
                             <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="CustomScheduleTime" /><span>Set a custom run time</span></label>
@@ -642,7 +681,8 @@
                     </div>
 
                     <div class="ovcCard ovcWide" id="OvercoatRecoveryCard">
-                        <h3>Recovery</h3>
+                        <span class="ovcEyebrow">Vault health</span>
+                        <h3>Originals vault</h3>
                         <p class="fieldDescription">
                             Overcoat keeps a clean copy of every poster before it overlays it. This is what
                             <strong>Restore original posters</strong> puts back, and it survives uninstalling the
@@ -651,15 +691,14 @@
                         <div class="ovcVaultStats" id="OvercoatVaultStats">
                             <p class="ovcMuted">Checking…</p>
                         </div>
-                        <div class="ovcRowButtons">
+                        <div class="ovcVaultRefreshRow">
                             <button is="emby-button" type="button" id="OvercoatVaultRefresh" class="raised">
-                                <span>⭯ Recheck</span>
+                                <span>⭯ Recheck vault</span>
                             </button>
-                        </div>
-                        <div class="fieldDescription">
-                            These figures are read when the page opens. <strong>Recheck</strong> reads them again —
-                            useful after a run, a restore, or removing something from your library. It only looks;
-                            it doesn't change any posters.
+                            <div class="fieldDescription">
+                                Refresh these read-only figures after a run, restore, or library removal.
+                                This never changes artwork.
+                            </div>
                         </div>
                         <details class="ovcRecoveryHelp">
                             <summary>If something looks wrong</summary>
@@ -710,6 +749,7 @@
                     </div>
 
                     <div class="ovcCard" id="OvercoatOverridesCard">
+                        <span class="ovcEyebrow">Match correction</span>
                         <h3>TMDB overrides</h3>
                         <textarea is="emby-textarea" id="TmdbOverrides" rows="4"></textarea>
                         <div class="fieldDescription">One per line as <code>Title | year | tmdbId</code> (year may be 0). Forces a specific TMDB match.</div>
@@ -1268,25 +1308,43 @@
                 row.setAttribute('data-type', type);
                 // Library names come from the Jellyfin API — render the title with textContent so a
                 // name containing &, <, or quotes can't break the markup or inject HTML.
+                var header = document.createElement('div');
+                header.className = 'ovcLibHeader';
+                var title = document.createElement('div');
+                title.className = 'ovcLibTitle';
+                var icon = document.createElement('span');
+                icon.className = 'ovcIcon';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.textContent = isTv ? 'live_tv' : 'movie';
+                var titleCopy = document.createElement('div');
                 var h4 = document.createElement('h4');
-                h4.textContent = name + ' ';
+                h4.textContent = name;
                 var typeSpan = document.createElement('span');
-                typeSpan.className = 'ovcMuted';
-                typeSpan.textContent = '(' + type + ')';
-                h4.appendChild(typeSpan);
-                row.appendChild(h4);
+                typeSpan.className = 'ovcLibType';
+                typeSpan.textContent = isTv ? 'TV series' : 'Movies';
+                titleCopy.appendChild(h4);
+                titleCopy.appendChild(typeSpan);
+                title.appendChild(icon);
+                title.appendChild(titleCopy);
+                header.appendChild(title);
 
                 // The rest is static markup (no untrusted data) — safe as HTML.
                 var body = document.createElement('div');
                 body.innerHTML =
-                    '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcEnabled" /><span>Process this library</span></label>' +
+                    '<label class="checkboxContainer ovcLibEnabled"><input is="emby-checkbox" type="checkbox" class="ovcEnabled" /><span>Process library</span></label>' +
                     '<div class="ovcLibOpts">' +
-                      (isTv ? '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcStatus" /><span>Status banners</span></label>' : '') +
-                      (isTv ? '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcWide" /><span>Wide-card overlays (series Thumb)</span></label><p class="ovcMuted">Use the all-user artwork control above so Next Up and Continue Watching inherit these wide cards. Episode artwork is never modified.</p>' : '') +
-                      '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcWatch" /><span>Watch-history badge</span></label>' +
-                      '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTrend" /><span>Trending badge</span></label>' +
-                      '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTop250" /><span>IMDB Top 250 badge</span></label>' +
+                      '<p class="ovcLibSectionLabel">Artwork &amp; signals</p>' +
+                      '<div class="ovcLibFeatureGrid">' +
+                        (isTv ? '<label class="checkboxContainer ovcFeatureToggle"><input is="emby-checkbox" type="checkbox" class="ovcStatus" /><span><strong>Status banners</strong><small>NEW, AIRING, RETURNING and more</small></span></label>' : '') +
+                        (isTv ? '<label class="checkboxContainer ovcFeatureToggle"><input is="emby-checkbox" type="checkbox" class="ovcWide" /><span><strong>Series wide cards</strong><small>Overlay existing Thumb artwork</small></span></label>' : '') +
+                        '<label class="checkboxContainer ovcFeatureToggle"><input is="emby-checkbox" type="checkbox" class="ovcWatch" /><span><strong>Watch history</strong><small>Highlight recently watched titles</small></span></label>' +
+                        '<label class="checkboxContainer ovcFeatureToggle"><input is="emby-checkbox" type="checkbox" class="ovcTrend" /><span><strong>Trending</strong><small>Show the current TMDB signal</small></span></label>' +
+                        '<label class="checkboxContainer ovcFeatureToggle"><input is="emby-checkbox" type="checkbox" class="ovcTop250" /><span><strong>IMDb Top 250</strong><small>Mark titles from your configured list</small></span></label>' +
+                      '</div>' +
+                      (isTv ? '<p class="ovcLibNote">The all-user choice above controls whether Next Up and Continue Watching display these series wide cards.</p>' : '') +
                     '</div>';
+                header.appendChild(body.firstChild);
+                row.appendChild(header);
                 while (body.firstChild) { row.appendChild(body.firstChild); }
                 row.querySelector('.ovcEnabled').checked = !!saved.Enabled;
                 if (isTv) row.querySelector('.ovcStatus').checked = saved.StatusOverlays !== false;

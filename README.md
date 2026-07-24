@@ -267,8 +267,10 @@ you'd rather it didn't, turn off **Settings → Automation → Re-apply after a 
 
 **Does Overcoat modify the posters in my media folders?**
 No — never. Overcoat only writes to Jellyfin's own metadata folder and keeps a clean backup of every
-image it overlays. Your media-folder artwork is never touched. (That's also why a scan can revert
-overlays: Jellyfin prefers the untouched media-folder copy.)
+image it overlays. Overcoat explicitly tells Jellyfin **not** to save its output beside media, even
+when **Save artwork into media folders** is enabled on that library, so you do not need to change that
+Jellyfin preference for Overcoat. Your media-folder artwork is never touched. (That's also why a scan
+can revert overlays: Jellyfin prefers the untouched media-folder copy.)
 
 **A manual scan of one library — does Overcoat re-do my whole library?**
 No. A per-library scan triggers a follow-up on **just that library**. A full "Scan Media Library"

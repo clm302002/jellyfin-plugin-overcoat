@@ -8,6 +8,42 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.9.0-beta.8] — 2026-07-24
+
+This beta exists to publish the completed settings-workspace redesign and, critically, to enforce
+Overcoat's media-folder safety promise in code rather than relying on a Jellyfin library preference.
+
+### Safety
+- **Overcoat now enforces the media-folder boundary at the Jellyfin image API.** Jellyfin's ordinary
+  stream save follows each library's **Save artwork into media folders** option, so relying on that
+  overload could place an Overcoat `poster.png` or `landscape.webp` beside media when the option was
+  enabled. Apply, automatic clean restore, and Restore Originals now all use Jellyfin's explicit
+  `saveLocallyWithMedia: false` override, forcing output into internal metadata storage regardless of
+  the library setting. The old shadow-file deletion workaround is removed entirely.
+- **The Libraries page makes that guarantee visible.** A prominent media-safety card explains that
+  users do not need to change Jellyfin's artwork preference for Overcoat, and that newly discovered
+  movie/TV libraries remain unprocessed until **Process library** is explicitly enabled.
+
+### Changed
+- **Design is now a cohesive modern artwork studio.** Poster and Wide Card share a clear studio
+  introduction, prominent surface switch, focused canvas hero, compact Quick Looks, and a contained
+  rendered-preview workstation. The same hierarchy, spacing, interaction language, and responsive
+  mobile flow now carry across both surfaces while preserving every existing appearance setting.
+- **The entire catalogue picker now sits on the left.** Apply Overcoat uses the requested vertical
+  flow—action first, search directly below—instead of placing the picker in a right-hand column.
+  Both Automation and Titles to ignore pin their complete search row to the left edge.
+- **Libraries is rebuilt as a modern control workspace.** A concise page introduction leads into a
+  dedicated all-user artwork decision card, polished library cards with media icons and compact
+  feature tiles, and a visually connected exact-title exclusion area. The new hierarchy adapts from
+  a balanced desktop grid to a clean single-column mobile layout without changing saved behavior.
+- **Data Sources now matches the modern workspace theme.** TMDB connection is promoted to a clear
+  primary card, while badge, playback, list, and override settings use consistent signal cards and
+  responsive field tiles. Existing credentials and matching behavior are unchanged.
+- **Automation and Recovery now form a matched operations workspace.** Run Now remains the primary
+  Automation action, with behavior and schedule settings presented as compact operational tiles.
+  Recovery pairs its guarded restore action with a modern originals-vault dashboard, responsive
+  health statistics, and a connected read-only refresh control.
+
 ## [0.9.0-beta.7] — 2026-07-24
 
 ### Fixed

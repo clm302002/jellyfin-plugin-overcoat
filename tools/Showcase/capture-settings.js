@@ -48,7 +48,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       {Id:'11111111111111111111111111111111',Name:'Breaking Bad',Type:'Series',ProductionYear:2008},
       {Id:'22222222222222222222222222222222',Name:'El Camino: A Breaking Bad Movie',Type:'Movie',ProductionYear:2019}
     ];
-    window.ApiClient = { accessToken:()=> 'synthetic-capture-token', getUrl:(route)=>route.includes('configPage.css') ? cssUrl : (route === 'Items' ? route : previewUrl), getJSON:(url)=>Promise.resolve(String(url).startsWith('Items') ? {Items:catalogue} : []), ajax:()=>Promise.resolve({}), getPluginConfiguration:()=>Promise.resolve(config), updatePluginConfiguration:(_id, next)=>{ window.__captureUpdates.push(next); Object.assign(config, next); return Promise.resolve(next); }, getVirtualFolders:()=>Promise.resolve([{Name:'TV Shows',CollectionType:'tvshows'},{Name:'Movies',CollectionType:'movies'}]), getUsers:()=>Promise.resolve([{Id:'demo',Name:'Demo user'}]), getScheduledTasks:()=>Promise.resolve([]) };
+    window.ApiClient = { accessToken:()=> 'synthetic-capture-token', getUrl:(route)=>route.includes('configPage.css') ? cssUrl : ((route === 'Items' || route.includes('VaultHealth')) ? route : previewUrl), getJSON:(url)=>Promise.resolve(String(url).includes('VaultHealth') ? {TrackedItems:545,TrackedWithOriginal:545,TrackedWithoutOriginal:0,VaultSizeDisplay:'412 MB',OrphanedOriginals:0,WideCards:{TrackedItems:86,TrackedWithoutOriginal:0,VaultSizeDisplay:'96 MB'}} : (String(url).startsWith('Items') ? {Items:catalogue} : [])), ajax:()=>Promise.resolve({}), getPluginConfiguration:()=>Promise.resolve(config), updatePluginConfiguration:(_id, next)=>{ window.__captureUpdates.push(next); Object.assign(config, next); return Promise.resolve(next); }, getVirtualFolders:()=>Promise.resolve([{Name:'TV Shows',CollectionType:'tvshows'},{Name:'Movies',CollectionType:'movies'}]), getUsers:()=>Promise.resolve([{Id:'demo',Name:'Demo user'}]), getDisplayPreferences:()=>Promise.resolve({CustomPrefs:{homesection0:'smalllibrarytiles',homesection1:'resume',homesection2:'nextup',homesection3:'none',homesection4:'none',homesection5:'none',homesection6:'none',homesection7:'none'},ScrollDirection:'Horizontal'}), updateDisplayPreferences:()=>Promise.resolve({}), getScheduledTasks:()=>Promise.resolve([]) };
     window.Dashboard = { showLoadingMsg(){}, hideLoadingMsg(){}, processPluginConfigurationUpdateResult(){}, alert(){}, confirm(_m,_t,cb){cb(false);} };
   }, {previewUrl:'file://' + path.join(root, 'private/showcase-input/breaking-bad.jpg'), cssUrl:'file://' + path.join(root, 'Jellyfin.Plugin.Overcoat/Configuration/configPage.css')});
   await page.goto('file://' + path.join(root, 'Jellyfin.Plugin.Overcoat/Configuration/configPage.html'));
@@ -102,6 +102,32 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (await page.locator('#TmdbApiKey').getAttribute('type') !== 'text') throw new Error('TMDB key reveal control failed.');
     await page.locator('#ToggleTmdbApiKey').click();
     if (await page.locator('#TmdbApiKey').getAttribute('type') !== 'password') throw new Error('TMDB key hide control failed.');
+    if (process.env.SHOWCASE_SOURCES_REVIEW_DIR) {
+      const suffix = page.viewportSize().width <= 700 ? 'mobile' : 'desktop';
+      await page.evaluate(() => {
+        const shell = document.querySelector('.jellyfinViewport');
+        const tabs = document.querySelector('.ovcTabs');
+        window.scrollTo(0, 0);
+        if (shell) {
+          shell.scrollTop = 0;
+          shell.style.height = 'auto';
+          shell.style.overflow = 'visible';
+        }
+        if (tabs) tabs.style.position = 'static';
+      });
+      await page.locator('#OvercoatConfigForm').screenshot({
+        path:path.join(path.resolve(process.env.SHOWCASE_SOURCES_REVIEW_DIR), `data-sources-redesign-${suffix}.png`)
+      });
+      await page.evaluate(() => {
+        const shell = document.querySelector('.jellyfinViewport');
+        const tabs = document.querySelector('.ovcTabs');
+        if (shell) {
+          shell.style.removeProperty('height');
+          shell.style.removeProperty('overflow');
+        }
+        if (tabs) tabs.style.removeProperty('position');
+      });
+    }
     await page.locator('button[data-tab="design"]').click();
     await page.evaluate(() => {
       window.scrollTo(0, 0);
@@ -255,10 +281,96 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (!removeGeometry.contained || removeGeometry.width > 26 || removeGeometry.height > 26 || removeGeometry.textAlign !== 'left') {
       throw new Error(`Selected-title remove control or search alignment is wrong (${JSON.stringify(removeGeometry)}).`);
     }
+    const targetLeft = await page.evaluate(() => {
+      const card = document.querySelector('#OvercoatApplyTile').getBoundingClientRect();
+      const input = document.querySelector('#OvercoatTitleSearch').getBoundingClientRect();
+      return Math.round(input.left - card.left);
+    });
+    if (targetLeft > 80) throw new Error(`Automation title picker is still offset to the right (${targetLeft}px).`);
+    if (process.env.SHOWCASE_PROOF_DIR) {
+      await page.locator('#OvercoatApplyTile').screenshot({
+        path:path.join(path.resolve(process.env.SHOWCASE_PROOF_DIR), 'ui-automation-title-picker-proof.png')
+      });
+    }
     await page.locator('button[data-tab="libraries"]').click();
     await page.locator('#OvercoatIgnoreSearch').fill('El Camino');
     await page.locator('#OvercoatIgnoreSearchButton').click();
     await page.locator('#OvercoatIgnoreResults .ovcTitleResult').nth(1).click();
+    const ignoreLeft = await page.evaluate(() => {
+      const card = document.querySelector('#OvercoatIgnoreCard').getBoundingClientRect();
+      const input = document.querySelector('#OvercoatIgnoreSearch').getBoundingClientRect();
+      return Math.round(input.left - card.left);
+    });
+    if (ignoreLeft > 80) throw new Error(`Titles to ignore picker is still offset to the right (${ignoreLeft}px).`);
+    if (process.env.SHOWCASE_PROOF_DIR) {
+      await page.locator('#OvercoatIgnoreCard').scrollIntoViewIfNeeded();
+      await page.locator('#OvercoatIgnoreCard').screenshot({
+        path:path.join(path.resolve(process.env.SHOWCASE_PROOF_DIR), 'ui-libraries-ignore-picker-proof.png')
+      });
+    }
+    if (process.env.SHOWCASE_LIBRARY_REVIEW_DIR) {
+      const suffix = page.viewportSize().width <= 700 ? 'mobile' : 'desktop';
+      await page.evaluate(() => {
+        const shell = document.querySelector('.jellyfinViewport');
+        const tabs = document.querySelector('.ovcTabs');
+        const dock = document.querySelector('#OvercoatSaveDock');
+        window.scrollTo(0, 0);
+        if (shell) {
+          shell.scrollTop = 0;
+          shell.style.height = 'auto';
+          shell.style.overflow = 'visible';
+        }
+        if (tabs) tabs.style.position = 'static';
+        if (dock) dock.style.visibility = 'hidden';
+      });
+      await page.locator('#OvercoatConfigForm').screenshot({
+        path:path.join(path.resolve(process.env.SHOWCASE_LIBRARY_REVIEW_DIR), `libraries-redesign-${suffix}.png`)
+      });
+      await page.evaluate(() => {
+        const shell = document.querySelector('.jellyfinViewport');
+        const tabs = document.querySelector('.ovcTabs');
+        const dock = document.querySelector('#OvercoatSaveDock');
+        if (shell) {
+          shell.style.removeProperty('height');
+          shell.style.removeProperty('overflow');
+        }
+        if (tabs) tabs.style.removeProperty('position');
+        if (dock) dock.style.removeProperty('visibility');
+      });
+    }
+    if (process.env.SHOWCASE_OPERATIONS_REVIEW_DIR) {
+      const suffix = page.viewportSize().width <= 700 ? 'mobile' : 'desktop';
+      for (const review of [{tab:'automation',name:'automation'},{tab:'recovery',name:'recovery'}]) {
+        await page.locator(`button[data-tab="${review.tab}"]`).click();
+        await page.evaluate(() => {
+          const shell = document.querySelector('.jellyfinViewport');
+          const tabs = document.querySelector('.ovcTabs');
+          const dock = document.querySelector('#OvercoatSaveDock');
+          window.scrollTo(0, 0);
+          if (shell) {
+            shell.scrollTop = 0;
+            shell.style.height = 'auto';
+            shell.style.overflow = 'visible';
+          }
+          if (tabs) tabs.style.position = 'static';
+          if (dock) dock.style.visibility = 'hidden';
+        });
+        await page.locator('#OvercoatConfigForm').screenshot({
+          path:path.join(path.resolve(process.env.SHOWCASE_OPERATIONS_REVIEW_DIR), `${review.name}-redesign-${suffix}.png`)
+        });
+        await page.evaluate(() => {
+          const shell = document.querySelector('.jellyfinViewport');
+          const tabs = document.querySelector('.ovcTabs');
+          const dock = document.querySelector('#OvercoatSaveDock');
+          if (shell) {
+            shell.style.removeProperty('height');
+            shell.style.removeProperty('overflow');
+          }
+          if (tabs) tabs.style.removeProperty('position');
+          if (dock) dock.style.removeProperty('visibility');
+        });
+      }
+    }
     await page.locator('button[data-tab="automation"]').click();
     await page.locator('#CacheEnabled').click();
     await page.locator('#CacheEnabled').dispatchEvent('input');
