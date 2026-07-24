@@ -42,89 +42,103 @@
                             <div class="ovcSectionHeading ovcWide"><h3>Banner</h3></div>
                             <div class="ovcCard ovcDenseCard">
                             <h3>Style &amp; typography</h3>
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="BannerStyle">Style</label>
-                                <select is="emby-select" id="BannerStyle">
-                                    <option value="solid">Solid (filled)</option>
-                                    <option value="glass">Glass (frosted, coloured text)</option>
-                                    <option value="neon">Neon (dark pill + glow)</option>
+                            <div class="ovcField">
+                                <span class="selectLabel">Treatment</span>
+                                <select id="BannerStyle" class="ovcHiddenInput">
+                                    <option value="solid">Solid</option>
+                                    <option value="glass">Glass</option>
+                                    <option value="neon">Neon</option>
                                 </select>
-                                <div class="fieldDescription">Solid fills the pill with the status colour. Glass frosts the poster and colours the text. Neon is a dark pill with a coloured glow.</div>
+                                <div class="ovcSeg" data-for="BannerStyle" role="group" aria-label="Banner style">
+                                    <button type="button" data-v="solid"><span class="ovcSegSw ovcSwSolid"></span>Solid</button>
+                                    <button type="button" data-v="glass"><span class="ovcSegSw ovcSwGlass"></span>Glass</button>
+                                    <button type="button" data-v="neon"><span class="ovcSegSw ovcSwNeon"></span>Neon</button>
+                                </div>
                             </div>
 
                             <!-- Glass-only options (revealed when Style = Glass). -->
                             <div id="GlassOptions" class="ovcSubGroup">
-                                <div>
-                                    <label class="inputLabel inputLabelUnfocused">Frost tint</label>
-                                    <div class="ovcColors"><label><input type="color" id="GlassTint" /><span>Tint</span></label></div>
+                                <div class="ovcColors"><label><input type="color" id="GlassTint" /><span>Frost tint</span></label></div>
+                                <div class="ovcField">
+                                    <div class="ovcSliderRow"><span class="inputLabel">Tint strength</span><span class="ovcSliderVal" id="GlassTintStrengthVal">50%</span></div>
+                                    <input type="range" id="GlassTintStrength" min="0" max="100" step="1" data-out="GlassTintStrengthVal" data-unit="%" />
                                 </div>
-                                <div class="inputContainer">
-                                    <label class="inputLabel inputLabelUnfocused" for="GlassTintStrength">Tint strength (%)</label>
-                                    <input is="emby-input" type="number" id="GlassTintStrength" min="0" max="100" step="1" />
-                                </div>
-                                <div class="inputContainer">
-                                    <label class="inputLabel inputLabelUnfocused" for="GlassBlur">Frost blur (%)</label>
-                                    <input is="emby-input" type="number" id="GlassBlur" min="0" max="100" step="1" />
+                                <div class="ovcField">
+                                    <div class="ovcSliderRow"><span class="inputLabel">Frost blur</span><span class="ovcSliderVal" id="GlassBlurVal">50%</span></div>
+                                    <input type="range" id="GlassBlur" min="0" max="100" step="1" data-out="GlassBlurVal" data-unit="%" />
                                 </div>
                             </div>
 
                             <!-- Neon-only options (revealed when Style = Neon). -->
                             <div id="NeonOptions" class="ovcSubGroup">
-                                <div class="inputContainer">
-                                    <label class="inputLabel inputLabelUnfocused" for="NeonGlow">Glow intensity (%)</label>
-                                    <input is="emby-input" type="number" id="NeonGlow" min="0" max="100" step="1" />
-                                    <div class="fieldDescription">How far and bright the coloured glow spreads around the pill.</div>
+                                <div class="ovcField">
+                                    <div class="ovcSliderRow"><span class="inputLabel">Glow intensity</span><span class="ovcSliderVal" id="NeonGlowVal">60%</span></div>
+                                    <input type="range" id="NeonGlow" min="0" max="100" step="1" data-out="NeonGlowVal" data-unit="%" />
                                 </div>
                             </div>
 
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="BannerFont">Font</label>
-                                <select is="emby-select" id="BannerFont">
-                                    <option value="default">Display (bundled)</option>
-                                    <option value="sans">Sans-serif</option>
+                            <div class="ovcField ovcWide">
+                                <span class="selectLabel">Typeface</span>
+                                <select id="BannerFont" class="ovcHiddenInput">
+                                    <option value="default">Display</option>
+                                    <option value="sans">Sans</option>
                                     <option value="serif">Serif</option>
-                                    <option value="mono">Monospace</option>
+                                    <option value="mono">Mono</option>
                                 </select>
-                                <div class="fieldDescription">"Display" is Overcoat's bundled font. The others use the server's fonts (exact look depends on what's installed).</div>
+                                <div class="ovcSeg ovcSegRow" data-for="BannerFont" role="group" aria-label="Font">
+                                    <button type="button" data-v="default">Display</button>
+                                    <button type="button" data-v="sans">Sans</button>
+                                    <button type="button" data-v="serif">Serif</button>
+                                    <button type="button" data-v="mono">Mono</button>
+                                </div>
                             </div>
                             </div>
 
                             <div class="ovcCard ovcDenseCard ovcLayoutCard">
                             <h3>Shape &amp; layout</h3>
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="BannerShape">Shape</label>
-                                <select is="emby-select" id="BannerShape">
-                                    <option value="pill">Pill (fully rounded)</option>
+                            <div class="ovcField">
+                                <span class="selectLabel">Shape</span>
+                                <select id="BannerShape" class="ovcHiddenInput">
+                                    <option value="pill">Pill</option>
                                     <option value="square">Square</option>
-                                    <option value="drop">Drop (flush to the edge)</option>
+                                    <option value="drop">Drop</option>
                                 </select>
-                                <div class="fieldDescription">"Drop" sits flush against the chosen edge with only the inner corners rounded — like a tab.</div>
+                                <div class="ovcSeg" data-for="BannerShape" role="group" aria-label="Shape">
+                                    <button type="button" data-v="pill"><span class="ovcSegSw ovcSwPill"></span>Pill</button>
+                                    <button type="button" data-v="square"><span class="ovcSegSw ovcSwSquare"></span>Square</button>
+                                    <button type="button" data-v="drop"><span class="ovcSegSw ovcSwDrop"></span>Drop</button>
+                                </div>
                             </div>
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="BannerPosition">Position</label>
-                                <select is="emby-select" id="BannerPosition">
+                            <div class="ovcField">
+                                <span class="selectLabel">Position</span>
+                                <select id="BannerPosition" class="ovcHiddenInput">
                                     <option value="top">Top</option>
                                     <option value="bottom">Bottom</option>
                                 </select>
-                                <div class="fieldDescription">Which edge of the poster the banner sits against.</div>
+                                <div class="ovcSeg ovcSegRow" data-for="BannerPosition" role="group" aria-label="Position">
+                                    <button type="button" data-v="top">Top</button>
+                                    <button type="button" data-v="bottom">Bottom</button>
+                                </div>
                             </div>
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="BannerAlign">Alignment</label>
-                                <select is="emby-select" id="BannerAlign">
+                            <div class="ovcField">
+                                <span class="selectLabel">Alignment</span>
+                                <select id="BannerAlign" class="ovcHiddenInput">
                                     <option value="left">Left</option>
                                     <option value="center">Center</option>
                                     <option value="right">Right</option>
                                 </select>
-                                <div class="fieldDescription">Horizontal placement. With Full-width on, this positions the text within the band.</div>
+                                <div class="ovcSeg ovcSegRow" data-for="BannerAlign" role="group" aria-label="Alignment">
+                                    <button type="button" data-v="left">Left</button>
+                                    <button type="button" data-v="center">Center</button>
+                                    <button type="button" data-v="right">Right</button>
+                                </div>
                             </div>
-                            <div class="ovcCheck">
+                            <div class="ovcField">
+                                <div class="ovcSliderRow"><span class="inputLabel">Text size</span><span class="ovcSliderVal" id="BannerFontScaleVal">1.00×</span></div>
+                                <input type="range" id="BannerFontScale" min="0.5" max="2" step="0.05" data-out="BannerFontScaleVal" data-unit="x" />
+                            </div>
+                            <div class="ovcCheck ovcWide">
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerFullWidth" /><span>Full-width band</span></label>
-                                <div class="fieldDescription">Stretch the banner edge-to-edge across the poster (a ribbon).</div>
-                            </div>
-                            <div class="inputContainer">
-                                <label class="inputLabel inputLabelUnfocused" for="BannerFontScale">Text size</label>
-                                <input is="emby-input" type="number" id="BannerFontScale" min="0.5" max="2" step="0.05" />
-                                <div class="fieldDescription">Multiplier on the calibrated size. 1.0 = default, 1.2 = 20% bigger, 0.8 = smaller.</div>
                             </div>
                             </div>
 
@@ -132,15 +146,13 @@
                             <summary>Effects</summary><div class="ovcDetailsBody ovcFieldGrid">
                             <div class="ovcCheck">
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerIcons" /><span>Show status icons</span></label>
-                                <div class="fieldDescription">Draw the ★ / ⟳ / ✓ icon beside the banner text. Off = text only.</div>
                             </div>
                             <div class="ovcCheck">
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerShadow" /><span>Drop shadow</span></label>
-                                <div class="fieldDescription">Soft shadow under the banner so it lifts off the poster.</div>
                             </div>
-                            <div class="inputContainer">
-                                <label class="inputLabel inputLabelUnfocused" for="BannerShadowStrength">Shadow strength (%)</label>
-                                <input is="emby-input" type="number" id="BannerShadowStrength" min="0" max="100" step="1" />
+                            <div class="ovcField ovcWide">
+                                <div class="ovcSliderRow"><span class="inputLabel">Shadow strength</span><span class="ovcSliderVal" id="BannerShadowStrengthVal">60%</span></div>
+                                <input type="range" id="BannerShadowStrength" min="0" max="100" step="1" data-out="BannerShadowStrengthVal" data-unit="%" />
                             </div>
                             </div></details>
 
@@ -263,38 +275,35 @@
 
                             <div class="ovcCard ovcWide">
                             <h3>Badge layout</h3>
-                            <p class="fieldDescription">
-                                Placement of the side badges (watch-history &amp; TMDB-trending). The IMDb Top 250 badge
-                                is a baked corner ribbon and isn't affected by these. Which badges actually appear is
-                                still set per library (Libraries tab) and the global switch above.
-                            </p>
+                            <p class="fieldDescription ovcCardLead">Placement of the side ribbons (watch-history &amp; TMDB-trending). IMDb Top 250 is a baked corner ribbon, unaffected by these. Which badges appear is set per library.</p>
                             <div class="ovcFieldGrid">
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="BadgeSide">Side <span class="ovcWip">WIP</span></label>
+                            <div class="ovcField">
+                                <span class="selectLabel">Side <span class="ovcWip">WIP</span></span>
                                 <select is="emby-select" id="BadgeSide" disabled aria-describedby="BadgeSideNote">
                                     <option value="left">Left</option>
                                 </select>
-                                <div class="fieldDescription">Badges currently use their designed left-edge placement.</div>
-                                <div class="fieldDescription" id="BadgeSideNote">Right-side artwork and placement are still in development.</div>
+                                <div class="fieldDescription" id="BadgeSideNote">Right-side placement is still in development.</div>
                             </div>
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="BadgeVertical">Vertical anchor</label>
-                                <select is="emby-select" id="BadgeVertical">
+                            <div class="ovcField">
+                                <span class="selectLabel">Vertical anchor</span>
+                                <select id="BadgeVertical" class="ovcHiddenInput">
                                     <option value="top">Top</option>
                                     <option value="middle">Middle</option>
                                     <option value="bottom">Bottom</option>
                                 </select>
-                                <div class="fieldDescription">Where the stack sits vertically. "Top" sits below a top banner; "Bottom" rises from the bottom edge.</div>
+                                <div class="ovcSeg ovcSegRow" data-for="BadgeVertical" role="group" aria-label="Vertical anchor">
+                                    <button type="button" data-v="top">Top</button>
+                                    <button type="button" data-v="middle">Middle</button>
+                                    <button type="button" data-v="bottom">Bottom</button>
+                                </div>
                             </div>
-                            <div class="inputContainer">
-                                <label class="inputLabel inputLabelUnfocused" for="BadgeScale">Badge size (%)</label>
-                                <input is="emby-input" type="number" id="BadgeScale" min="50" max="200" step="5" />
-                                <div class="fieldDescription">Size relative to the calibrated default. 100 = default.</div>
+                            <div class="ovcField">
+                                <div class="ovcSliderRow"><span class="inputLabel">Badge size</span><span class="ovcSliderVal" id="BadgeScaleVal">100%</span></div>
+                                <input type="range" id="BadgeScale" min="50" max="200" step="5" data-out="BadgeScaleVal" data-unit="%" />
                             </div>
-                            <div class="inputContainer">
-                                <label class="inputLabel inputLabelUnfocused" for="BadgeGapPercent">Gap between badges (%)</label>
-                                <input is="emby-input" type="number" id="BadgeGapPercent" min="0" max="10" step="1" />
-                                <div class="fieldDescription">Vertical spacing between stacked badges, as a percent of poster height.</div>
+                            <div class="ovcField">
+                                <div class="ovcSliderRow"><span class="inputLabel">Gap between badges</span><span class="ovcSliderVal" id="BadgeGapPercentVal">1%</span></div>
+                                <input type="range" id="BadgeGapPercent" min="0" max="10" step="1" data-out="BadgeGapPercentVal" data-unit="%" />
                             </div>
                             </div>
                         </div>
@@ -921,6 +930,49 @@
                 page.querySelector('#WideNeonOptions').style.display = style === 'neon' ? 'block' : 'none';
             }
 
+            // Segmented controls skin a hidden <select> that stays the value store, so every existing
+            // change-driven behaviour (dirty state, preview refresh, style reveal) keeps working. A click
+            // sets the select and dispatches a bubbling change; syncSegments reflects the value onto the
+            // buttons after load() sets values programmatically (which fires no change event).
+            function reflectSeg(seg) {
+                var sel = page.querySelector('#' + seg.getAttribute('data-for'));
+                if (!sel) { return; }
+                Array.prototype.forEach.call(seg.querySelectorAll('button'), function (b) {
+                    var on = b.getAttribute('data-v') === sel.value;
+                    b.classList.toggle('ovcSegOn', on);
+                    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+                });
+            }
+            function initSegments() {
+                Array.prototype.forEach.call(page.querySelectorAll('.ovcSeg'), function (seg) {
+                    var sel = page.querySelector('#' + seg.getAttribute('data-for'));
+                    if (!sel) { return; }
+                    seg.addEventListener('click', function (e) {
+                        var b = e.target.closest('button');
+                        if (!b || b.getAttribute('data-v') == null || sel.value === b.getAttribute('data-v')) { return; }
+                        sel.value = b.getAttribute('data-v');
+                        sel.dispatchEvent(new Event('change', { bubbles: true }));
+                        reflectSeg(seg);
+                    });
+                });
+            }
+            function syncSegments() { Array.prototype.forEach.call(page.querySelectorAll('.ovcSeg'), reflectSeg); }
+
+            // Sliders: a range input with data-out=<read-out span id> and data-unit for the suffix.
+            function reflectSlider(r) {
+                var out = page.querySelector('#' + r.getAttribute('data-out'));
+                var u = r.getAttribute('data-unit') || '';
+                if (out) { out.textContent = (u === 'x') ? (parseFloat(r.value).toFixed(2) + '×') : (r.value + u); }
+                var span = (parseFloat(r.max) - parseFloat(r.min)) || 1;
+                r.style.setProperty('--ovp', ((parseFloat(r.value) - parseFloat(r.min)) / span * 100) + '%');
+            }
+            function initSliders() {
+                Array.prototype.forEach.call(page.querySelectorAll('input[type="range"][data-out]'), function (r) {
+                    r.addEventListener('input', function () { reflectSlider(r); });
+                });
+            }
+            function syncSliders() { Array.prototype.forEach.call(page.querySelectorAll('input[type="range"][data-out]'), reflectSlider); }
+
             function val(id) { return page.querySelector('#' + id).value; }
 
             // Build the preview image URL from the current banner controls (server renders it). The
@@ -1465,6 +1517,8 @@
                     page.querySelector('#TmdbOverrides').value = (config.TmdbOverrides || []).map(function (o) {
                         return o.Name + ' | ' + (o.Year || 0) + ' | ' + (o.TmdbId || 0);
                     }).join('\n');
+                    syncSegments();
+                    syncSliders();
                     refreshVaultStats();
                     Promise.all([loadUsers(config), loadLibraries(config), refreshUserArtworkStatus()]).then(function () {
                         updateUserRowVisibility();
@@ -1664,6 +1718,8 @@
                         el.addEventListener('input', refreshPostersPreview);
                     });
                     page.querySelector('#BannerStyle').addEventListener('change', updateStyleOptions);
+                    initSegments();
+                    initSliders();
                     // Clicking "Random" again re-rolls: the handler always refreshes, and the
                     // cache-buster in the URL means the server picks a new poster each time.
                     page.querySelectorAll('.ovcSourceBtn').forEach(function (btn) {

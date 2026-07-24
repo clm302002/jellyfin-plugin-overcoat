@@ -108,8 +108,11 @@
     content:''; flex:0 0 auto; width:.28rem; height:1.05em; border-radius:1rem;
     background:linear-gradient(var(--ov-accent), color-mix(in srgb,var(--ov-accent) 55%,#000));
 }
-#OvercoatConfigPage details.ovcCard > summary::after { content:'expand_more'; margin-left:auto; font:1.3rem 'Material Icons'; color:var(--ov-faint); transition:transform .18s; }
-#OvercoatConfigPage details.ovcCard[open] > summary::after { transform:rotate(180deg); }
+#OvercoatConfigPage details.ovcCard > summary::after {
+    content:''; margin-left:auto; width:.5rem; height:.5rem; border-right:2px solid var(--ov-faint); border-bottom:2px solid var(--ov-faint);
+    transform:rotate(45deg); transition:transform .18s;
+}
+#OvercoatConfigPage details.ovcCard[open] > summary::after { transform:rotate(-135deg); }
 #OvercoatConfigPage details.ovcCard > .ovcDetailsBody { padding:.2rem 1.35rem 1.3rem; }
 
 /* ---------- Notices ---------- */
@@ -172,9 +175,36 @@
 #OvercoatConfigPage .checkboxContainer input[type="checkbox"]:focus-visible { box-shadow:0 0 0 3px var(--ov-accent-soft); }
 #OvercoatConfigPage .checkboxContainer > span { font-size:.92rem; font-weight:600; }
 
+/* field wrapper (label above control) */
+#OvercoatConfigPage .ovcField { display:flex; flex-direction:column; gap:.5rem; }
+#OvercoatConfigPage .ovcHiddenInput { display:none !important; }
+
+/* segmented control (skins a hidden <select>) */
+#OvercoatConfigPage .ovcSeg { display:flex; gap:.25rem; padding:.25rem; background:var(--ov-canvas); border:1px solid var(--ov-border-2); border-radius:11px; }
+#OvercoatConfigPage .ovcSeg button {
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:.32rem; padding:.5rem .3rem; border:0; border-radius:8px;
+    background:transparent; color:var(--ov-muted); font:inherit; font-size:.82rem; font-weight:600; cursor:pointer; transition:.14s; min-width:0;
+}
+#OvercoatConfigPage .ovcSeg.ovcSegRow button { flex-direction:row; justify-content:center; }
+#OvercoatConfigPage .ovcSeg button .ovcSegSw { width:100%; height:14px; border-radius:5px; }
+#OvercoatConfigPage .ovcSeg button:hover { color:var(--ov-text); background:rgba(255,255,255,.04); }
+#OvercoatConfigPage .ovcSeg button.ovcSegOn { color:var(--ov-text); background:var(--ov-raised); box-shadow:inset 0 0 0 1px var(--ov-border-2), 0 3px 10px -6px rgba(0,0,0,.7); }
+#OvercoatConfigPage .ovcSwSolid { background:var(--ov-h2); }
+#OvercoatConfigPage .ovcSwGlass { background:color-mix(in srgb,var(--ov-h2) 32%,#101317); box-shadow:inset 0 0 0 1px rgba(255,255,255,.25); }
+#OvercoatConfigPage .ovcSwNeon { background:#0c0e12; box-shadow:0 0 8px var(--ov-h2), inset 0 0 0 1px var(--ov-h2); }
+#OvercoatConfigPage .ovcSwPill { background:var(--ov-raised); box-shadow:inset 0 0 0 1.5px var(--ov-muted); border-radius:20px; }
+#OvercoatConfigPage .ovcSwSquare { background:var(--ov-raised); box-shadow:inset 0 0 0 1.5px var(--ov-muted); border-radius:3px; }
+#OvercoatConfigPage .ovcSwDrop { background:var(--ov-raised); box-shadow:inset 0 0 0 1.5px var(--ov-muted); border-radius:0 0 6px 6px; }
+
+/* slider row (label + live value read-out) */
+#OvercoatConfigPage .ovcSliderRow { display:flex; align-items:center; justify-content:space-between; margin-bottom:.4rem; }
+#OvercoatConfigPage .ovcSliderRow .inputLabel { margin:0; }
+#OvercoatConfigPage .ovcSliderVal { font-size:.78rem; font-weight:800; color:var(--ov-accent); font-variant-numeric:tabular-nums; letter-spacing:.02em; }
+
 /* range slider */
 #OvercoatConfigPage input[type="range"] {
-    -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:6px; background:var(--ov-raised); cursor:pointer;
+    -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:6px; cursor:pointer;
+    background:linear-gradient(90deg, var(--ov-accent) var(--ovp,50%), var(--ov-raised) var(--ovp,50%));
 }
 #OvercoatConfigPage input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:#fff; border:3px solid var(--ov-accent); box-shadow:0 2px 6px rgba(0,0,0,.5); }
 #OvercoatConfigPage input[type="range"]::-moz-range-thumb { width:14px; height:14px; border-radius:50%; background:#fff; border:3px solid var(--ov-accent); }

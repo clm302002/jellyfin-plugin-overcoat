@@ -12,7 +12,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
 
 (async () => {
   const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_EXECUTABLE || undefined });
-  const page = await browser.newPage({ viewport: { width: Number(process.env.SHOWCASE_VIEWPORT_WIDTH || 1180), height: 900 }, deviceScaleFactor: 1 });
+  const page = await browser.newPage({ viewport: { width: Number(process.env.SHOWCASE_VIEWPORT_WIDTH || 1180), height: Number(process.env.SHOWCASE_VIEWPORT_HEIGHT || 900) }, deviceScaleFactor: 1 });
   await page.addInitScript(({previewUrl, cssUrl}) => {
     // Poster (flat) appearance fields, plus a full WideCard override object and the current semantic
     // settings. Keys mirror PluginConfiguration; ScheduleEnabled is gone (CustomScheduleTime now).
