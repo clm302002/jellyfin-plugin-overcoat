@@ -17,6 +17,8 @@ All notable changes to Overcoat are documented here. Format follows
 - **Alternate typefaces keep a consistent visual size.** Sans, Serif, and Mono are calibrated to
   `0.60×` internally so switching away from Display changes the style without making banner text
   enormous. The visible Text size control remains the user's independent multiplier.
+- **Clean Quick Look now uses the Drop shape.** Clean keeps its solid, restrained treatment but
+  starts with the edge-flush Drop silhouette on both Posters and Wide Cards.
 
 ## [0.9.0-beta.3] — 2026-07-24
 

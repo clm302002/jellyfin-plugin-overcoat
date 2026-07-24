@@ -230,6 +230,12 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (Math.max(...presetWidths) > 130 || Math.max(...presetWidths) > Math.min(...presetWidths) * 1.8) {
       throw new Error(`Poster Quick Look button sizing is inconsistent (${presetWidths.join(', ')}).`);
     }
+    await posterPresets.filter({hasText:'Clean'}).click();
+    if (await page.locator('#BannerShape').inputValue() !== 'drop'
+        || await page.locator('#BannerStyle').inputValue() !== 'solid'
+        || await page.locator('#BannerFullWidth').isChecked()) {
+      throw new Error('Clean preset did not apply its drop-shaped solid treatment.');
+    }
     await posterPresets.filter({hasText:'Ribbon'}).click();
     if (await page.locator('#BannerShape').inputValue() !== 'drop'
         || await page.locator('#BannerFontScale').inputValue() !== '1'
