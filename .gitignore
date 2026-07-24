@@ -30,3 +30,6 @@ private/showcase-input/
 # Python bytecode (scripts/)
 __pycache__/
 *.pyc
+
+# Local Playwright install for tools/Showcase/capture-settings.js
+node_modules/
