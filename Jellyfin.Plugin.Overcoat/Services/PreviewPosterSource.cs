@@ -23,8 +23,10 @@ public sealed class PreviewPosterSource
     private const int MaxSourceDimension = 4000;
 
     /// <summary>The preview canvas. Matches the placeholder so the page layout doesn't jump.</summary>
-    private const int CanvasWidth = 600;
-    private const int CanvasHeight = 900;
+    private const int PortraitWidth = 600;
+    private const int PortraitHeight = 900;
+    private const int LandscapeWidth = 960;
+    private const int LandscapeHeight = 540;
 
     private readonly ILibraryManager _libraryManager;
     private readonly ILogger _logger;
@@ -39,11 +41,14 @@ public sealed class PreviewPosterSource
     /// A random clean poster from the library, normalised to the preview canvas, or null when none
     /// can be found — callers fall back to the placeholder rather than failing the request.
     /// </summary>
-    public async Task<SKBitmap?> TryGetRandomAsync(CancellationToken ct)
+    public async Task<SKBitmap?> TryGetRandomAsync(bool landscape, CancellationToken ct)
     {
         try
         {
-            var state = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger);
+            var state = new ProcessingState(
+                Plugin.Instance!.DataFolderPath,
+                _logger,
+                landscape ? ProcessingState.ArtworkChannel.Thumb : ProcessingState.ArtworkChannel.Primary);
 
             // 1. The originals vault. Guaranteed un-overlaid, and already on disk.
             var vaulted = state.VaultedIds().ToList();
@@ -54,7 +59,7 @@ public sealed class PreviewPosterSource
                 var bmp = Decode(bytes);
                 if (bmp is not null)
                 {
-                    return Fit(bmp);
+                    return Fit(bmp, landscape);
                 }
             }
 
@@ -64,18 +69,18 @@ public sealed class PreviewPosterSource
             var tracked = new HashSet<string>(state.CachedIds, StringComparer.Ordinal);
             var candidates = _libraryManager.GetItemList(new InternalItemsQuery
             {
-                IncludeItemTypes = new[] { BaseItemKind.Series, BaseItemKind.Movie },
+                IncludeItemTypes = landscape ? new[] { BaseItemKind.Series } : new[] { BaseItemKind.Series, BaseItemKind.Movie },
                 Recursive = true,
-            }).Where(i => !tracked.Contains(i.Id.ToString("N")) && i.HasImage(ImageType.Primary, 0)).ToList();
+            }).Where(i => !tracked.Contains(i.Id.ToString("N")) && i.HasImage(state.ImageType, 0)).ToList();
 
             Shuffle(candidates);
             foreach (var item in candidates.Take(8))
             {
-                var bytes = await ProcessingState.ReadPrimaryImageAsync(item, _logger, ct).ConfigureAwait(false);
+                var bytes = await state.ReadImageAsync(item, ct).ConfigureAwait(false);
                 var bmp = Decode(bytes);
                 if (bmp is not null)
                 {
-                    return Fit(bmp);
+                    return Fit(bmp, landscape);
                 }
             }
 
@@ -131,23 +136,25 @@ public sealed class PreviewPosterSource
     /// geometry is derived from the canvas height, so a preview on a 2000x3000 poster and one on a
     /// 500x750 poster must end up the same size or the preview stops representing the real output.
     /// </summary>
-    private static SKBitmap Fit(SKBitmap source)
+    private static SKBitmap Fit(SKBitmap source, bool landscape)
     {
         using (source)
         {
-            var scale = Math.Max(CanvasWidth / (double)source.Width, CanvasHeight / (double)source.Height);
+            var canvasWidth = landscape ? LandscapeWidth : PortraitWidth;
+            var canvasHeight = landscape ? LandscapeHeight : PortraitHeight;
+            var scale = Math.Max(canvasWidth / (double)source.Width, canvasHeight / (double)source.Height);
             var scaledW = (int)Math.Ceiling(source.Width * scale);
             var scaledH = (int)Math.Ceiling(source.Height * scale);
 
             using var scaled = source.Resize(new SKImageInfo(scaledW, scaledH), SKFilterQuality.High);
             if (scaled is null)
             {
-                return new SKBitmap(CanvasWidth, CanvasHeight);
+                return new SKBitmap(canvasWidth, canvasHeight);
             }
 
-            var canvas = new SKBitmap(CanvasWidth, CanvasHeight);
+            var canvas = new SKBitmap(canvasWidth, canvasHeight);
             using var surface = new SKCanvas(canvas);
-            surface.DrawBitmap(scaled, (CanvasWidth - scaledW) / 2f, (CanvasHeight - scaledH) / 2f);
+            surface.DrawBitmap(scaled, (canvasWidth - scaledW) / 2f, (canvasHeight - scaledH) / 2f);
             return canvas;
         }
     }

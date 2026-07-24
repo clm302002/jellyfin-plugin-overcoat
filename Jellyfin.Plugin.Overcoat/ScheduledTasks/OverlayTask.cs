@@ -40,6 +40,56 @@ public class OverlayTask : IScheduledTask
         Unknown,
     }
 
+    // Optional scope for the NEXT run, set by ScanFollowUp so a per-library scan re-overlays only that
+    // library instead of walking the whole catalogue. Null (the default, e.g. the daily trigger) means
+    // "process everything". Consumed and cleared at the start of a run, so it never leaks past one.
+    private static readonly object _scopeGate = new();
+    private static HashSet<Guid>? _pendingLibraryScope;
+    private static bool _pendingFullRun;
+
+    /// <summary>Requests the next run cover the whole catalogue (e.g. after a full library scan).</summary>
+    public static void RequestFullRun()
+    {
+        lock (_scopeGate)
+        {
+            _pendingFullRun = true;
+            _pendingLibraryScope = null;
+        }
+    }
+
+    /// <summary>
+    /// Requests the next run cover only these library roots (their <c>vf.ItemId</c> GUIDs). Merges with
+    /// anything already pending; a pending full run wins.
+    /// </summary>
+    public static void RequestScopedRun(IEnumerable<Guid> libraryIds)
+    {
+        lock (_scopeGate)
+        {
+            if (_pendingFullRun)
+            {
+                return;
+            }
+
+            _pendingLibraryScope ??= new HashSet<Guid>();
+            foreach (var g in libraryIds)
+            {
+                _pendingLibraryScope.Add(g);
+            }
+        }
+    }
+
+    /// <summary>Takes the pending scope, clearing it. Null result = process everything.</summary>
+    private static HashSet<Guid>? TakePendingScope()
+    {
+        lock (_scopeGate)
+        {
+            var scope = _pendingFullRun ? null : _pendingLibraryScope;
+            _pendingFullRun = false;
+            _pendingLibraryScope = null;
+            return scope is { Count: > 0 } ? scope : null;
+        }
+    }
+
     private readonly ILogger<OverlayTask> _logger;
     private readonly ILibraryManager _libraryManager;
     private readonly IProviderManager _providerManager;
@@ -107,10 +157,20 @@ public class OverlayTask : IScheduledTask
         using var renderer = new OverlayRenderer();
         var badges = new BadgeCompositor();
         var state = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger);
+        var thumbState = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger, ProcessingState.ArtworkChannel.Thumb);
         using var file = new FileLog(_appPaths.LogDirectoryPath);
 
         var ignore = new HashSet<string>(config.IgnoreTitles, StringComparer.OrdinalIgnoreCase);
         var limit = new HashSet<string>(config.LimitToTitles, StringComparer.OrdinalIgnoreCase);
+
+        // A per-library scan asks us to re-overlay just that library; anything else (the daily run, a
+        // full scan) covers everything. Cheap either way thanks to the cache, but this avoids even
+        // enumerating untouched libraries on a big catalogue.
+        var scope = TakePendingScope();
+        if (scope is not null)
+        {
+            file.Info($"Scoped run — {scope.Count} library(ies) that were just scanned.");
+        }
 
         // Resolve the enabled libraries to process (TV or movie).
         var plans = new List<(LibraryConfig Lib, Guid ParentId, string Type)>();
@@ -131,7 +191,13 @@ public class OverlayTask : IScheduledTask
                 continue;
             }
 
-            plans.Add((lib, Guid.Parse(vf.ItemId), type));
+            var parentId = Guid.Parse(vf.ItemId);
+            if (scope is not null && !scope.Contains(parentId))
+            {
+                continue; // scoped run — this library wasn't the one scanned
+            }
+
+            plans.Add((lib, parentId, type));
         }
 
         // Fetch the badge data sets once, only those some enabled library actually needs.
@@ -288,7 +354,7 @@ public class OverlayTask : IScheduledTask
                     }
                 }
 
-                if (await ProcessItemAsync(item, lib, type, tmdbId.Value, badgeSet, tmdb, renderer, badges, state, file, config, badgeDataIncomplete, cancellationToken).ConfigureAwait(false))
+                if (await ProcessItemAsync(item, lib, type, tmdbId.Value, badgeSet, tmdb, renderer, badges, state, thumbState, file, config, badgeDataIncomplete, cancellationToken).ConfigureAwait(false))
                 {
                     updated++;
                 }
@@ -312,8 +378,9 @@ public class OverlayTask : IScheduledTask
         }
 
         state.Flush();
-        _logger.LogInformation("Overcoat: done. {Updated}/{Count} poster(s) updated.", updated, work.Count);
-        file.Info($"Done — {updated}/{work.Count} poster(s) updated.");
+        thumbState.Flush();
+        _logger.LogInformation("Overcoat: done. {Updated}/{Count} item(s) updated.", updated, work.Count);
+        file.Info($"Done — {updated}/{work.Count} item(s) updated.");
 
         // Surface TMDB trouble loudly. A run that couldn't reach TMDB leaves posters untouched rather
         // than stripping them, but the user still needs to know why nothing changed.
@@ -336,7 +403,7 @@ public class OverlayTask : IScheduledTask
     /// </summary>
     public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
     {
-        yield return BuildDailyTrigger(Plugin.Instance?.Configuration.ScheduleTimeOfDay ?? TimeSpan.FromHours(3));
+        yield return BuildDailyTrigger(Plugin.Instance?.Configuration.EffectiveScheduleTime ?? PluginConfiguration.DefaultScheduleTime);
     }
 
     /// <summary>Builds the daily trigger for a given time of day.</summary>
@@ -356,6 +423,7 @@ public class OverlayTask : IScheduledTask
         OverlayRenderer renderer,
         BadgeCompositor badges,
         ProcessingState state,
+        ProcessingState thumbState,
         FileLog file,
         PluginConfiguration config,
         bool badgeDataIncomplete,
@@ -399,8 +467,68 @@ public class OverlayTask : IScheduledTask
             }
         }
 
+        var primaryUpdated = await ProcessArtworkAsync(
+            item, type, tmdbId, badgeSet, info, tmdb, renderer, badges, state, file, config,
+            badgeDataIncomplete, text, cacheText, iconKey, statusKey, allowProviderFallback: true, ct).ConfigureAwait(false);
+
+        var thumbUpdated = false;
+        if (type == "tv" && item is MediaBrowser.Controller.Entities.TV.Series)
+        {
+            var wideBadges = lib.WideCardOverlays ? badgeSet : new HashSet<string>(StringComparer.Ordinal);
+            thumbUpdated = await ProcessArtworkAsync(
+                item, type, tmdbId, wideBadges, info, tmdb, renderer, badges, thumbState, file, config,
+                lib.WideCardOverlays && badgeDataIncomplete,
+                lib.WideCardOverlays ? text : null,
+                lib.WideCardOverlays ? cacheText : null,
+                lib.WideCardOverlays ? iconKey : string.Empty,
+                statusKey,
+                allowProviderFallback: false,
+                ct).ConfigureAwait(false);
+        }
+
+        return primaryUpdated || thumbUpdated;
+    }
+
+    private async Task<bool> ProcessArtworkAsync(
+        BaseItem item,
+        string type,
+        int tmdbId,
+        ISet<string> badgeSet,
+        TmdbService.TvStatusInfo? info,
+        TmdbService tmdb,
+        OverlayRenderer renderer,
+        BadgeCompositor badges,
+        ProcessingState state,
+        FileLog file,
+        PluginConfiguration config,
+        bool badgeDataIncomplete,
+        string? text,
+        string? cacheText,
+        string iconKey,
+        string statusKey,
+        bool allowProviderFallback,
+        CancellationToken ct)
+    {
+        // This is the hard safety boundary: the secondary channel is series Thumb only. Episodes
+        // can be read by WatchHistory above, but no episode image can ever reach SaveImage here.
+        if (state.Channel == ProcessingState.ArtworkChannel.Thumb
+            && item is not MediaBrowser.Controller.Entities.TV.Series)
+        {
+            throw new InvalidOperationException("Wide-card overlays may only target Series Thumb images.");
+        }
+
+        var imageType = state.ImageType;
+        var imageLabel = imageType == ImageType.Thumb ? "wide card" : "poster";
         var id = item.Id.ToString("N");
-        var currentSig = ProcessingState.Signature(item);
+        var currentSig = state.ImageSignature(item);
+
+        // The exact file Jellyfin currently serves for this image, captured before we overlay. We
+        // write the overlay as .png (posters) / .webp (wide cards); if the item's existing image was
+        // a different extension (e.g. poster.jpg), SaveImage creates a NEW file beside the old one
+        // instead of replacing it, Jellyfin's folder scan re-adopts the untouched original, and the
+        // overlay becomes invisible even though it is on disk. Recording the old path lets us remove
+        // that stale sibling after a successful save. (movie/wide-card overlays not showing, 0.8.x)
+        var previousImagePath = item.HasImage(imageType, 0) ? item.GetImagePath(imageType, 0) : null;
 
         // The mtime signature only tells us the file was touched, not that its bytes changed. Confirm
         // against the hash of what we last wrote before believing it — otherwise a library scan or a
@@ -421,9 +549,9 @@ public class OverlayTask : IScheduledTask
         {
             art = ArtState.Unknown;
             _logger.LogWarning(
-                "Overcoat: '{Name}' has no primary image but we previously overlaid it — re-applying from the vaulted original.",
-                item.Name ?? "?");
-            file.Info((item.Name ?? "?") + " — primary image missing; recovering from the vaulted original");
+                "Overcoat: '{Name}' has no {ImageLabel} but we previously overlaid it — re-applying from the vaulted original.",
+                item.Name ?? "?", imageLabel);
+            file.Info((item.Name ?? "?") + " — " + imageLabel + " missing; recovering from the vaulted original");
         }
 
         // Upgrade path: an entry from <=0.6.0 whose file is demonstrably untouched since we wrote it
@@ -435,7 +563,7 @@ public class OverlayTask : IScheduledTask
         // promise makes the diagnostic mode itself a mutation. (A-19)
         if (!config.DryRun && state.NeedsHashBackfill(id, currentSig))
         {
-            var settledBytes = await ProcessingState.ReadPrimaryImageAsync(item, _logger, ct).ConfigureAwait(false);
+            var settledBytes = await state.ReadImageAsync(item, ct).ConfigureAwait(false);
             if (settledBytes is not null)
             {
                 state.SetProducedHash(id, ProcessingState.HashBytes(settledBytes));
@@ -456,7 +584,7 @@ public class OverlayTask : IScheduledTask
             }
             else
             {
-                var currentBytes = await ProcessingState.ReadPrimaryImageAsync(item, _logger, ct).ConfigureAwait(false);
+                var currentBytes = await state.ReadImageAsync(item, ct).ConfigureAwait(false);
                 if (currentBytes is null)
                 {
                     // We could not read the file, so we do NOT know whether it is still ours. Treating
@@ -520,7 +648,7 @@ public class OverlayTask : IScheduledTask
                 if (clean is not null)
                 {
                     using var msClean = new MemoryStream(clean);
-                    await _providerManager.SaveImage(item, msClean, "image/png", ImageType.Primary, null, ct).ConfigureAwait(false);
+                    await _providerManager.SaveImage(item, msClean, ProcessingState.DetectMimeType(clean), imageType, null, ct).ConfigureAwait(false);
                     await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, ct).ConfigureAwait(false);
                 }
 
@@ -557,19 +685,26 @@ public class OverlayTask : IScheduledTask
         // never needlessly reprocesses them. (Label changes are caught via cacheText below.)
         var inv = System.Globalization.CultureInfo.InvariantCulture;
         var bannerColor = iconKey.Length == 0 ? string.Empty : config.ColorForIdentity(iconKey);
+
+        // Resolve the effective appearance for this channel: the poster fields, or the wide-card
+        // overrides when this is a Thumb and separate customization is on. Colours/labels stay shared
+        // (bannerColor above). With customization off the wide values equal the poster values, so the
+        // fingerprint is unchanged and existing thumbs never needlessly re-render.
+        var appear = config.AppearanceFor(imageType == ImageType.Thumb);
+
         var keyParts = new List<string>();
         if (text is not null)
         {
             keyParts.Add(string.Join("|", new[]
             {
-                config.BannerStyle, config.BannerShape, config.BannerPosition,
-                ((int)Math.Round(config.BannerFontScale * 1000)).ToString(inv),
-                config.BannerIcons.ToString(), bannerColor,
-                config.BannerFullWidth.ToString(), config.BannerAlign,
-                config.BannerShadow ? config.BannerShadowStrength.ToString(inv) : "0",
-                config.GlassTint, config.GlassTintStrength.ToString(inv),
-                config.GlassBlur.ToString(inv),
-                config.NeonGlow.ToString(inv), config.BannerFont,
+                appear.BannerStyle, appear.BannerShape, appear.BannerPosition,
+                ((int)Math.Round(appear.BannerFontScale * 1000)).ToString(inv),
+                appear.BannerIcons.ToString(), bannerColor,
+                appear.BannerFullWidth.ToString(), appear.BannerAlign,
+                appear.BannerShadow ? appear.BannerShadowStrength.ToString(inv) : "0",
+                appear.GlassTint, appear.GlassTintStrength.ToString(inv),
+                appear.GlassBlur.ToString(inv),
+                appear.NeonGlow.ToString(inv), appear.BannerFont,
             }));
         }
 
@@ -578,8 +713,8 @@ public class OverlayTask : IScheduledTask
         {
             keyParts.Add(string.Join("|", new[]
             {
-                "badges", config.BadgeSide, config.BadgeVertical,
-                config.BadgeScale.ToString(inv), config.BadgeGapPercent.ToString(inv),
+                "badges", appear.BadgeSide, appear.BadgeVertical,
+                appear.BadgeScale.ToString(inv), appear.BadgeGapPercent.ToString(inv),
             }));
         }
 
@@ -588,7 +723,9 @@ public class OverlayTask : IScheduledTask
         // left every unchanged item displaying the old output forever — invisible, and impossible to
         // clear short of telling users to disable the skip cache. Bump RendererRevision whenever
         // output changes for identical settings. (A-22)
-        keyParts.Add("r" + OverlayRenderer.RendererRevision.ToString(inv));
+        keyParts.Add(imageType == ImageType.Thumb
+            ? "lr" + OverlayRenderer.LandscapeRendererRevision.ToString(inv)
+            : "r" + OverlayRenderer.RendererRevision.ToString(inv));
 
         var appearanceKey = string.Join("||", keyParts);
 
@@ -608,7 +745,7 @@ public class OverlayTask : IScheduledTask
         var original = forceReacquire ? null : await state.ReadOriginalAsync(id, ct).ConfigureAwait(false);
         if (original is null)
         {
-            original = await AcquireSourcePosterAsync(item, type, tmdbId, info, tmdb, ct).ConfigureAwait(false);
+            original = await AcquireSourceImageAsync(item, imageType, allowProviderFallback, type, tmdbId, info, tmdb, ct).ConfigureAwait(false);
             if (original is null)
             {
                 _logger.LogDebug("Overcoat: '{Name}' has no usable poster; skipping.", item.Name ?? "?");
@@ -633,31 +770,34 @@ public class OverlayTask : IScheduledTask
         {
             renderer.DrawStatusBanner(bmp, text, new OverlayRenderer.BannerOptions
             {
-                Style = config.BannerStyle,
-                Shape = config.BannerShape,
-                Position = config.BannerPosition,
-                FontScale = config.BannerFontScale,
-                ShowIcons = config.BannerIcons,
+                Style = appear.BannerStyle,
+                Shape = appear.BannerShape,
+                Position = appear.BannerPosition,
+                FontScale = appear.BannerFontScale,
+                ShowIcons = appear.BannerIcons,
                 IconKey = iconKey,
                 ColorOverride = bannerColor,
-                FullWidth = config.BannerFullWidth,
-                Align = config.BannerAlign,
-                Shadow = config.BannerShadow,
-                ShadowStrength = config.BannerShadowStrength,
-                GlassTint = config.GlassTint,
-                GlassTintStrength = config.GlassTintStrength,
-                GlassBlur = config.GlassBlur,
-                NeonGlow = config.NeonGlow,
-                Font = config.BannerFont,
+                FullWidth = appear.BannerFullWidth,
+                Align = appear.BannerAlign,
+                Shadow = appear.BannerShadow,
+                ShadowStrength = appear.BannerShadowStrength,
+                GlassTint = appear.GlassTint,
+                GlassTintStrength = appear.GlassTintStrength,
+                GlassBlur = appear.GlassBlur,
+                NeonGlow = appear.NeonGlow,
+                Font = appear.BannerFont,
             });
         }
 
         badges.Apply(renderer, bmp, badgeSet, new BadgeCompositor.BadgeLayout(
-            string.Equals(config.BadgeSide, "right", StringComparison.OrdinalIgnoreCase),
-            config.BadgeVertical,
-            config.BadgeScale,
-            config.BadgeGapPercent));
-        var png = OverlayRenderer.EncodePng(bmp);
+            string.Equals(appear.BadgeSide, "right", StringComparison.OrdinalIgnoreCase),
+            appear.BadgeVertical,
+            appear.BadgeScale,
+            appear.BadgeGapPercent,
+            imageType == ImageType.Thumb && text is not null && !string.Equals(appear.BannerPosition, "bottom", StringComparison.OrdinalIgnoreCase) ? 18 : 0));
+        var output = imageType == ImageType.Thumb
+            ? OverlayRenderer.EncodeWideCardWebp(bmp)
+            : OverlayRenderer.EncodePng(bmp);
 
         if (config.DryRun)
         {
@@ -666,17 +806,23 @@ public class OverlayTask : IScheduledTask
             return true;
         }
 
-        using var ms = new MemoryStream(png);
-        await _providerManager.SaveImage(item, ms, "image/png", ImageType.Primary, null, ct).ConfigureAwait(false);
+        using var ms = new MemoryStream(output);
+        await _providerManager.SaveImage(item, ms, imageType == ImageType.Thumb ? "image/webp" : "image/png", imageType, null, ct).ConfigureAwait(false);
         await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, ct).ConfigureAwait(false);
 
         var produced = _libraryManager.GetItemById(item.Id) ?? item;
+
+        // Delete the original image file if our overlay landed at a different path (different
+        // extension). Otherwise both survive, Jellyfin keeps serving the un-overlaid original, and
+        // the overlay is invisible. Only fires when the path genuinely differs, so a same-format
+        // overwrite is untouched.
+        RemoveShadowedImage(previousImagePath, produced, imageType, item.Name);
 
         // Hash what actually landed on disk, not the bytes we handed to SaveImage — if Jellyfin
         // re-encodes or rewrites the file, hashing our intended bytes would never match on read-back
         // and the whole content check would silently degrade to the old mtime-only behaviour. An
         // empty hash (read-back failed) does exactly that, deliberately, rather than lying.
-        var writtenBytes = await ProcessingState.ReadPrimaryImageAsync(produced, _logger, ct).ConfigureAwait(false);
+        var writtenBytes = await state.ReadImageAsync(produced, ct).ConfigureAwait(false);
         var producedHash = writtenBytes is not null ? ProcessingState.HashBytes(writtenBytes) : string.Empty;
 
         state.MarkProcessed(
@@ -685,7 +831,7 @@ public class OverlayTask : IScheduledTask
             statusKey,
             cacheText,
             badgeSet,
-            ProcessingState.Signature(produced),
+            state.ImageSignature(produced),
             appearanceKey,
             producedHash);
 
@@ -774,19 +920,79 @@ public class OverlayTask : IScheduledTask
         };
     }
 
-    /// <summary>Clean source poster: the Jellyfin file if present; for TV, else the TMDB poster (movies have no fallback).</summary>
-    private async Task<byte[]?> AcquireSourcePosterAsync(BaseItem item, string type, int tmdbId, TmdbService.TvStatusInfo? info, TmdbService tmdb, CancellationToken ct)
+    /// <summary>
+    /// Removes the pre-overlay image file when our overlay was saved under a different name, so
+    /// Jellyfin cannot keep serving (or re-adopt) the un-overlaid original. Heavily guarded: it only
+    /// deletes a poster/landscape image sitting in the same directory as the file we just wrote, and
+    /// never the file Jellyfin now points at.
+    /// </summary>
+    /// <summary>
+    /// Pure decision for <see cref="RemoveShadowedImage"/>: is <paramref name="previousPath"/> a stale
+    /// original that should be deleted after our overlay landed at <paramref name="newPath"/>?
+    ///
+    /// True only when all hold — extracted and tested separately because a wrong "true" deletes a
+    /// user's file:
+    /// <list type="bullet">
+    /// <item>both paths are known;</item>
+    /// <item>they actually differ (a same-path overwrite leaves nothing to clean up);</item>
+    /// <item>they are in the same directory (never reach outside our output's folder);</item>
+    /// <item>the old file is the expected <c>poster</c>/<c>landscape</c> image, not something else.</item>
+    /// </list>
+    /// </summary>
+    public static bool IsShadowToRemove(string? previousPath, string? newPath, ImageType imageType)
     {
-        if (item.HasImage(ImageType.Primary, 0))
+        if (string.IsNullOrEmpty(previousPath)
+            || string.IsNullOrEmpty(newPath)
+            || string.Equals(previousPath, newPath, StringComparison.OrdinalIgnoreCase))
         {
-            var sourcePath = item.GetImagePath(ImageType.Primary, 0);
+            return false;
+        }
+
+        var expected = imageType == ImageType.Thumb ? "landscape" : "poster";
+        return string.Equals(Path.GetDirectoryName(newPath), Path.GetDirectoryName(previousPath), StringComparison.OrdinalIgnoreCase)
+            && string.Equals(Path.GetFileNameWithoutExtension(previousPath), expected, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void RemoveShadowedImage(string? previousPath, BaseItem produced, ImageType imageType, string? name)
+    {
+        if (string.IsNullOrEmpty(previousPath) || !File.Exists(previousPath))
+        {
+            return;
+        }
+
+        var newPath = produced.HasImage(imageType, 0) ? produced.GetImagePath(imageType, 0) : null;
+        if (!IsShadowToRemove(previousPath, newPath, imageType))
+        {
+            return;
+        }
+
+        try
+        {
+            File.Delete(previousPath);
+            _logger.LogInformation(
+                "Overcoat: removed the un-overlaid {Type} that was shadowing the overlay for '{Name}'.",
+                imageType == ImageType.Thumb ? "wide card" : "poster",
+                name ?? "?");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Overcoat: could not remove the shadowing image for '{Name}'.", name ?? "?");
+        }
+    }
+
+    /// <summary>Clean source poster: the Jellyfin file if present; for TV, else the TMDB poster (movies have no fallback).</summary>
+    private async Task<byte[]?> AcquireSourceImageAsync(BaseItem item, ImageType imageType, bool allowProviderFallback, string type, int tmdbId, TmdbService.TvStatusInfo? info, TmdbService tmdb, CancellationToken ct)
+    {
+        if (item.HasImage(imageType, 0))
+        {
+            var sourcePath = item.GetImagePath(imageType, 0);
             if (File.Exists(sourcePath))
             {
                 return await File.ReadAllBytesAsync(sourcePath, ct).ConfigureAwait(false);
             }
         }
 
-        if (type == "tv")
+        if (allowProviderFallback && type == "tv")
         {
             // Poster fallback only — a failure here just means no TMDB poster to fall back to.
             info ??= (await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false)).Info;

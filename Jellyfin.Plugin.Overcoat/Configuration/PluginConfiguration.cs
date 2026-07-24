@@ -21,29 +21,47 @@ public class PluginConfiguration : BasePluginConfiguration
     // live task at startup and on every config save (see ScheduledTasks.ScheduleSync), which is what
     // makes the run time editable from the plugin page instead of only from Dashboard → Scheduled Tasks.
 
-    /// <summary>
-    /// Gets or sets a value indicating whether Overcoat manages the task's trigger.
-    ///
-    /// NOTE this is "who owns the schedule", NOT "is the task automatic". Turning it off makes
-    /// Overcoat stop writing the trigger; whatever trigger already exists keeps firing. Stopping
-    /// automatic runs entirely means removing the triggers in Dashboard → Scheduled Tasks. (A-26)
-    /// </summary>
-    public bool ScheduleEnabled { get; set; } = true;
+    // Overcoat ALWAYS runs once a day — it is what keeps status dates (AIRING/RETURNING), "airing
+    // today", and the trending/watch-history badges current, none of which involve a library change.
+    // The daily run is no longer how overlays get applied (a scan triggers that now, see
+    // ReapplyAfterScan); it is background maintenance. So there is deliberately no "turn the schedule
+    // off" switch — only a choice of default vs custom time. (Replaces the old ScheduleEnabled, whose
+    // "hand it back to Dashboard → Scheduled Tasks" semantics confused disabling with un-managing;
+    // A-26. Old configs still deserialize — the removed element is ignored.)
 
-    /// <summary>Gets or sets the hour (0–23, server local time) the overlay task runs.</summary>
+    /// <summary>Default daily run time when the user hasn't picked one: a quiet 03:00.</summary>
+    public static readonly TimeSpan DefaultScheduleTime = TimeSpan.FromHours(3);
+
+    /// <summary>
+    /// Gets or sets a value indicating whether a custom daily run time is used. False (default) runs
+    /// at <see cref="DefaultScheduleTime"/>; true uses <see cref="ScheduleHour"/>/<see cref="ScheduleMinute"/>.
+    /// </summary>
+    public bool CustomScheduleTime { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether Overcoat re-applies overlays after a library scan.
+    ///
+    /// A Jellyfin scan re-adopts media-folder artwork and strips overlays off the affected items
+    /// (this is hard-coded in Jellyfin and cannot be disabled). With this on, Overcoat notices a scan
+    /// finishing and runs a cache-gated follow-up, restoring the overlays within about a minute — it
+    /// re-renders only what the scan reverted, and never touches media-folder files. On by default.
+    /// </summary>
+    public bool ReapplyAfterScan { get; set; } = true;
+
+    /// <summary>Gets or sets the hour (0–23, server local time) used when <see cref="CustomScheduleTime"/> is set.</summary>
     public int ScheduleHour { get; set; } = 3;
 
-    /// <summary>Gets or sets the minute (0–59) past <see cref="ScheduleHour"/> the overlay task runs.</summary>
+    /// <summary>Gets or sets the minute (0–59) used when <see cref="CustomScheduleTime"/> is set.</summary>
     public int ScheduleMinute { get; set; }
 
-    /// <summary>
-    /// Gets the configured run time as a trigger offset from midnight, clamped to a valid
-    /// time of day so a bad hand-edit of the XML can't produce an out-of-range trigger.
-    /// </summary>
+    /// <summary>The chosen custom time, clamped so a bad hand-edit can't produce an out-of-range trigger.</summary>
     public TimeSpan ScheduleTimeOfDay => new TimeSpan(
         Math.Clamp(ScheduleHour, 0, 23),
         Math.Clamp(ScheduleMinute, 0, 59),
         0);
+
+    /// <summary>The time the daily run actually fires: the custom time when chosen, otherwise the default.</summary>
+    public TimeSpan EffectiveScheduleTime => CustomScheduleTime ? ScheduleTimeOfDay : DefaultScheduleTime;
 
     // --- Global behaviour (was settings:) ---
 
@@ -290,6 +308,48 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets the gap between stacked badges as a percentage of poster height (0–10).</summary>
     public int BadgeGapPercent { get; set; } = 1;
 
+    // --- Wide-card (landscape Thumb) appearance overrides ---
+    //
+    // Posters (Primary) and wide cards (Series Thumb) share every appearance field above by default.
+    // When WideCardCustomize is on, the Thumb channel draws with the WideCard values instead, so the
+    // two surfaces can be tuned independently. Only *appearance/layout* is split — status colours,
+    // labels, per-status show flags, date formats and badge sources stay shared (a RETURNING show is
+    // RETURNING on both). See AppearanceFor.
+
+    /// <summary>
+    /// Gets or sets a value indicating whether wide cards use their own appearance settings
+    /// (<see cref="WideCard"/>) instead of the poster ones. Off = wide cards look exactly like posters.
+    /// </summary>
+    public bool WideCardCustomize { get; set; }
+
+    /// <summary>Gets or sets the wide-card appearance overrides (applied only when <see cref="WideCardCustomize"/> is on).</summary>
+    public WideCardStyle WideCard { get; set; } = new();
+
+    /// <summary>
+    /// The effective banner + badge appearance for a channel: the poster fields, or the
+    /// <see cref="WideCard"/> overrides when rendering a Thumb and <see cref="WideCardCustomize"/> is on.
+    /// Semantic settings (colours, labels, show flags, date formats, badge sources) are resolved
+    /// separately from the shared fields and are not part of this.
+    /// </summary>
+    public OverlayAppearance AppearanceFor(bool thumb)
+    {
+        if (thumb && WideCardCustomize)
+        {
+            var w = WideCard;
+            return new OverlayAppearance(
+                w.BannerStyle, w.BannerShape, w.BannerPosition, w.BannerFontScale, w.BannerIcons,
+                w.BannerFullWidth, w.BannerAlign, w.BannerShadow, w.BannerShadowStrength,
+                w.GlassTint, w.GlassTintStrength, w.GlassBlur, w.NeonGlow, w.BannerFont,
+                w.BadgeSide, w.BadgeVertical, w.BadgeScale, w.BadgeGapPercent);
+        }
+
+        return new OverlayAppearance(
+            BannerStyle, BannerShape, BannerPosition, BannerFontScale, BannerIcons,
+            BannerFullWidth, BannerAlign, BannerShadow, BannerShadowStrength,
+            GlassTint, GlassTintStrength, GlassBlur, NeonGlow, BannerFont,
+            BadgeSide, BadgeVertical, BadgeScale, BadgeGapPercent);
+    }
+
     // --- Selection (was jellyfin.libraries / ignore_shows / tmdb_overrides) ---
 
     /// <summary>Gets or sets the per-library overlay/badge selection.</summary>
@@ -353,6 +413,18 @@ public static class ConfigurationSanitizer
         c.LabelReturning = SafeLabel(c.LabelReturning, "RETURNING");
         c.LabelEnded = SafeLabel(c.LabelEnded, "ENDED");
         c.LabelCanceled = SafeLabel(c.LabelCanceled, "CANCELED");
+
+        // The wide-card overrides are reachable the same three ways (settings page, preview endpoint,
+        // hand-edited XML) and hit the same renderer, so they need the same clamps as the poster fields.
+        var w = c.WideCard ??= new WideCardStyle();
+        w.BannerFontScale = Math.Clamp(double.IsFinite(w.BannerFontScale) ? w.BannerFontScale : 1.0, 0.2, 3.0);
+        w.BannerShadowStrength = Math.Clamp(w.BannerShadowStrength, 0, 100);
+        w.GlassTintStrength = Math.Clamp(w.GlassTintStrength, 0, 100);
+        w.GlassBlur = Math.Clamp(w.GlassBlur, 0, 100);
+        w.NeonGlow = Math.Clamp(w.NeonGlow, 0, 100);
+        w.BadgeScale = Math.Clamp(w.BadgeScale, 10, 300);
+        w.BadgeGapPercent = Math.Clamp(w.BadgeGapPercent, 0, 50);
+        w.GlassTint = SafeColor(w.GlassTint, "#0E1018");
     }
 
     /// <summary>A #RGB / #RRGGBB / #AARRGGBB value, or the supplied default.</summary>
@@ -407,6 +479,12 @@ public class LibraryConfig
     /// <summary>Gets or sets a value indicating whether status banners are drawn (TV only; ignored for movies).</summary>
     public bool StatusOverlays { get; set; } = true;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the same overlays are also drawn on the series Thumb
+    /// used by Jellyfin's landscape Next Up / Continue Watching cards. TV libraries only.
+    /// </summary>
+    public bool WideCardOverlays { get; set; }
+
     /// <summary>Gets or sets a value indicating whether the watch-history badge is eligible in this library.</summary>
     public bool WatchHistoryBadge { get; set; } = true;
 
@@ -429,3 +507,92 @@ public class TmdbOverride
     /// <summary>Gets or sets the TMDB id to force.</summary>
     public int TmdbId { get; set; }
 }
+
+/// <summary>
+/// Wide-card (landscape Series Thumb) appearance overrides. Mirrors the poster appearance/layout
+/// fields on <see cref="PluginConfiguration"/>; every default matches the poster default so enabling
+/// <see cref="PluginConfiguration.WideCardCustomize"/> changes nothing until a value is actually
+/// edited. Semantic fields (colours, labels, show flags, date formats, badge sources) are shared and
+/// deliberately absent here.
+/// </summary>
+public class WideCardStyle
+{
+    /// <summary>Gets or sets the banner fill treatment: "solid", "glass", or "neon".</summary>
+    public string BannerStyle { get; set; } = "solid";
+
+    /// <summary>Gets or sets the banner shape: "pill", "square", or "drop".</summary>
+    public string BannerShape { get; set; } = "pill";
+
+    /// <summary>Gets or sets where the banner sits: "top" or "bottom".</summary>
+    public string BannerPosition { get; set; } = "top";
+
+    /// <summary>Gets or sets the banner font-size multiplier.</summary>
+    public double BannerFontScale { get; set; } = 1.0;
+
+    /// <summary>Gets or sets a value indicating whether the per-status icon is drawn.</summary>
+    public bool BannerIcons { get; set; } = true;
+
+    /// <summary>Gets or sets a value indicating whether the banner spans the full card width.</summary>
+    public bool BannerFullWidth { get; set; }
+
+    /// <summary>Gets or sets the horizontal alignment: "left", "center", or "right".</summary>
+    public string BannerAlign { get; set; } = "center";
+
+    /// <summary>Gets or sets a value indicating whether a drop shadow is drawn under the banner.</summary>
+    public bool BannerShadow { get; set; }
+
+    /// <summary>Gets or sets the drop-shadow strength (0–100).</summary>
+    public int BannerShadowStrength { get; set; } = 60;
+
+    /// <summary>Gets or sets the glass frost tint colour (hex).</summary>
+    public string GlassTint { get; set; } = "#0E1018";
+
+    /// <summary>Gets or sets the glass frost tint strength (0–100).</summary>
+    public int GlassTintStrength { get; set; } = 49;
+
+    /// <summary>Gets or sets the glass frost blur amount (0–100).</summary>
+    public int GlassBlur { get; set; } = 50;
+
+    /// <summary>Gets or sets the neon glow intensity (0–100).</summary>
+    public int NeonGlow { get; set; } = 60;
+
+    /// <summary>Gets or sets the banner font: "default", "sans", "serif", or "mono".</summary>
+    public string BannerFont { get; set; } = "default";
+
+    /// <summary>Gets or sets the side the badge ribbons sit on: "left" or "right".</summary>
+    public string BadgeSide { get; set; } = "left";
+
+    /// <summary>Gets or sets the vertical anchor of the badge stack: "top", "middle", or "bottom".</summary>
+    public string BadgeVertical { get; set; } = "middle";
+
+    /// <summary>Gets or sets the badge size as a percentage of the calibrated size.</summary>
+    public int BadgeScale { get; set; } = 100;
+
+    /// <summary>Gets or sets the gap between stacked badges as a percentage of card height.</summary>
+    public int BadgeGapPercent { get; set; } = 1;
+}
+
+/// <summary>
+/// The resolved banner + badge appearance for one render channel (poster or wide card). Produced by
+/// <see cref="PluginConfiguration.AppearanceFor"/> so the renderer, cache fingerprint and preview all
+/// read a single set of values without repeating the poster-vs-wide branch.
+/// </summary>
+public readonly record struct OverlayAppearance(
+    string BannerStyle,
+    string BannerShape,
+    string BannerPosition,
+    double BannerFontScale,
+    bool BannerIcons,
+    bool BannerFullWidth,
+    string BannerAlign,
+    bool BannerShadow,
+    int BannerShadowStrength,
+    string GlassTint,
+    int GlassTintStrength,
+    int GlassBlur,
+    int NeonGlow,
+    string BannerFont,
+    string BadgeSide,
+    string BadgeVertical,
+    int BadgeScale,
+    int BadgeGapPercent);

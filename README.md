@@ -49,10 +49,15 @@ to make all current users inherit these wide cards, or return all current users 
   Watch history means recent playback activity; it is not another “trending” source.
 - **Poster safety:** Overcoat saves a clean original in its originals vault before writing an
   overlay. Dry-run mode lets you inspect what would be processed without changing posters.
+- **Wide home cards (optional):** TV libraries can mirror overlays onto existing series Thumb art.
+  Episode images and Backdrops remain untouched. The Libraries tab can set all current users to
+  inherit these wide cards with one confirmed action, or switch everyone back to episode stills.
+  This changes only Jellyfin's per-user display preference; run it again after adding a new user.
+  Series without a Thumb are skipped.
 
 > [!WARNING]
 > Overcoat writes overlays into your poster artwork. Keep normal backups, and run **Restore Original
-> Posters** before uninstalling. Uninstalling the plugin does not automatically restore posters.
+> Artwork** before uninstalling. Uninstalling the plugin does not automatically restore artwork.
 
 ## Install and get your first result
 
@@ -75,24 +80,31 @@ a later library scan or metadata tool can replace an overlaid poster until Overc
 
 ## Customize it
 
-The Banners tab covers solid, frosted-glass, and neon styles; pill, square, and edge-drop shapes;
-top/bottom placement; alignment; full-width bands; bundled/system fonts; text scale; icons; shadows;
-per-status colours and labels; glass blur/tint; neon glow; and airing/returning date formats. The
-edge-flush **drop** shape is the maintainer's favorite and is featured in the customization gallery.
+The **Posters** tab keeps all poster banner and badge controls together: solid, frosted-glass, and
+neon styles; pill, square, and edge-drop shapes; top/bottom placement; alignment; full-width bands;
+bundled/system fonts; text scale; icons; shadows; per-status colours and labels; glass blur/tint;
+neon glow; airing/returning date formats; plus badge sources (global switch, day/week/month TMDB
+window, watch-history rules, IMDb source lists) and the left-side ribbon anchor, scale, and spacing.
+The edge-flush **drop** shape is the maintainer's favorite. IMDb retains its supported corner
+placement; the gallery has no right-side ribbon examples because the current ribbon artwork is
+designed for the left edge.
+
+The **Wide Cards** tab styles Jellyfin's landscape Next Up / Continue Watching cards **independently**
+of posters. Turn on **Customize wide cards separately** and the wide-card banner style, shape,
+position, size, and effects, plus badge placement/size, become their own settings — adjusting posters
+never changes wide cards and vice-versa, each with its own live 16:9 preview. Left off (the default),
+wide cards match your poster design exactly. Status colours, labels, which statuses/badges appear,
+date formats, and badge sources are shared across both surfaces.
 
 > [!IMPORTANT]
-> Banner appearance and badge layout are **global settings**, not per-title settings. The Libraries
-> tab chooses which overlay and badge types each library receives; every eligible title in that
-> library then uses the same global appearance and layout. You can enable watch history only, TMDB
-> Trending only, both side ribbons, and/or IMDb Top 250 for a library, but you cannot give one title
-> a unique banner or badge design.
+> Appearance is a **global setting per surface**, not a per-title setting. The Libraries tab chooses
+> which overlay and badge types each library receives; every eligible title then uses the same global
+> poster design (and wide-card design, if separately enabled). You can enable watch history only, TMDB
+> Trending only, both side ribbons, and/or IMDb Top 250 for a library, but you cannot give one title a
+> unique banner or badge design.
 
-The Badges tab keeps badge sources and layout together: the global switch, day/week/month TMDB
-window, watch-history rules, IMDb source lists, left-side ribbon anchor, scale, and spacing. IMDb
-retains its supported corner placement. The gallery intentionally contains no right-side ribbon
-examples because the current ribbon artwork is designed for the left edge. A random library poster
-selected in either live preview stays in place while you edit or switch between Banners and Badges;
-it changes only when you explicitly request another random poster.
+A random library image selected in any live preview stays in place while you edit or switch between
+the Posters and Wide Cards tabs; it changes only when you explicitly request another random one.
 
 ### Settings tour
 
@@ -114,6 +126,11 @@ Libraries expose their banner and badge choices only while **Process this librar
 Maintenance tab groups normal processing, scheduling, apply/restore actions, vault recovery, and
 advanced title targeting into separate sections.
 
+The Libraries tab also reports how many current users see series wide cards versus episode stills.
+**Use Overcoat wide cards for all current users** changes Jellyfin's Next Up/Continue Watching
+preference so those users inherit the overlaid Series Thumb. **Use episode stills for all current
+users** reverses that preference. Neither action changes, overlays, or deletes episode images.
+
 ## Compatibility and project status
 
 | Area | Status |
@@ -123,11 +140,13 @@ advanced title targeting into separate sections.
 | TV status banners and live preview | Working |
 | TV and movie badges | Working; movies are badges-only |
 | Per-library controls | Working |
-| Originals vault, dry run, restore task | Working |
+| Existing series Thumb wide-card overlays | Working; opt-in; episode images untouched |
+| Originals vault, dry run, restore task | Working for posters and managed series Thumbs |
 | Badge art/style selection | Planned |
 
-Current prerelease: **v0.8.0-beta.2** (`0.8.0.2`) on the optional beta channel. It contains the
-wide-card pipeline and the all-current-user artwork controls; live-library validation is in progress.
+Current prerelease: **v0.8.0-beta.3** (`0.8.0.3`) on the optional beta channel. It contains the
+wide-card pipeline, the all-current-user artwork controls, and larger wide-card badges;
+live-library validation is in progress.
 
 A TMDB API key is required for status and TMDB-backed lists. Overcoat is tested against the pinned
 Jellyfin 10.11 API surface; newer Jellyfin releases may require a plugin update.
@@ -135,7 +154,7 @@ Jellyfin 10.11 API surface; newer Jellyfin releases may require a plugin update.
 ### Restoring or removing Overcoat
 
 1. Stop tools or scans that might rewrite posters.
-2. Run **Plugins → Overcoat → Maintenance → Restore original posters** (or the identically named
+2. Run **Plugins → Overcoat → Maintenance → Restore original artwork** (or the identically named
    scheduled task) and let it finish.
 3. Verify a few posters, then uninstall the plugin and restart Jellyfin.
 
@@ -148,9 +167,9 @@ uninstall. That persistence is useful for recovery, but it is not a substitute f
 
 Add `https://github.com/clm302002/jellyfin-plugin-overcoat/releases/download/beta/manifest.json`
 as a separate plugin repository. Betas are opt-in and never appear at the stable URL. The beta feed
-also contains stable releases, so it can be used alone. Jellyfin sorts the four-part beta version
-(for example `0.7.0.1`) above the matching stable (`0.7.0.0`); choose stable manually when moving
-back from a beta. Keep backups and expect prerelease rough edges.
+also contains stable releases, so it can be used alone. Jellyfin uses the fourth version component
+for channel ordering: betas count upward from `.1`, while the matching stable release uses `.500`
+so every tester is offered the finished build. Keep backups and expect prerelease rough edges.
 
 </details>
 
@@ -198,6 +217,38 @@ managed image that has no saved copy.
 | You want your original artwork back | Run **Restore Original Artwork (Overcoat)**. It restores both managed posters and Series Thumbs, skips either image when it changed outside Overcoat, and keeps that backup for retry. Use *Force restore* only when the vaulted copy should win. |
 | You uninstalled without restoring first | Reinstall Overcoat and run Restore. The saved copies are still there. |
 | Recovery says an image has **no saved copy** | Restore cannot recover that image. Refresh the affected artwork from your metadata provider; do not replace episode images merely to repair a Series Thumb. |
+
+---
+
+## FAQ
+
+**My movie or wide-card overlays disappear after a library scan.**
+This is expected, and Overcoat handles it automatically. When a poster lives in your media folder
+(common with the *arr apps, or hand-placed art), Jellyfin re-adopts that file on every library scan
+and strips Overcoat's overlay off the affected items. Jellyfin does this unconditionally — there is no
+setting to disable it, and it applies to *any* overlay tool, not just Overcoat. So Overcoat watches
+for a scan to finish and **re-applies within about a minute**, touching only what the scan changed. If
+you'd rather it didn't, turn off **Settings → Maintenance → Re-apply after a library scan**.
+
+**Does Overcoat modify the posters in my media folders?**
+No — never. Overcoat only writes to Jellyfin's own metadata folder and keeps a clean backup of every
+image it overlays. Your media-folder artwork is never touched. (That's also why a scan can revert
+overlays: Jellyfin prefers the untouched media-folder copy.)
+
+**A manual scan of one library — does Overcoat re-do my whole library?**
+No. A per-library scan triggers a follow-up on **just that library**. A full "Scan Media Library"
+covers everything. Either way the run is cache-gated, so only items whose artwork actually changed are
+re-rendered.
+
+**Will all these saved copies fill up my disk?**
+No. Overcoat keeps **one** clean copy per overlaid image and overwrites it in place — re-scanning and
+re-overlaying the same items never adds more. Total backup size grows only with your library size, not
+with how often things run. **Settings → Maintenance → Recovery** shows the current size.
+
+**Overlays flicker off briefly during a scan.**
+That's the gap between Jellyfin reverting an image and Overcoat re-applying (up to ~a minute after the
+scan settles). It's cosmetic and resolves itself. Frequent flicker usually means very frequent library
+scans — consider how often that task really needs to run.
 
 ---
 

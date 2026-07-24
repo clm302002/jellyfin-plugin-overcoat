@@ -33,13 +33,13 @@ public class RestoreOriginalsTask : IScheduledTask
     }
 
     /// <inheritdoc />
-    public string Name => "Restore Original Posters (Overcoat)";
+    public string Name => "Restore Original Artwork (Overcoat)";
 
     /// <inheritdoc />
     public string Key => "OvercoatRestore";
 
     /// <inheritdoc />
-    public string Description => "Restores the clean, un-overlaid posters Overcoat saved, undoing its overlays.";
+    public string Description => "Restores the clean, un-overlaid posters and series wide cards Overcoat saved.";
 
     /// <inheritdoc />
     public string Category => "Library";
@@ -58,9 +58,12 @@ public class RestoreOriginalsTask : IScheduledTask
         using var lease = await TaskLease.AcquireAsync(cancellationToken).ConfigureAwait(false);
 
         var state = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger);
+        var thumbState = new ProcessingState(Plugin.Instance!.DataFolderPath, _logger, ProcessingState.ArtworkChannel.Thumb);
         using var file = new FileLog(_appPaths.LogDirectoryPath);
-        var ids = state.VaultedIds().ToList();
-        if (ids.Count == 0)
+        var work = state.VaultedIds().Select(id => (Id: id, State: state))
+            .Concat(thumbState.VaultedIds().Select(id => (Id: id, State: thumbState)))
+            .ToList();
+        if (work.Count == 0)
         {
             _logger.LogInformation("Overcoat: nothing to restore.");
             file.Info("Restore — nothing to restore.");
@@ -68,20 +71,29 @@ public class RestoreOriginalsTask : IScheduledTask
             return;
         }
 
-        file.Info($"Restore started — {ids.Count} vaulted poster(s).");
+        file.Info($"Restore started — {work.Count} vaulted image(s).");
 
         int done = 0;
         int restored = 0;
         int orphaned = 0;
         int failed = 0;
         int conflicts = 0;
-        foreach (var id in ids)
+        foreach (var entry in work)
         {
+            var id = entry.Id;
+            var channelState = entry.State;
+            var imageType = channelState.ImageType;
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                var bytes = await state.ReadOriginalAsync(id, cancellationToken).ConfigureAwait(false);
+                var bytes = await channelState.ReadOriginalAsync(id, cancellationToken).ConfigureAwait(false);
                 var item = Guid.TryParse(id, out var g) ? _libraryManager.GetItemById(g) : null;
+                if (imageType == ImageType.Thumb
+                    && item is not null
+                    && item is not MediaBrowser.Controller.Entities.TV.Series)
+                {
+                    throw new InvalidOperationException("Wide-card restore may only target Series Thumb images.");
+                }
 
                 // Only restore over art we put there. If the user, another plugin, or a metadata
                 // provider has replaced the poster since our last pass, blindly writing the vault copy
@@ -90,10 +102,10 @@ public class RestoreOriginalsTask : IScheduledTask
                 // where the user genuinely wants Overcoat's original back.
                 if (bytes is not null && item is not null && !config.ForceRestore)
                 {
-                    var expected = state.ProducedHashFor(id);
+                    var expected = channelState.ProducedHashFor(id);
                     if (expected.Length > 0)
                     {
-                        var current = await ProcessingState.ReadPrimaryImageAsync(item, _logger, cancellationToken).ConfigureAwait(false);
+                        var current = await channelState.ReadImageAsync(item, cancellationToken).ConfigureAwait(false);
                         if (current is null)
                         {
                             conflicts++;
@@ -120,7 +132,7 @@ public class RestoreOriginalsTask : IScheduledTask
                 {
                     using var ms = new MemoryStream(bytes);
                     await _providerManager
-                        .SaveImage(item, ms, ProcessingState.DetectMimeType(bytes), ImageType.Primary, null, cancellationToken)
+                        .SaveImage(item, ms, ProcessingState.DetectMimeType(bytes), imageType, null, cancellationToken)
                         .ConfigureAwait(false);
                     await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
                     restored++;
@@ -128,7 +140,7 @@ public class RestoreOriginalsTask : IScheduledTask
                     file.Info("Restored " + item.Name);
 
                     // Only now is it safe to drop the vaulted copy — the poster is back.
-                    state.Remove(id);
+                    channelState.Remove(id);
                 }
                 else if (item is null)
                 {
@@ -137,7 +149,7 @@ public class RestoreOriginalsTask : IScheduledTask
                     orphaned++;
                     _logger.LogInformation("Overcoat: item {Id} no longer exists; dropping its vaulted original.", id);
                     file.Info("Dropped vaulted original for removed item " + id);
-                    state.Remove(id);
+                    channelState.Remove(id);
                 }
                 else
                 {
@@ -166,19 +178,20 @@ public class RestoreOriginalsTask : IScheduledTask
             finally
             {
                 done++;
-                progress.Report(100.0 * done / ids.Count);
+                progress.Report(100.0 * done / work.Count);
             }
         }
 
         state.Flush();
+        thumbState.Flush();
         _logger.LogInformation(
             "Overcoat: restore done. {Restored}/{Count} poster(s) restored ({Orphaned} removed item(s) dropped, {Conflicts} skipped as externally changed, {Failed} failed and kept for retry).",
             restored,
-            ids.Count,
+            work.Count,
             orphaned,
             conflicts,
             failed);
-        file.Info($"Restore done — {restored}/{ids.Count} poster(s) restored; {orphaned} removed item(s) dropped; {conflicts} skipped (art changed outside Overcoat); {failed} failed and kept for retry.");
+        file.Info($"Restore done — {restored}/{work.Count} image(s) restored; {orphaned} removed item(s) dropped; {conflicts} skipped (art changed outside Overcoat); {failed} failed and kept for retry.");
         if (conflicts > 0)
         {
             file.Info($"{conflicts} poster(s) were left alone because their art was replaced outside Overcoat. Their vaulted originals are kept — enable \"Force restore\" on the settings page if you want Overcoat's originals put back regardless.");

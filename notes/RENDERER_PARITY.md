@@ -89,3 +89,19 @@ compare -metric RMSE /tmp/ref-airing.png /tmp/sk-airing.png /tmp/diff-airing.png
 | Badge stack scale        | `height / 1500`                |
 | Full-canvas badge resize | to poster's own (w, h)         |
 | mid-left/right badge Y    | `0.20 * height` + scaled stack |
+
+## Landscape Series Thumb path (added in 0.8.0 beta)
+
+Portrait output above remains the Python-parity contract. Series Thumbs are a separate 16:9 path:
+
+- initial banner font uses `width * 0.053 * 1.105`, then shrinks to keep the banner within 94% of
+  the canvas width;
+- top badge stacks reserve banner space on landscape cards;
+- the IMDb mark is cropped from its transparent poster canvas and placed at 23.4% of card height,
+  preserving aspect instead of stretching the full 2:3 canvas over 16:9 art;
+- output is never upscaled, is bounded to 1920×1080, and is encoded as WebP quality 92;
+- `LandscapeRendererRevision` invalidates only Thumb output, while `RendererRevision` continues to
+  control portrait rerenders.
+
+`OverlayRendererTests.WideCardEncoding_DownscalesWithoutUpscaling` pins the output bounds. Visual
+review should cover 3840×2160 and 1920×1080 Thumbs with every banner position and badge combination.

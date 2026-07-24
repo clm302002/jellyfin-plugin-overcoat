@@ -65,14 +65,21 @@ const requiredPatterns = [
   ['TMDB API key is masked', /id="TmdbApiKey"[^>]*type="password"|type="password"[^>]*id="TmdbApiKey"/],
   ['API key reveal button exists', /id="ToggleTmdbApiKey"/],
   ['mobile floating preview exists', /id="OvercoatFloatingPreview"/],
-  ['banner preview has sticky hook', /data-preview-kind="banner"/],
-  ['badge preview has sticky hook', /data-preview-kind="badge"/],
+  ['poster composite preview has sticky hook', /data-preview-kind="poster"/],
+  ['poster preview image exists', /id="PostersPreview"/],
   ['badge side selector is locked to supported placement', /id="BadgeSide"[^>]*disabled/],
   ['badge side selector contains only the supported left option', /id="BadgeSide"[^>]*>\s*<option value="left">Left<\/option>\s*<\/select>/],
+  ['wide badge side selector is locked to supported placement', /id="WideBadgeSide"[^>]*disabled/],
+  ['wide-card customize toggle exists', /id="WideCardCustomize"/],
+  ['wide-card composite preview has sticky hook', /data-preview-kind="wide"/],
+  ['wide-card preview image exists', /id="WidePreview"/],
   ['external stylesheet is linked', /id="OvercoatStylesheet"[^>]*configPage\.css/],
   ['descriptions toggle exists', /id="OvercoatDescriptions"/],
   ['save dock exposes status feedback', /id="OvercoatSaveState"[^>]*role="status"/],
   ['preview requests carry a stable poster key', /previewKey=' \+ encodeURIComponent\(previewKey\)/],
+  ['all-user wide-card action exists', /id="OvercoatUseWideCardsAll"/],
+  ['all-user episode-still action exists', /id="OvercoatUseEpisodeStillsAll"/],
+  ['all-user preference update preserves the DTO', /entry\.prefs\.CustomPrefs\[episodeImagesPreferenceKey\][\s\S]*updateDisplayPreferences\([\s\S]*entry\.prefs/],
 ];
 for (const [label, pattern] of requiredPatterns) {
   if (!pattern.test(html)) {
@@ -83,12 +90,13 @@ for (const [label, pattern] of requiredPatterns) {
   }
 }
 
-// The General tab was folded into Maintenance; this guards that badge settings did not come with it.
+// Badge sources are shared with wide cards but their controls live only on the Posters tab; guard that
+// they did not leak into Maintenance (where the old General tab was folded).
 const maintenanceMarkup = html.slice(html.indexOf('data-panel="maintenance"'));
-const badgeMarkup = html.slice(html.indexOf('data-panel="badges"'), html.indexOf('data-panel="apikeys"'));
+const postersMarkup = html.slice(html.indexOf('data-panel="posters"'), html.indexOf('data-panel="wide"'));
 for (const id of ['BadgesEnabled', 'TrendingTimeWindow', 'WatchHistoryDays', 'WatchHistoryAllUsers', 'ImdbTop250TvListId']) {
-  if (maintenanceMarkup.includes(`id="${id}"`) || !badgeMarkup.includes(`id="${id}"`)) {
-    console.error(`FAIL badge setting ${id} is not grouped exclusively on the Badges tab`);
+  if (maintenanceMarkup.includes(`id="${id}"`) || !postersMarkup.includes(`id="${id}"`)) {
+    console.error(`FAIL badge setting ${id} is not grouped exclusively on the Posters tab`);
     failures++;
   }
 }
@@ -144,11 +152,12 @@ if (!/<details class="ovcCard" open>\s*<summary>Status dates/.test(html)
     || !/<details class="ovcCard" open>\s*<summary>Colours &amp; labels/.test(html)) {
   console.error('FAIL status dates and colours/labels must default open'); failures++;
 } else { console.log('ok   requested banner accordions default open'); }
-const badgeTabAt = html.indexOf('data-tab="badges"');
+const postersTabAt = html.indexOf('data-tab="posters"');
+const wideTabAt = html.indexOf('data-tab="wide"');
 const librariesTabAt = html.indexOf('data-tab="libraries"');
 const apiTabAt = html.indexOf('data-tab="apikeys"');
-if (!(badgeTabAt < librariesTabAt && librariesTabAt < apiTabAt)) {
-  console.error('FAIL Libraries tab is not directly after Badges and before TMDB API'); failures++;
-} else { console.log('ok   Libraries tab follows Badges'); }
+if (!(postersTabAt !== -1 && postersTabAt < wideTabAt && wideTabAt < librariesTabAt && librariesTabAt < apiTabAt)) {
+  console.error('FAIL tab order must be Posters, Wide Cards, Libraries, TMDB API'); failures++;
+} else { console.log('ok   tab order is Posters → Wide Cards → Libraries → TMDB API'); }
 
 process.exit(failures ? 1 : 0);

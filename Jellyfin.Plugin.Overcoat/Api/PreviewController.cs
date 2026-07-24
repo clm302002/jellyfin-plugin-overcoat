@@ -41,11 +41,11 @@ public class PreviewController : ControllerBase
     /// library. Falls back to the placeholder whenever no clean poster can be found, so the preview
     /// always renders something rather than erroring on a settings page.
     /// </summary>
-    private async Task<SKBitmap> ResolveCanvasAsync(string? source, string? previewKey, CancellationToken ct)
+    private async Task<SKBitmap> ResolveCanvasAsync(string? source, string? previewKey, bool landscape, CancellationToken ct)
     {
         if (!string.Equals(source, "random", StringComparison.OrdinalIgnoreCase))
         {
-            return BuildSamplePoster();
+            return BuildSamplePoster(landscape);
         }
 
         // The browser creates a new opaque key only when Random is clicked. Every subsequent
@@ -55,12 +55,13 @@ public class PreviewController : ControllerBase
             || previewKey.Length > 64
             || previewKey.Any(c => !char.IsAsciiLetterOrDigit(c) && c != '-' && c != '_'))
         {
-            return BuildSamplePoster();
+            return BuildSamplePoster(landscape);
         }
 
+        previewKey += landscape ? "_wide" : "_portrait";
         if (PreviewPosters.TryGetValue(previewKey, out var cached))
         {
-            return OverlayRenderer.Decode(cached) ?? BuildSamplePoster();
+            return OverlayRenderer.Decode(cached) ?? BuildSamplePoster(landscape);
         }
 
         var gate = PreviewLocks.GetOrAdd(previewKey, _ => new SemaphoreSlim(1, 1));
@@ -69,14 +70,14 @@ public class PreviewController : ControllerBase
         {
             if (PreviewPosters.TryGetValue(previewKey, out cached))
             {
-                return OverlayRenderer.Decode(cached) ?? BuildSamplePoster();
+                return OverlayRenderer.Decode(cached) ?? BuildSamplePoster(landscape);
             }
 
             var picker = new PreviewPosterSource(_libraryManager, _logger);
-            var selected = await picker.TryGetRandomAsync(ct).ConfigureAwait(false);
+            var selected = await picker.TryGetRandomAsync(landscape, ct).ConfigureAwait(false);
             if (selected is null)
             {
-                return BuildSamplePoster();
+                return BuildSamplePoster(landscape);
             }
 
             PreviewPosters[previewKey] = OverlayRenderer.EncodePng(selected);
@@ -98,7 +99,8 @@ public class PreviewController : ControllerBase
         }
     }
 
-    /// <summary>Renders the sample poster + banner as a PNG.</summary>
+    /// <summary>Renders the sample poster + banner (and any toggled badges) as a PNG — one composite so
+    /// a single live preview shows the full result.</summary>
     /// <param name="style">solid | glass | neon.</param>
     /// <param name="shape">pill | square | drop.</param>
     /// <param name="position">top | bottom.</param>
@@ -125,88 +127,44 @@ public class PreviewController : ControllerBase
         [FromQuery] string? font = null,
         [FromQuery] string? source = null,
         [FromQuery] string? previewKey = null,
-        CancellationToken cancellationToken = default)
-    {
-        using var bmp = await ResolveCanvasAsync(source, previewKey, cancellationToken).ConfigureAwait(false);
-        using var renderer = new OverlayRenderer();
-        renderer.DrawStatusBanner(bmp, status, new OverlayRenderer.BannerOptions
-        {
-            Style = string.IsNullOrWhiteSpace(style) ? "solid" : style,
-            Shape = string.IsNullOrWhiteSpace(shape) ? "pill" : shape,
-            Position = string.IsNullOrWhiteSpace(position) ? "top" : position,
-            FontScale = fontScale <= 0 ? 1.0 : fontScale,
-            ShowIcons = icons,
-            IconKey = iconKey ?? string.Empty,
-            ColorOverride = string.IsNullOrWhiteSpace(color) ? null : color,
-            FullWidth = fullWidth,
-            Align = string.IsNullOrWhiteSpace(align) ? "center" : align,
-            Shadow = shadow,
-            ShadowStrength = shadowStrength,
-            GlassTint = string.IsNullOrWhiteSpace(glassTint) ? "#0E1018" : glassTint,
-            GlassTintStrength = glassTintStrength,
-            GlassBlur = glassBlur,
-            NeonGlow = neonGlow,
-            Font = string.IsNullOrWhiteSpace(font) ? "default" : font,
-        });
-
-        return File(OverlayRenderer.EncodePng(bmp), "image/png");
-    }
-
-    /// <summary>
-    /// Renders the sample poster with the **saved** banner settings plus the requested badges and
-    /// badge layout — so the Badges tab shows the banner and badges composited together.
-    /// </summary>
-    /// <param name="badges">CSV of badge keys: watch_history, tmdb_trending, imdb_top250.</param>
-    /// <param name="side">left | right.</param>
-    /// <param name="vertical">top | middle | bottom.</param>
-    /// <param name="scale">Badge size percent.</param>
-    /// <param name="gap">Gap between stacked badges (percent of poster height).</param>
-    [HttpGet("BadgePreview")]
-    public async Task<ActionResult> GetBadgePreview(
+        [FromQuery] string? layout = null,
         [FromQuery] string? badges = null,
         [FromQuery] string? side = null,
         [FromQuery] string? vertical = null,
-        [FromQuery] int scale = 100,
-        [FromQuery] int gap = 1,
-        [FromQuery] string? source = null,
-        [FromQuery] string? previewKey = null,
+        [FromQuery] int badgeScale = 100,
+        [FromQuery] int badgeGap = 1,
         CancellationToken cancellationToken = default)
     {
-        using var bmp = await ResolveCanvasAsync(source, previewKey, cancellationToken).ConfigureAwait(false);
+        var landscape = string.Equals(layout, "landscape", StringComparison.OrdinalIgnoreCase);
+        using var bmp = await ResolveCanvasAsync(source, previewKey, landscape, cancellationToken).ConfigureAwait(false);
         using var renderer = new OverlayRenderer();
 
-        var config = Plugin.Instance?.Configuration;
-
-        // Draw the banner using the saved settings (a representative RETURNING sample) so the badge
-        // preview shows the full composite the way it'll look in the library.
-        if (config is not null)
+        var hasBanner = !string.IsNullOrWhiteSpace(status);
+        var bannerPosition = string.IsNullOrWhiteSpace(position) ? "top" : position;
+        if (hasBanner)
         {
-            const string identity = "RETURNING";
-            if (config.IsStatusShown(identity))
+            renderer.DrawStatusBanner(bmp, status, new OverlayRenderer.BannerOptions
             {
-                var label = config.LabelForStatus(identity);
-                renderer.DrawStatusBanner(bmp, label + " 6/26", new OverlayRenderer.BannerOptions
-                {
-                    Style = config.BannerStyle,
-                    Shape = config.BannerShape,
-                    Position = config.BannerPosition,
-                    FontScale = config.BannerFontScale,
-                    ShowIcons = config.BannerIcons,
-                    IconKey = identity,
-                    ColorOverride = config.ColorForIdentity(identity),
-                    FullWidth = config.BannerFullWidth,
-                    Align = config.BannerAlign,
-                    Shadow = config.BannerShadow,
-                    ShadowStrength = config.BannerShadowStrength,
-                    GlassTint = config.GlassTint,
-                    GlassTintStrength = config.GlassTintStrength,
-                    GlassBlur = config.GlassBlur,
-                    NeonGlow = config.NeonGlow,
-                    Font = config.BannerFont,
-                });
-            }
+                Style = string.IsNullOrWhiteSpace(style) ? "solid" : style,
+                Shape = string.IsNullOrWhiteSpace(shape) ? "pill" : shape,
+                Position = bannerPosition,
+                FontScale = fontScale <= 0 ? 1.0 : fontScale,
+                ShowIcons = icons,
+                IconKey = iconKey ?? string.Empty,
+                ColorOverride = string.IsNullOrWhiteSpace(color) ? null : color,
+                FullWidth = fullWidth,
+                Align = string.IsNullOrWhiteSpace(align) ? "center" : align,
+                Shadow = shadow,
+                ShadowStrength = shadowStrength,
+                GlassTint = string.IsNullOrWhiteSpace(glassTint) ? "#0E1018" : glassTint,
+                GlassTintStrength = glassTintStrength,
+                GlassBlur = glassBlur,
+                NeonGlow = neonGlow,
+                Font = string.IsNullOrWhiteSpace(font) ? "default" : font,
+            });
         }
 
+        // Composite the toggled badges on top so a single preview shows the full banner + badges result.
         var set = new HashSet<string>(StringComparer.Ordinal);
         foreach (var b in (badges ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
@@ -215,20 +173,23 @@ public class PreviewController : ControllerBase
 
         if (set.Count > 0)
         {
+            var reservedTop = landscape && hasBanner
+                && !string.Equals(bannerPosition, "bottom", StringComparison.OrdinalIgnoreCase) ? 18 : 0;
             new BadgeCompositor().Apply(renderer, bmp, set, new BadgeCompositor.BadgeLayout(
                 string.Equals(side, "right", StringComparison.OrdinalIgnoreCase),
                 string.IsNullOrWhiteSpace(vertical) ? "top" : vertical,
-                scale,
-                gap));
+                badgeScale,
+                badgeGap,
+                reservedTop));
         }
 
         return File(OverlayRenderer.EncodePng(bmp), "image/png");
     }
 
-    private static SKBitmap BuildSamplePoster()
+    private static SKBitmap BuildSamplePoster(bool landscape)
     {
-        const int w = 600;
-        const int h = 900;
+        int w = landscape ? 960 : 600;
+        int h = landscape ? 540 : 900;
         var bmp = new SKBitmap(w, h);
         using var canvas = new SKCanvas(bmp);
 

@@ -16,13 +16,18 @@ public sealed class BadgeCompositor
     public const string ImdbTop250 = "imdb_top250";
 
     /// <summary>Placement options for the side-ribbon stack.</summary>
-    public readonly record struct BadgeLayout(bool RightSide, string Vertical, int ScalePercent, int GapPercent)
+    public readonly record struct BadgeLayout(bool RightSide, string Vertical, int ScalePercent, int GapPercent, int ReservedTopPercent = 0)
     {
         public static BadgeLayout Default => new(false, "top", 100, 1);
     }
 
     // "top" anchor starts here (fraction of poster height) — near the very top edge.
     private const float TopAnchorFraction = 0.06f;
+
+    // A height-relative badge that reads well on a portrait poster looks much smaller against the
+    // width of a 16:9 card. Give landscape artwork its own optical scale without changing the
+    // configured size (or the established portrait rendering).
+    private const float LandscapeScaleMultiplier = 2f;
 
     // Side ribbons in stack order (top → down) — cropped art, positioned/stacked dynamically.
     private static readonly (string Key, string Resource)[] Ribbons =
@@ -48,6 +53,10 @@ public sealed class BadgeCompositor
         }
 
         float scale = Math.Clamp(layout.ScalePercent, 25, 300) / 100f;
+        if (poster.Width > poster.Height)
+        {
+            scale *= LandscapeScaleMultiplier;
+        }
         int gap = (int)(poster.Height * (Math.Clamp(layout.GapPercent, 0, 20) / 100f));
 
         // The side ribbons that are actually present, in stack order.
@@ -68,6 +77,8 @@ public sealed class BadgeCompositor
             {
                 startY = 0;
             }
+
+            startY = Math.Max(startY, (int)(poster.Height * (Math.Clamp(layout.ReservedTopPercent, 0, 50) / 100f)));
 
             // NOTE: right-side placement is just an x-shift to the right edge — the art is NOT mirrored.
             // The current ribbons are flat on the left and rounded on the right, so on the right side

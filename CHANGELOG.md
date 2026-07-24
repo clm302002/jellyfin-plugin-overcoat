@@ -8,6 +8,71 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.8.0] — 2026-07-24
+
+### Changed
+- **Clearer schedule settings.** The daily run now always happens (it keeps status dates and
+  trending/watch-history badges current — things no library change touches), so the confusing toggle
+  that "un-managed" the schedule without actually disabling it is gone. In its place: a simple
+  **Set a custom run time** checkbox — off runs at a quiet 3:00 AM, on lets you pick. Applying overlays
+  is now driven by library scans (below), so the daily time no longer has to be lined up with them.
+
+### Added
+- **Overlays are re-applied automatically after a library scan.** A Jellyfin scan re-adopts posters
+  stored in your media folders and strips Overcoat's overlays off the affected items — Jellyfin does
+  this unconditionally and it can't be turned off. Overcoat now watches for a scan (scheduled or a
+  manual per-library scan) to finish and runs a follow-up pass, restoring the overlays within about a
+  minute. It re-renders only the items the scan actually reverted (the rest are skipped by the cache),
+  it never writes into your media folders, and it never grows the saved-originals vault. A per-library
+  scan re-overlays only that library; a full scan covers everything. New toggle on the settings page —
+  **Re-apply after a library scan** (on by default).
+- **FAQ in the README** covering the scan/overlay interaction, that media folders are never modified,
+  per-library follow-ups, and vault size.
+
+### Fixed
+- **Movie and wide-card overlays that weren't showing up.** When an item's original artwork was a
+  different file type than the one Overcoat writes (Overcoat saves posters as `.png` and wide cards
+  as `.webp`, while many downloaded posters are `.jpg`), Jellyfin kept the original file alongside
+  Overcoat's overlaid one and went on displaying the original — so the overlay was rendered and saved
+  to disk but never shown. Overcoat now removes the shadowed original after a successful overlay, so
+  the version it produced is the one Jellyfin serves. Existing affected items heal themselves on the
+  next run; nothing was lost, and the saved clean originals were never touched. This only affected the
+  0.8.0 beta, which added movie and wide-card overlays; stable releases are unaffected.
+
+### Added
+- **Wide cards can be styled independently of posters.** The settings page is now split into a
+  **Posters** tab (all poster banner + badge settings) and a **Wide Cards** tab (all wide-card banner
+  + badge settings). Each tab is a single scrolling column — banner controls on top, badges below —
+  beside **one** sticky live preview that composites the banner and badges together and follows you as
+  you scroll. Turn on **Customize wide cards separately** and the wide-card banner
+  style/shape/position/size/effects and badge placement/size become independent — changing posters
+  never affects wide cards and vice-versa. Off by default: wide cards keep matching your posters
+  exactly. Status colours, labels, which statuses/badges appear, date formats and badge sources remain
+  shared across both surfaces.
+- **Optional overlays for Jellyfin's wide Next Up and Continue Watching cards.** TV libraries can
+  mirror their series overlays onto an existing series `Thumb`, with independent state, vault,
+  preview, recovery reporting, landscape rendering, and restore support.
+- **One-click artwork mode for all current Jellyfin users.** The Libraries tab can switch every
+  existing user between Overcoat series wide cards and normal episode stills. It changes only
+  Jellyfin's per-user home-screen display preference, preserves all other user preferences, and
+  never edits episode artwork. Newly created users can be included by running the action again.
+
+### Safety
+- **Episode images are never modified.** The wide pipeline has a hard `Series + Thumb` target guard,
+  does not touch Backdrops, and does not create missing Thumbs. Use the Libraries tab's all-user
+  action—or turn off **Use episode images in Next Up and Continue Watching** manually—for the
+  overlaid Series Thumb to appear there.
+- **Restore covers every image channel Overcoat changes.** `Restore Original Artwork (Overcoat)`
+  independently restores managed poster Primary images and Series Thumbs, protects externally
+  changed art unless Force restore is selected, and never targets Episode or Backdrop images.
+
+### Fixed
+- **Landscape text fitting no longer changes portrait output.** The 94%-width shrink rule is now
+  explicitly landscape-only, preserving the calibrated poster renderer and its independent revision.
+- **Badges on wide cards are now twice as large.** Side ribbons and the IMDb corner mark use a
+  landscape-only optical scale, while portrait poster sizing and the configured badge size stay
+  unchanged.
+
 ## [0.7.2] — 2026-07-22
 
 ### Fixed

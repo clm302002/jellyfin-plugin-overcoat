@@ -27,6 +27,7 @@ public sealed class OverlayRenderer : IDisposable
     /// for some other reason, and everything else silently keeps the old art forever.
     /// </summary>
     public const int RendererRevision = 1;
+    public const int LandscapeRendererRevision = 2;
 
     /// <summary>Status → pill colour. Mirrors <c>OverlayProcessor.BANNER_COLORS</c>.</summary>
     public static readonly IReadOnlyDictionary<string, string> BannerColors = new Dictionary<string, string>
@@ -83,6 +84,25 @@ public sealed class OverlayRenderer : IDisposable
     {
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        return data.ToArray();
+    }
+
+    /// <summary>Downscales a wide card to 1920x1080 without upscaling, then encodes WebP.</summary>
+    public static byte[] EncodeWideCardWebp(SKBitmap bitmap)
+    {
+        var scale = Math.Min(1d, Math.Min(1920d / bitmap.Width, 1080d / bitmap.Height));
+        if (scale < 1d)
+        {
+            var width = Math.Max(1, (int)Math.Round(bitmap.Width * scale));
+            var height = Math.Max(1, (int)Math.Round(bitmap.Height * scale));
+            using var resized = bitmap.Resize(new SKImageInfo(width, height), SKFilterQuality.High);
+            using var resizedImage = SKImage.FromBitmap(resized ?? bitmap);
+            using var resizedData = resizedImage.Encode(SKEncodedImageFormat.Webp, 92);
+            return resizedData.ToArray();
+        }
+
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Webp, 92);
         return data.ToArray();
     }
 
@@ -184,7 +204,8 @@ public sealed class OverlayRenderer : IDisposable
         int posterHeight = poster.Height;
 
         float fontScale = options.FontScale <= 0 ? 1f : (float)options.FontScale;
-        float dynamicFontSize = (int)(posterHeight * FontHeightFraction * SizeMultiplier * fontScale);
+        bool landscape = posterWidth > posterHeight;
+        float dynamicFontSize = (int)((landscape ? posterWidth : posterHeight) * FontHeightFraction * SizeMultiplier * fontScale);
 
         var spaced = string.Join(" ", text.ToUpperInvariant().ToCharArray());
         var pillHex = options.ColorOverride ?? GetBannerColor(text);
@@ -238,6 +259,23 @@ public sealed class OverlayRenderer : IDisposable
 
         float bannerHeight = textHeight + (paddingY * 2);
         float bannerWidth = fullWidth ? posterWidth : contentWidth + (paddingX * 2);
+        if (landscape && !fullWidth && bannerWidth > posterWidth * 0.94f)
+        {
+            var fit = (posterWidth * 0.94f) / bannerWidth;
+            dynamicFontSize *= fit;
+            textPaint.TextSize = dynamicFontSize;
+            textPaint.MeasureText(spaced, ref inkBounds);
+            textWidth = inkBounds.Width;
+            textHeight = inkBounds.Height;
+            paddingX = (int)(dynamicFontSize * 0.5f);
+            paddingY = (int)(dynamicFontSize * 0.25f);
+            iconSize = textHeight * 1.08f;
+            iconGap = hasIcon ? dynamicFontSize * 0.34f : 0f;
+            iconAdvance = hasIcon ? iconSize + iconGap : 0f;
+            contentWidth = iconAdvance + textWidth;
+            bannerHeight = textHeight + (paddingY * 2);
+            bannerWidth = contentWidth + (paddingX * 2);
+        }
 
         float offsetY = (int)(posterHeight * options.OffsetFraction);
         float sideMargin = (int)(posterWidth * 0.03f);
@@ -566,6 +604,21 @@ public sealed class OverlayRenderer : IDisposable
         // exact poster size and paste at (0,0). Ignores position/stack_offset.
         if (fullOverlay)
         {
+            if (posterWidth > posterHeight && badge.Width >= 900 && badge.Height >= 1400)
+            {
+                // IMDB.png is a transparent 1000x1500 poster canvas whose actual corner mark is
+                // the bottom-right 351x351 region. Stretching that canvas across a 16:9 Thumb makes
+                // the mark enormous and distorted, so crop the mark and preserve its aspect.
+                var source = new SKRect(649, 1149, 1000, 1500);
+                // Landscape cards need a larger optical scale than portrait posters: at the old
+                // height-relative size this corner mark was tiny against a 16:9 canvas.
+                var side = Math.Max(1, (int)(posterHeight * 0.468f));
+                var destination = new SKRect(posterWidth - side, posterHeight - side, posterWidth, posterHeight);
+                canvas.DrawBitmap(badge, source, destination);
+                canvas.Flush();
+                return;
+            }
+
             using var full = badge.Resize(new SKImageInfo(posterWidth, posterHeight), SKFilterQuality.High);
             if (full is not null)
             {

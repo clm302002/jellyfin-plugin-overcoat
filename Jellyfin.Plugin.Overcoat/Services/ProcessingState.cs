@@ -20,6 +20,11 @@ namespace Jellyfin.Plugin.Overcoat.Services;
 /// </summary>
 public sealed class ProcessingState
 {
+    public enum ArtworkChannel
+    {
+        Primary,
+        Thumb,
+    }
     /// <summary>One cached item record. Public for System.Text.Json.</summary>
     public sealed class Entry
     {
@@ -49,11 +54,14 @@ public sealed class ProcessingState
     private readonly Dictionary<string, Entry> _cache;
     private readonly object _gate = new();
     private bool _dirty;
+    public ArtworkChannel Channel { get; }
+    public ImageType ImageType => Channel == ArtworkChannel.Thumb ? ImageType.Thumb : ImageType.Primary;
 
-    public ProcessingState(string dataFolder, ILogger logger)
+    public ProcessingState(string dataFolder, ILogger logger, ArtworkChannel channel = ArtworkChannel.Primary)
     {
-        _originalsDir = Path.Combine(dataFolder, "originals");
-        _statePath = Path.Combine(dataFolder, "state.json");
+        Channel = channel;
+        _originalsDir = Path.Combine(dataFolder, channel == ArtworkChannel.Thumb ? "thumb-originals" : "originals");
+        _statePath = Path.Combine(dataFolder, channel == ArtworkChannel.Thumb ? "thumb-state.json" : "state.json");
         _logger = logger;
         Directory.CreateDirectory(_originalsDir);
         _cache = Load();
@@ -62,6 +70,9 @@ public sealed class ProcessingState
     /// <summary>Primary-image signature: its on-disk modified time (ticks). 0 if no image.</summary>
     public static long Signature(BaseItem item)
         => item.GetImageInfo(ImageType.Primary, 0)?.DateModified.Ticks ?? 0;
+
+    public long ImageSignature(BaseItem item)
+        => item.GetImageInfo(ImageType, 0)?.DateModified.Ticks ?? 0;
 
     /// <summary>
     /// The real MIME type of an image, from its magic bytes.
@@ -107,15 +118,21 @@ public sealed class ProcessingState
     /// same way.
     /// </summary>
     public static async Task<byte[]?> ReadPrimaryImageAsync(BaseItem item, ILogger logger, CancellationToken ct)
+        => await ReadImageAsync(item, ImageType.Primary, logger, ct).ConfigureAwait(false);
+
+    public async Task<byte[]?> ReadImageAsync(BaseItem item, CancellationToken ct)
+        => await ReadImageAsync(item, ImageType, _logger, ct).ConfigureAwait(false);
+
+    public static async Task<byte[]?> ReadImageAsync(BaseItem item, ImageType imageType, ILogger logger, CancellationToken ct)
     {
         try
         {
-            if (!item.HasImage(ImageType.Primary, 0))
+            if (!item.HasImage(imageType, 0))
             {
                 return null;
             }
 
-            var path = item.GetImagePath(ImageType.Primary, 0);
+            var path = item.GetImagePath(imageType, 0);
             return File.Exists(path) ? await File.ReadAllBytesAsync(path, ct).ConfigureAwait(false) : null;
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -124,7 +141,7 @@ public sealed class ProcessingState
         }
         catch (Exception ex)
         {
-            logger.LogDebug(ex, "Overcoat: could not read the current poster for '{Name}'.", item.Name ?? "?");
+            logger.LogDebug(ex, "Overcoat: could not read the current {ImageType} image for '{Name}'.", imageType, item.Name ?? "?");
             return null;
         }
     }
@@ -311,7 +328,7 @@ public sealed class ProcessingState
 
     // --- originals vault ---
 
-    private string OriginalPath(string id) => Path.Combine(_originalsDir, id + ".png");
+    private string OriginalPath(string id) => Path.Combine(_originalsDir, id + (Channel == ArtworkChannel.Thumb ? ".img" : ".png"));
 
     public bool HasOriginal(string id) => File.Exists(OriginalPath(id));
 
@@ -394,7 +411,7 @@ public sealed class ProcessingState
     /// <summary>Ids of every vaulted original (used by the restore task / orphan prune).</summary>
     public IEnumerable<string> VaultedIds()
         => Directory.Exists(_originalsDir)
-            ? Directory.EnumerateFiles(_originalsDir, "*.png").Select(p => Path.GetFileNameWithoutExtension(p)!)
+            ? Directory.EnumerateFiles(_originalsDir, Channel == ArtworkChannel.Thumb ? "*.img" : "*.png").Select(p => Path.GetFileNameWithoutExtension(p)!)
             : Enumerable.Empty<string>();
 
     public IReadOnlyCollection<string> CachedIds

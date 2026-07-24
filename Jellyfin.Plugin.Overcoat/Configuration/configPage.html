@@ -23,22 +23,23 @@
                         <button is="emby-button" type="button" id="OvercoatDescriptions" class="raised ovcDescriptionToggle" aria-pressed="true"><span class="ovcIcon" aria-hidden="true">notes</span> Descriptions On</button>
                     </div>
                     <div class="ovcTabs" role="tablist" aria-label="Overcoat settings">
-                        <button type="button" class="ovcTab ovcActive" data-tab="banners" role="tab"><span class="ovcIcon" aria-hidden="true">view_stream</span><span class="ovcTabLabel">Banners</span></button>
-                        <button type="button" class="ovcTab" data-tab="badges" role="tab"><span class="ovcIcon" aria-hidden="true">bookmark</span><span class="ovcTabLabel">Badges</span></button>
+                        <button type="button" class="ovcTab ovcActive" data-tab="posters" role="tab"><span class="ovcIcon" aria-hidden="true">image</span><span class="ovcTabLabel">Posters</span></button>
+                        <button type="button" class="ovcTab" data-tab="wide" role="tab"><span class="ovcIcon" aria-hidden="true">crop_16_9</span><span class="ovcTabLabel">Wide Cards</span></button>
                         <button type="button" class="ovcTab" data-tab="libraries" role="tab"><span class="ovcIcon" aria-hidden="true">video_library</span><span class="ovcTabLabel">Libraries</span></button>
                         <button type="button" class="ovcTab" data-tab="apikeys" role="tab"><span class="ovcIcon" aria-hidden="true">key</span><span class="ovcTabLabel">TMDB API</span></button>
                         <button type="button" class="ovcTab" data-tab="maintenance" role="tab"><span class="ovcIcon" aria-hidden="true">build</span><span class="ovcTabLabel">Maintenance</span></button>
                     </div>
                 </header>
 
-                <!-- ===================== BANNERS ===================== -->
-                <div class="ovcPanel ovcActive" data-panel="banners">
+                <!-- ===================== POSTERS (banners + badges) ===================== -->
+                <div class="ovcPanel ovcActive" data-panel="posters">
                     <div class="ovcBannerLayout">
                         <div class="ovcCard ovcNotice ovcStudioNotice">
-                            <strong>Global banner design</strong>
-                            <div class="fieldDescription">These controls apply to every enabled library. Overcoat settings are never assigned to individual titles.</div>
+                            <strong>Poster design</strong>
+                            <div class="fieldDescription">Banner (top) and badges (below) for every enabled library's posters. Overcoat settings are never assigned to individual titles. Wide cards (Next Up / Continue Watching) have their own tab. The live preview on the right shows the full result and follows you as you scroll.</div>
                         </div>
                         <div class="ovcBannerControls ovcControlGrid">
+                            <div class="ovcSectionHeading ovcWide"><h3>Banner</h3></div>
                             <div class="ovcCard ovcDenseCard">
                             <h3>Style &amp; typography</h3>
                             <div class="selectContainer">
@@ -201,39 +202,7 @@
                                 </div>
                                 <div class="fieldDescription">Untick to skip a status entirely; edit the text to rename it (e.g. RETURNING → RETURNS).</div>
                             </div></details>
-                        </div>
-
-                        <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="banner">
-                            <h3>Live preview</h3>
-                            <div class="ovcStatusSwitch" id="OvercoatPreviewStatuses">
-                                <button type="button" class="ovcChip" data-status="NEW">NEW</button>
-                                <button type="button" class="ovcChip" data-status="AIRING">AIRING</button>
-                                <button type="button" class="ovcChip ovcChipActive" data-status="RETURNING">RETURNING</button>
-                                <button type="button" class="ovcChip" data-status="ENDED">ENDED</button>
-                                <button type="button" class="ovcChip" data-status="CANCELED">CANCELED</button>
-                            </div>
-                            <div class="ovcStatusSwitch">
-                                <button type="button" class="ovcChip ovcSourceBtn ovcChipActive" data-source="placeholder">Sample poster</button>
-                                <button type="button" class="ovcChip ovcSourceBtn" data-source="random">🎲 Random from my library</button>
-                            </div>
-                            <img id="BannerPreview" alt="Banner preview" />
-                            <div class="ovcMuted">
-                                Updates instantly — no run needed. Random picks a clean poster from your own
-                                library (click again for another); it never uses one Overcoat has already
-                                overlaid, so what you see is what a real run would produce.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ===================== BADGES ===================== -->
-                <div class="ovcPanel" data-panel="badges">
-                    <div class="ovcBannerLayout">
-                        <div class="ovcCard ovcNotice ovcStudioNotice">
-                            <strong>Global badge design</strong>
-                            <div class="fieldDescription">Layout applies to enabled libraries; each library independently chooses which badge sources are active.</div>
-                        </div>
-                        <div class="ovcBannerControls">
+                            <div class="ovcSectionHeading ovcWide"><h3>Badges</h3></div>
                             <div class="ovcCard">
                                 <h3>Badge sources</h3>
                                 <div class="ovcCheck">
@@ -331,20 +300,206 @@
                         </div>
                         </div>
 
-                        <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="badge">
+                        <div class="ovcCard ovcBannerPreview ovcPreviewRail" data-preview-kind="poster">
                             <h3>Live preview</h3>
+                            <div class="ovcStatusSwitch" id="OvercoatPreviewStatuses">
+                                <button type="button" class="ovcChip" data-status="NEW">NEW</button>
+                                <button type="button" class="ovcChip" data-status="AIRING">AIRING</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-status="RETURNING">RETURNING</button>
+                                <button type="button" class="ovcChip" data-status="ENDED">ENDED</button>
+                                <button type="button" class="ovcChip" data-status="CANCELED">CANCELED</button>
+                            </div>
                             <div class="ovcStatusSwitch" id="OvercoatPreviewBadges">
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="watch_history" aria-pressed="true">Watch History</button>
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="tmdb_trending" aria-pressed="true">TMDB Trending</button>
                                 <button type="button" class="ovcChip ovcChipActive" data-badge="imdb_top250" aria-pressed="true">IMDb Top 250</button>
                             </div>
-                            <div class="fieldDescription">Independent preview toggles — show any one badge or any combination.</div>
+                            <div class="fieldDescription">Pick a status for the banner; toggle which badges show.</div>
                             <div class="ovcStatusSwitch">
                                 <button type="button" class="ovcChip ovcSourceBtn ovcChipActive" data-source="placeholder">Sample poster</button>
                                 <button type="button" class="ovcChip ovcSourceBtn" data-source="random">🎲 Random from my library</button>
                             </div>
-                            <img id="BadgePreview" alt="Badge preview" />
-                            <div class="ovcMuted">Shows your saved banner + the toggled badges. Updates instantly.</div>
+                            <img id="PostersPreview" alt="Poster preview" />
+                            <div class="ovcMuted">
+                                Banner + badges together, exactly as a real run would produce them. Random picks a
+                                clean poster from your own library (click again for another); it never uses one
+                                Overcoat has already overlaid.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===================== WIDE CARDS (banners + badges) ===================== -->
+                <div class="ovcPanel" data-panel="wide">
+                    <div class="ovcBannerLayout">
+                        <div class="ovcCard ovcNotice ovcStudioNotice">
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="WideCardCustomize" /><span>Customize wide cards separately</span></label>
+                            <div class="fieldDescription">Off: wide cards (Next Up / Continue Watching) look exactly like your posters. On: the controls below style wide cards independently — changing them never affects posters, and changing posters never affects wide cards. Wide-card overlays are still turned on per library on the Libraries tab.</div>
+                            <div class="fieldDescription">Status <strong>colours, labels, which statuses/badges appear, date formats and badge sources are shared with posters</strong> — set those on the Posters tab. This tab only controls how banners and badges are <em>laid out</em> on the 16:9 card. The live preview on the right shows the full result.</div>
+                        </div>
+                        <div class="ovcBannerControls ovcControlGrid" id="OvercoatWideBody">
+                            <div class="ovcSectionHeading ovcWide"><h3>Wide-card banner</h3></div>
+                            <div class="ovcCard ovcDenseCard">
+                            <h3>Style &amp; typography</h3>
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="WideBannerStyle">Style</label>
+                                <select is="emby-select" id="WideBannerStyle">
+                                    <option value="solid">Solid (filled)</option>
+                                    <option value="glass">Glass (frosted, coloured text)</option>
+                                    <option value="neon">Neon (dark pill + glow)</option>
+                                </select>
+                                <div class="fieldDescription">Solid fills the pill with the status colour. Glass frosts the card and colours the text. Neon is a dark pill with a coloured glow.</div>
+                            </div>
+                            <div id="WideGlassOptions" class="ovcSubGroup">
+                                <div>
+                                    <label class="inputLabel inputLabelUnfocused">Frost tint</label>
+                                    <div class="ovcColors"><label><input type="color" id="WideGlassTint" /><span>Tint</span></label></div>
+                                </div>
+                                <div class="inputContainer">
+                                    <label class="inputLabel inputLabelUnfocused" for="WideGlassTintStrength">Tint strength (%)</label>
+                                    <input is="emby-input" type="number" id="WideGlassTintStrength" min="0" max="100" step="1" />
+                                </div>
+                                <div class="inputContainer">
+                                    <label class="inputLabel inputLabelUnfocused" for="WideGlassBlur">Frost blur (%)</label>
+                                    <input is="emby-input" type="number" id="WideGlassBlur" min="0" max="100" step="1" />
+                                </div>
+                            </div>
+                            <div id="WideNeonOptions" class="ovcSubGroup">
+                                <div class="inputContainer">
+                                    <label class="inputLabel inputLabelUnfocused" for="WideNeonGlow">Glow intensity (%)</label>
+                                    <input is="emby-input" type="number" id="WideNeonGlow" min="0" max="100" step="1" />
+                                    <div class="fieldDescription">How far and bright the coloured glow spreads around the pill.</div>
+                                </div>
+                            </div>
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="WideBannerFont">Font</label>
+                                <select is="emby-select" id="WideBannerFont">
+                                    <option value="default">Display (bundled)</option>
+                                    <option value="sans">Sans-serif</option>
+                                    <option value="serif">Serif</option>
+                                    <option value="mono">Monospace</option>
+                                </select>
+                                <div class="fieldDescription">"Display" is Overcoat's bundled font. The others use the server's fonts.</div>
+                            </div>
+                            </div>
+
+                            <div class="ovcCard ovcDenseCard ovcLayoutCard">
+                            <h3>Shape &amp; layout</h3>
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="WideBannerShape">Shape</label>
+                                <select is="emby-select" id="WideBannerShape">
+                                    <option value="pill">Pill (fully rounded)</option>
+                                    <option value="square">Square</option>
+                                    <option value="drop">Drop (flush to the edge)</option>
+                                </select>
+                                <div class="fieldDescription">"Drop" sits flush against the chosen edge with only the inner corners rounded — like a tab.</div>
+                            </div>
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="WideBannerPosition">Position</label>
+                                <select is="emby-select" id="WideBannerPosition">
+                                    <option value="top">Top</option>
+                                    <option value="bottom">Bottom</option>
+                                </select>
+                                <div class="fieldDescription">Which edge of the card the banner sits against.</div>
+                            </div>
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="WideBannerAlign">Alignment</label>
+                                <select is="emby-select" id="WideBannerAlign">
+                                    <option value="left">Left</option>
+                                    <option value="center">Center</option>
+                                    <option value="right">Right</option>
+                                </select>
+                                <div class="fieldDescription">Horizontal placement. With Full-width on, this positions the text within the band.</div>
+                            </div>
+                            <div class="ovcCheck">
+                                <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="WideBannerFullWidth" /><span>Full-width band</span></label>
+                                <div class="fieldDescription">Stretch the banner edge-to-edge across the card (a ribbon).</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="WideBannerFontScale">Text size</label>
+                                <input is="emby-input" type="number" id="WideBannerFontScale" min="0.5" max="2" step="0.05" />
+                                <div class="fieldDescription">Multiplier on the calibrated size. 1.0 = default.</div>
+                            </div>
+                            </div>
+
+                            <details class="ovcCard" open>
+                            <summary>Effects</summary><div class="ovcDetailsBody ovcFieldGrid">
+                            <div class="ovcCheck">
+                                <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="WideBannerIcons" /><span>Show status icons</span></label>
+                                <div class="fieldDescription">Draw the ★ / ⟳ / ✓ icon beside the banner text. Off = text only.</div>
+                            </div>
+                            <div class="ovcCheck">
+                                <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="WideBannerShadow" /><span>Drop shadow</span></label>
+                                <div class="fieldDescription">Soft shadow under the banner so it lifts off the card.</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="WideBannerShadowStrength">Shadow strength (%)</label>
+                                <input is="emby-input" type="number" id="WideBannerShadowStrength" min="0" max="100" step="1" />
+                            </div>
+                            </div></details>
+                            <div class="ovcSectionHeading ovcWide"><h3>Wide-card badges</h3></div>
+                            <div class="ovcCard ovcWide">
+                            <h3>Badge layout</h3>
+                            <p class="fieldDescription">
+                                Placement of the side badges (watch-history &amp; TMDB-trending) on the wide card. The
+                                IMDb Top 250 badge is a baked corner ribbon and isn't affected by these.
+                            </p>
+                            <div class="ovcFieldGrid">
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="WideBadgeSide">Side <span class="ovcWip">WIP</span></label>
+                                <select is="emby-select" id="WideBadgeSide" disabled aria-describedby="WideBadgeSideNote">
+                                    <option value="left">Left</option>
+                                </select>
+                                <div class="fieldDescription">Badges currently use their designed left-edge placement.</div>
+                                <div class="fieldDescription" id="WideBadgeSideNote">Right-side artwork and placement are still in development.</div>
+                            </div>
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="WideBadgeVertical">Vertical anchor</label>
+                                <select is="emby-select" id="WideBadgeVertical">
+                                    <option value="top">Top</option>
+                                    <option value="middle">Middle</option>
+                                    <option value="bottom">Bottom</option>
+                                </select>
+                                <div class="fieldDescription">Where the stack sits vertically on the card.</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="WideBadgeScale">Badge size (%)</label>
+                                <input is="emby-input" type="number" id="WideBadgeScale" min="50" max="200" step="5" />
+                                <div class="fieldDescription">Size relative to the calibrated wide-card default. 100 = default.</div>
+                            </div>
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="WideBadgeGapPercent">Gap between badges (%)</label>
+                                <input is="emby-input" type="number" id="WideBadgeGapPercent" min="0" max="10" step="1" />
+                                <div class="fieldDescription">Vertical spacing between stacked badges, as a percent of card height.</div>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <div class="ovcCard ovcBannerPreview ovcPreviewRail ovcWidePreview" data-preview-kind="wide">
+                            <h3>Live preview</h3>
+                            <div class="ovcStatusSwitch" id="OvercoatWidePreviewStatuses">
+                                <button type="button" class="ovcChip" data-status="NEW">NEW</button>
+                                <button type="button" class="ovcChip" data-status="AIRING">AIRING</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-status="RETURNING">RETURNING</button>
+                                <button type="button" class="ovcChip" data-status="ENDED">ENDED</button>
+                                <button type="button" class="ovcChip" data-status="CANCELED">CANCELED</button>
+                            </div>
+                            <div class="ovcStatusSwitch" id="OvercoatWidePreviewBadges">
+                                <button type="button" class="ovcChip ovcChipActive" data-badge="watch_history" aria-pressed="true">Watch History</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-badge="tmdb_trending" aria-pressed="true">TMDB Trending</button>
+                                <button type="button" class="ovcChip ovcChipActive" data-badge="imdb_top250" aria-pressed="true">IMDb Top 250</button>
+                            </div>
+                            <div class="fieldDescription">Pick a status for the banner; toggle which badges show.</div>
+                            <div class="ovcStatusSwitch">
+                                <button type="button" class="ovcChip ovcWideSourceBtn ovcChipActive" data-source="placeholder">Sample card</button>
+                                <button type="button" class="ovcChip ovcWideSourceBtn" data-source="random">🎲 Random from my library</button>
+                            </div>
+                            <img id="WidePreview" alt="Wide-card preview" />
+                            <div class="ovcMuted">
+                                Banner + badges on a 16:9 wide card. Random picks a clean series thumb from your own
+                                library; it never uses one Overcoat has already overlaid.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -370,6 +525,29 @@
 
                 <!-- ===================== LIBRARIES ===================== -->
                 <div class="ovcPanel" data-panel="libraries">
+                    <div class="ovcCard ovcWide">
+                        <h3>Next Up &amp; Continue Watching artwork</h3>
+                        <p class="fieldDescription">
+                            Jellyfin stores this choice separately for each user. Series artwork lets every
+                            current user see Overcoat's wide-card overlays. Episode stills show each episode's
+                            own image instead, without an Overcoat overlay. These buttons change only that
+                            Jellyfin display preference—they do not edit or overlay any episode artwork.
+                        </p>
+                        <div class="ovcRowButtons">
+                            <button is="emby-button" type="button" id="OvercoatUseWideCardsAll" class="raised">
+                                <span>Use Overcoat wide cards for all current users</span>
+                            </button>
+                            <button is="emby-button" type="button" id="OvercoatUseEpisodeStillsAll" class="raised">
+                                <span>Use episode stills for all current users</span>
+                            </button>
+                        </div>
+                        <p class="ovcMuted" id="OvercoatUserArtworkStatus" role="status">Checking current users…</p>
+                        <p class="ovcMuted">
+                            This applies to users that exist now. Run it again after creating a new Jellyfin
+                            user. It affects the Jellyfin web client's Next Up and Continue Watching setting;
+                            other clients may choose artwork differently.
+                        </p>
+                    </div>
                     <div class="ovcCard ovcWide">
                         <h3>Libraries</h3>
                         <p class="fieldDescription">
@@ -402,18 +580,16 @@
                     <div class="ovcCard">
                         <h3>Schedule</h3>
                         <p class="fieldDescription">
-                            When the overlay job runs automatically. Pick a quiet hour — on a large library
-                            the run can take a while.
+                            Overcoat runs once a day to keep status dates (AIRING / RETURNING), "airing today", and
+                            trending &amp; watch-history badges current — none of which come from a library scan.
+                            Overlays themselves are re-applied whenever your library changes (below), so the daily
+                            run is just background upkeep.
                         </p>
                         <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ScheduleEnabled" /><span>Let Overcoat set the run time</span></label>
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="CustomScheduleTime" /><span>Set a custom run time</span></label>
                             <div class="fieldDescription">
-                                On, Overcoat keeps the task on the daily time below. Off, it stops touching the
-                                schedule and you manage it yourself in Dashboard &rarr; Scheduled&nbsp;Tasks
-                                (intervals, several times a day, on&nbsp;startup).
-                                <strong>Turning this off does not stop the task running</strong> — any trigger
-                                already set there stays active. To stop automatic runs entirely, remove the
-                                triggers in Dashboard &rarr; Scheduled&nbsp;Tasks.
+                                Off, the daily run happens at a quiet <strong>3:00&nbsp;AM</strong>. Most people don't
+                                need to change this. Turn it on to pick your own time.
                             </div>
                         </div>
                         <div class="ovcRow" id="ScheduleTimeRow">
@@ -432,6 +608,21 @@
                             </div>
                         </div>
                         <div class="fieldDescription" id="ScheduleSummary"></div>
+                        <div class="ovcCheck">
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ReapplyAfterScan" /><span>Re-apply after a library scan</span></label>
+                            <div class="fieldDescription">
+                                A Jellyfin library scan re-adopts posters stored in your media folders and strips
+                                Overcoat's overlays off the affected items — Jellyfin does this automatically and it
+                                can't be turned off. With this on, Overcoat notices a scan finishing and re-applies
+                                within about a minute, re-doing only what the scan changed and never touching your
+                                media-folder files. Recommended on.
+                            </div>
+                            <div class="ovcNotice" id="ReapplyWarning" hidden>
+                                <strong>Heads up:</strong> with this off, any library scan will strip the overlays off
+                                movies and wide cards whose artwork lives in a media folder, and they won't return
+                                until the next daily run. Leave it on unless you have a reason not to.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="ovcSectionHeading ovcWide">
@@ -539,7 +730,7 @@
         (function () {
             var pluginId = "604f4e22-a0a1-490d-b383-d60336318eaa";
             var page;
-            var activeTab = 'banners';
+            var activeTab = 'posters';
             var loading = false;
 
             function setSaveState(state, message) {
@@ -584,21 +775,21 @@
                     p.setAttribute('aria-hidden', on ? 'false' : 'true');
                     p.style.display = '';
                 });
-                if (name === 'banners') { refreshBannerPreview(); }
-                if (name === 'badges') { refreshBadgePreview(); }
+                if (name === 'posters') { refreshPostersPreview(); }
+                if (name === 'wide') { refreshWidePreview(); }
                 window.setTimeout(updateFloatingPreview, 0);
             }
 
             function syncFloatingPreview() {
                 if (!page) { return; }
-                var source = activeTab === 'banners'
-                    ? page.querySelector('#BannerPreview')
-                    : activeTab === 'badges' ? page.querySelector('#BadgePreview') : null;
+                var source = activeTab === 'posters'
+                    ? page.querySelector('#PostersPreview')
+                    : activeTab === 'wide' ? page.querySelector('#WidePreview') : null;
                 var target = page.querySelector('#OvercoatFloatingPreviewImage');
                 var label = page.querySelector('#OvercoatFloatingPreviewLabel');
                 if (source && target && source.src) {
                     target.src = source.src;
-                    label.textContent = activeTab === 'banners' ? 'Banner preview' : 'Badge preview';
+                    label.textContent = activeTab === 'wide' ? 'Wide-card preview' : 'Poster preview';
                 }
             }
 
@@ -606,7 +797,7 @@
                 if (!page) { return; }
                 var floating = page.querySelector('#OvercoatFloatingPreview');
                 var mobile = window.matchMedia('(max-width: 1099px)').matches;
-                var kind = activeTab === 'banners' ? 'banner' : activeTab === 'badges' ? 'badge' : '';
+                var kind = activeTab === 'posters' ? 'poster' : activeTab === 'wide' ? 'wide' : '';
                 var card = kind ? page.querySelector('[data-preview-kind="' + kind + '"]') : null;
                 var show = !!(mobile && card && card.getBoundingClientRect().bottom < 72);
                 floating.classList.toggle('ovcVisible', show);
@@ -614,12 +805,15 @@
                 if (show) { syncFloatingPreview(); }
             }
 
-            // Build the badge preview URL: saved banner + the toggled badges with live placement.
-            // Which poster the previews draw on. Shared by both studios so switching tabs doesn't
-            // silently change what you're looking at. 'placeholder' is the built-in sample; 'random'
-            // asks the server for a clean poster out of the user's own library.
+            // Which poster/card the previews draw on. The two poster previews (banner + badge) share one
+            // source toggle; the two wide-card previews have their own, so the Posters and Wide Cards
+            // tabs never disturb each other. 'placeholder' is the built-in sample; 'random' asks the
+            // server for a clean image out of the user's own library.
             var previewSource = 'placeholder';
             var previewKey = '';
+            var wideStatus = 'RETURNING';
+            var wideSource = 'placeholder';
+            var wideKey = '';
 
             function newPreviewKey() {
                 if (window.crypto && window.crypto.randomUUID) { return window.crypto.randomUUID(); }
@@ -632,31 +826,87 @@
                 page.querySelectorAll('.ovcSourceBtn').forEach(function (b) {
                     b.classList.toggle('ovcChipActive', b.getAttribute('data-source') === next);
                 });
-                if (activeTab === 'badges') { refreshBadgePreview(); }
-                else { refreshBannerPreview(); }
+                refreshPostersPreview();
             }
 
-            function badgePreviewUrl() {
+            function setWideSource(next) {
+                wideSource = next;
+                if (next === 'random') { wideKey = newPreviewKey(); }
+                page.querySelectorAll('.ovcWideSourceBtn').forEach(function (b) {
+                    b.classList.toggle('ovcChipActive', b.getAttribute('data-source') === next);
+                });
+                refreshWidePreview();
+            }
+
+            // The toggled badges in a preview card, as a CSV for the composite preview endpoint.
+            function activeBadges(containerId) {
                 var keys = [];
-                page.querySelectorAll('#OvercoatPreviewBadges .ovcChip.ovcChipActive').forEach(function (b) {
+                page.querySelectorAll('#' + containerId + ' .ovcChip.ovcChipActive').forEach(function (b) {
                     keys.push(b.getAttribute('data-badge'));
                 });
+                return keys.join(',');
+            }
+
+            // --- Wide-card preview. When "Customize wide cards separately" is off, a real run draws
+            //     wide cards with the poster settings, so the preview reads the poster fields too — it
+            //     always shows what an actual run would produce. When on, it reads the Wide* fields.
+            function wideCustomize() { return page.querySelector('#WideCardCustomize').checked; }
+            function wval(base) { return val((wideCustomize() ? 'Wide' : '') + base); }
+            function wchecked(base) { return page.querySelector('#' + (wideCustomize() ? 'Wide' : '') + base).checked; }
+
+            function widePreviewUrl() {
+                var st = wideStatus;
+                var label = val(STATUS_LABEL[st]) || st;   // labels/colours/date format shared with posters
+                var suf = sampleSuffix(st);
+                var text = suf ? (label + ' ' + suf) : label;
                 var qs = [
-                    'badges=' + encodeURIComponent(keys.join(',')),
-                    'side=' + encodeURIComponent(val('BadgeSide')),
-                    'vertical=' + encodeURIComponent(val('BadgeVertical')),
-                    'scale=' + encodeURIComponent(val('BadgeScale') || '100'),
-                    'gap=' + encodeURIComponent(val('BadgeGapPercent') || '1'),
-                    'source=' + encodeURIComponent(previewSource),
-                    'previewKey=' + encodeURIComponent(previewKey),
+                    'style=' + encodeURIComponent(wval('BannerStyle')),
+                    'shape=' + encodeURIComponent(wval('BannerShape')),
+                    'position=' + encodeURIComponent(wval('BannerPosition')),
+                    'align=' + encodeURIComponent(wval('BannerAlign')),
+                    'fullWidth=' + (wchecked('BannerFullWidth') ? 'true' : 'false'),
+                    'fontScale=' + encodeURIComponent(wval('BannerFontScale') || '1'),
+                    'status=' + encodeURIComponent(text),
+                    'iconKey=' + encodeURIComponent(st),
+                    'icons=' + (wchecked('BannerIcons') ? 'true' : 'false'),
+                    'color=' + encodeURIComponent(val(STATUS_COLOR[st]) || ''),
+                    'shadow=' + (wchecked('BannerShadow') ? 'true' : 'false'),
+                    'shadowStrength=' + encodeURIComponent(wval('BannerShadowStrength') || '60'),
+                    'glassTint=' + encodeURIComponent(wval('GlassTint') || ''),
+                    'glassTintStrength=' + encodeURIComponent(wval('GlassTintStrength') || '49'),
+                    'glassBlur=' + encodeURIComponent(wval('GlassBlur') || '50'),
+                    'neonGlow=' + encodeURIComponent(wval('NeonGlow') || '60'),
+                    'font=' + encodeURIComponent(wval('BannerFont')),
+                    'badges=' + encodeURIComponent(activeBadges('OvercoatWidePreviewBadges')),
+                    'side=' + encodeURIComponent(wval('BadgeSide')),
+                    'vertical=' + encodeURIComponent(wval('BadgeVertical')),
+                    'badgeScale=' + encodeURIComponent(wval('BadgeScale') || '100'),
+                    'badgeGap=' + encodeURIComponent(wval('BadgeGapPercent') || '1'),
+                    'source=' + encodeURIComponent(wideSource),
+                    'previewKey=' + encodeURIComponent(wideKey),
+                    'layout=landscape',
                     'api_key=' + encodeURIComponent(ApiClient.accessToken()),
                     '_=' + new Date().getTime()
                 ].join('&');
-                return ApiClient.getUrl('Overcoat/BadgePreview') + '?' + qs;
+                return ApiClient.getUrl('Overcoat/BannerPreview') + '?' + qs;
             }
-            function refreshBadgePreview() {
-                var img = page && page.querySelector('#BadgePreview');
-                if (img) { img.src = badgePreviewUrl(); syncFloatingPreview(); }
+            function refreshWidePreview() {
+                var img = page && page.querySelector('#WidePreview');
+                if (img) { img.src = widePreviewUrl(); syncFloatingPreview(); }
+            }
+
+            // Grey out and disable the wide-card controls while inheriting from posters.
+            function updateWideControlsEnabled() {
+                var on = wideCustomize();
+                var body = page.querySelector('#OvercoatWideBody');
+                if (body) {
+                    body.classList.toggle('ovcWideLocked', !on);
+                    body.querySelectorAll('input, select').forEach(function (el) {
+                        // The WideBadgeSide selector stays disabled either way (WIP, left-only).
+                        el.disabled = !on || el.id === 'WideBadgeSide';
+                    });
+                }
+                refreshWidePreview();
             }
 
             // Style-specific options reveal only for their style (progressive disclosure).
@@ -664,6 +914,11 @@
                 var style = page.querySelector('#BannerStyle').value;
                 page.querySelector('#GlassOptions').style.display = style === 'glass' ? 'block' : 'none';
                 page.querySelector('#NeonOptions').style.display = style === 'neon' ? 'block' : 'none';
+            }
+            function updateWideStyleOptions() {
+                var style = page.querySelector('#WideBannerStyle').value;
+                page.querySelector('#WideGlassOptions').style.display = style === 'glass' ? 'block' : 'none';
+                page.querySelector('#WideNeonOptions').style.display = style === 'neon' ? 'block' : 'none';
             }
 
             function val(id) { return page.querySelector('#' + id).value; }
@@ -680,7 +935,7 @@
                 if (fmt === 'countdown') { return st === 'AIRING' ? '3d' : '21d'; }
                 return st === 'AIRING' ? '6/28' : '7/14'; // date
             }
-            function bannerPreviewUrl() {
+            function postersPreviewUrl() {
                 var st = previewStatus;
                 var label = val(STATUS_LABEL[st]) || st;
                 var suf = sampleSuffix(st);
@@ -703,16 +958,22 @@
                     'glassBlur=' + encodeURIComponent(val('GlassBlur') || '50'),
                     'neonGlow=' + encodeURIComponent(val('NeonGlow') || '60'),
                     'font=' + encodeURIComponent(val('BannerFont')),
+                    'badges=' + encodeURIComponent(activeBadges('OvercoatPreviewBadges')),
+                    'side=' + encodeURIComponent(val('BadgeSide')),
+                    'vertical=' + encodeURIComponent(val('BadgeVertical')),
+                    'badgeScale=' + encodeURIComponent(val('BadgeScale') || '100'),
+                    'badgeGap=' + encodeURIComponent(val('BadgeGapPercent') || '1'),
                     'source=' + encodeURIComponent(previewSource),
                     'previewKey=' + encodeURIComponent(previewKey),
+                    'layout=portrait',
                     'api_key=' + encodeURIComponent(ApiClient.accessToken()),
                     '_=' + new Date().getTime()
                 ].join('&');
                 return ApiClient.getUrl('Overcoat/BannerPreview') + '?' + qs;
             }
-            function refreshBannerPreview() {
-                var img = page && page.querySelector('#BannerPreview');
-                if (img) { img.src = bannerPreviewUrl(); syncFloatingPreview(); }
+            function refreshPostersPreview() {
+                var img = page && page.querySelector('#PostersPreview');
+                if (img) { img.src = postersPreviewUrl(); syncFloatingPreview(); }
             }
             function wireTabs() {
                 var tabs = Array.prototype.slice.call(page.querySelectorAll('.ovcTab'));
@@ -743,7 +1004,7 @@
                         showTab(tabs[next].getAttribute('data-tab'));
                     });
                 });
-                showTab('banners');
+                showTab('posters');
             }
 
             function toggleApiKeyVisibility() {
@@ -778,6 +1039,7 @@
                     '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcEnabled" /><span>Process this library</span></label>' +
                     '<div class="ovcLibOpts">' +
                       (isTv ? '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcStatus" /><span>Status banners</span></label>' : '') +
+                      (isTv ? '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcWide" /><span>Wide-card overlays (series Thumb)</span></label><p class="ovcMuted">Use the all-user artwork control above so Next Up and Continue Watching inherit these wide cards. Episode artwork is never modified.</p>' : '') +
                       '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcWatch" /><span>Watch-history badge</span></label>' +
                       '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTrend" /><span>Trending badge</span></label>' +
                       '<label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" class="ovcTop250" /><span>IMDB Top 250 badge</span></label>' +
@@ -785,6 +1047,7 @@
                 while (body.firstChild) { row.appendChild(body.firstChild); }
                 row.querySelector('.ovcEnabled').checked = !!saved.Enabled;
                 if (isTv) row.querySelector('.ovcStatus').checked = saved.StatusOverlays !== false;
+                if (isTv) row.querySelector('.ovcWide').checked = saved.WideCardOverlays === true;
                 row.querySelector('.ovcWatch').checked = saved.WatchHistoryBadge !== false;
                 row.querySelector('.ovcTrend').checked = saved.TrendingBadge !== false;
                 row.querySelector('.ovcTop250').checked = saved.ImdbTop250Badge !== false;
@@ -851,6 +1114,7 @@
                         Type: row.getAttribute('data-type'),
                         Enabled: row.querySelector('.ovcEnabled').checked,
                         StatusOverlays: statusEl ? statusEl.checked : false,
+                        WideCardOverlays: row.querySelector('.ovcWide') ? row.querySelector('.ovcWide').checked : false,
                         WatchHistoryBadge: row.querySelector('.ovcWatch').checked,
                         TrendingBadge: row.querySelector('.ovcTrend').checked,
                         ImdbTop250Badge: row.querySelector('.ovcTop250').checked
@@ -882,6 +1146,96 @@
             function updateUserRowVisibility() {
                 var all = page.querySelector('#WatchHistoryAllUsers').checked;
                 page.querySelector('#WatchHistoryUserRow').style.display = all ? 'none' : 'block';
+            }
+
+            var jellyfinDisplayPreferencesId = 'usersettings';
+            var jellyfinDisplayPreferencesClient = 'emby';
+            var episodeImagesPreferenceKey = 'useEpisodeImagesInNextUpAndResume';
+
+            function readUserArtworkPreferences() {
+                return ApiClient.getUsers().then(function (users) {
+                    return Promise.all((users || []).map(function (user) {
+                        return ApiClient.getDisplayPreferences(
+                            jellyfinDisplayPreferencesId,
+                            user.Id,
+                            jellyfinDisplayPreferencesClient
+                        ).then(function (prefs) {
+                            prefs.CustomPrefs = prefs.CustomPrefs || {};
+                            return { user: user, prefs: prefs };
+                        });
+                    }));
+                });
+            }
+
+            function refreshUserArtworkStatus() {
+                var status = page.querySelector('#OvercoatUserArtworkStatus');
+                status.textContent = 'Checking current users…';
+                return readUserArtworkPreferences().then(function (entries) {
+                    var episodeUsers = entries.filter(function (entry) {
+                        return String(entry.prefs.CustomPrefs[episodeImagesPreferenceKey]).toLowerCase() === 'true';
+                    }).length;
+                    var wideUsers = entries.length - episodeUsers;
+                    status.textContent = wideUsers + ' of ' + entries.length + ' current user(s) use series wide cards; '
+                        + episodeUsers + ' use episode stills.';
+                }, function (err) {
+                    status.textContent = 'Could not read the users’ home-screen artwork preferences.';
+                    console.error('Overcoat: failed to read user artwork preferences', err);
+                });
+            }
+
+            function setAllUserArtworkPreference(useEpisodeStills) {
+                var wideButton = page.querySelector('#OvercoatUseWideCardsAll');
+                var episodeButton = page.querySelector('#OvercoatUseEpisodeStillsAll');
+                var status = page.querySelector('#OvercoatUserArtworkStatus');
+                wideButton.disabled = true;
+                episodeButton.disabled = true;
+                status.textContent = 'Updating all current users…';
+
+                readUserArtworkPreferences().then(function (entries) {
+                    return Promise.all(entries.map(function (entry) {
+                        // Preserve the complete DTO and every unrelated CustomPrefs value. Jellyfin's
+                        // update endpoint replaces the preference map, so posting only our key would
+                        // erase the user's other display settings.
+                        entry.prefs.CustomPrefs[episodeImagesPreferenceKey] = useEpisodeStills ? 'true' : 'false';
+                        return ApiClient.updateDisplayPreferences(
+                            jellyfinDisplayPreferencesId,
+                            entry.prefs,
+                            entry.user.Id,
+                            jellyfinDisplayPreferencesClient
+                        ).then(function () {
+                            return { ok: true, name: entry.user.Name || entry.user.Id };
+                        }, function () {
+                            return { ok: false, name: entry.user.Name || entry.user.Id };
+                        });
+                    }));
+                }).then(function (results) {
+                    var failed = results.filter(function (result) { return !result.ok; });
+                    if (failed.length) {
+                        status.textContent = (results.length - failed.length) + ' user(s) updated; '
+                            + failed.length + ' failed. No episode artwork was modified.';
+                        Dashboard.alert('Overcoat could not update: ' + failed.map(function (x) { return x.name; }).join(', '));
+                    } else {
+                        status.textContent = results.length + ' current user(s) now use '
+                            + (useEpisodeStills ? 'episode stills.' : 'Overcoat series wide cards.');
+                    }
+                    return refreshUserArtworkStatus();
+                }, function (err) {
+                    status.textContent = 'The all-user preference update failed before it could finish.';
+                    console.error('Overcoat: failed to update user artwork preferences', err);
+                }).then(function () {
+                    wideButton.disabled = false;
+                    episodeButton.disabled = false;
+                });
+            }
+
+            function confirmAllUserArtworkPreference(useEpisodeStills) {
+                var message = useEpisodeStills
+                    ? 'Show each episode’s own still in Next Up and Continue Watching for every current Jellyfin user? Overcoat will not modify those episode images.'
+                    : 'Use series wide cards in Next Up and Continue Watching for every current Jellyfin user? This lets them see Overcoat overlays on existing series Thumb artwork.';
+                var title = useEpisodeStills ? 'Use episode stills for all users' : 'Use Overcoat wide cards for all users';
+                Dashboard.confirm(message, title, function (ok) {
+                    if (ok) { setAllUserArtworkPreference(useEpisodeStills); }
+                });
             }
 
             function linesToList(text) {
@@ -933,17 +1287,19 @@
             }
 
             function updateScheduleUi() {
-                var on = page.querySelector('#ScheduleEnabled').checked;
-                page.querySelector('#ScheduleTimeRow').hidden = !on;
+                // The daily run ALWAYS happens; the checkbox only chooses default 3:00 AM vs a custom time.
+                var custom = page.querySelector('#CustomScheduleTime').checked;
+                page.querySelector('#ScheduleTimeRow').hidden = !custom;
                 var summary = page.querySelector('#ScheduleSummary');
-                if (!on) {
-                    summary.textContent = 'Overcoat is not managing the schedule. Any trigger already set in Dashboard → Scheduled Tasks stays active — this does not disable automatic runs.';
-                    return;
-                }
-                var h = parseInt(page.querySelector('#ScheduleHour').value, 10) || 0;
-                var m = parseInt(page.querySelector('#ScheduleMinute').value, 10) || 0;
+                var h = custom ? (parseInt(page.querySelector('#ScheduleHour').value, 10) || 0) : 3;
+                var m = custom ? (parseInt(page.querySelector('#ScheduleMinute').value, 10) || 0) : 0;
                 var hint = (h % 12 === 0 ? 12 : h % 12) + ':' + (m < 10 ? '0' + m : m) + (h < 12 ? ' AM' : ' PM');
-                summary.textContent = 'Runs daily at ' + hint + ' (server time). Takes effect as soon as you save.';
+                summary.textContent = 'Runs daily at ' + hint + ' (server time)'
+                    + (custom ? '. Takes effect as soon as you save.' : ' by default.');
+
+                // Warn only when the scan follow-up is turned off — that's when scans strip overlays.
+                var warn = page.querySelector('#ReapplyWarning');
+                if (warn) { warn.hidden = page.querySelector('#ReapplyAfterScan').checked; }
             }
 
             // Recovery panel. Read-only: it answers "can I still get my posters back?" and never
@@ -997,6 +1353,12 @@
                 if (h.OrphanedOriginals) {
                     stat('for items no longer in your library', h.OrphanedOriginals);
                 }
+                if (h.WideCards) {
+                    stat('wide cards managed', h.WideCards.TrackedItems);
+                    stat('wide cards without a saved copy', h.WideCards.TrackedWithoutOriginal,
+                        h.WideCards.TrackedWithoutOriginal ? 'ovcStatWarn' : '');
+                    stat('wide-card originals on disk', h.WideCards.VaultSizeDisplay);
+                }
             }
 
             function refreshVaultStats() {
@@ -1024,7 +1386,8 @@
                     page.querySelector('#DryRun').checked = !!config.DryRun;
                     page.querySelector('#ForceRestore').checked = !!config.ForceRestore;
                     fillHours();
-                    page.querySelector('#ScheduleEnabled').checked = config.ScheduleEnabled !== false;
+                    page.querySelector('#CustomScheduleTime').checked = !!config.CustomScheduleTime;
+                    page.querySelector('#ReapplyAfterScan').checked = config.ReapplyAfterScan !== false;
                     page.querySelector('#ScheduleHour').value = String(config.ScheduleHour != null ? config.ScheduleHour : 3);
                     page.querySelector('#ScheduleMinute').value = String(nearestQuarter(config.ScheduleMinute));
                     updateScheduleUi();
@@ -1066,6 +1429,31 @@
                     page.querySelector('#BadgeVertical').value = config.BadgeVertical || 'middle';
                     page.querySelector('#BadgeScale').value = (config.BadgeScale != null ? config.BadgeScale : 100);
                     page.querySelector('#BadgeGapPercent').value = (config.BadgeGapPercent != null ? config.BadgeGapPercent : 1);
+
+                    // Wide-card appearance overrides (nested WideCard object; defaults match posters).
+                    var w = config.WideCard || {};
+                    page.querySelector('#WideCardCustomize').checked = !!config.WideCardCustomize;
+                    page.querySelector('#WideBannerStyle').value = w.BannerStyle || 'solid';
+                    page.querySelector('#WideBannerShape').value = w.BannerShape || 'pill';
+                    page.querySelector('#WideBannerPosition').value = w.BannerPosition || 'top';
+                    page.querySelector('#WideBannerFontScale').value = w.BannerFontScale || 1.0;
+                    page.querySelector('#WideBannerIcons').checked = w.BannerIcons !== false;
+                    page.querySelector('#WideBannerAlign').value = w.BannerAlign || 'center';
+                    page.querySelector('#WideBannerFullWidth').checked = !!w.BannerFullWidth;
+                    page.querySelector('#WideBannerShadow').checked = !!w.BannerShadow;
+                    page.querySelector('#WideBannerShadowStrength').value = (w.BannerShadowStrength != null ? w.BannerShadowStrength : 60);
+                    page.querySelector('#WideGlassTint').value = w.GlassTint || '#0E1018';
+                    page.querySelector('#WideGlassTintStrength').value = (w.GlassTintStrength != null ? w.GlassTintStrength : 49);
+                    page.querySelector('#WideGlassBlur').value = (w.GlassBlur != null ? w.GlassBlur : 50);
+                    page.querySelector('#WideNeonGlow').value = (w.NeonGlow != null ? w.NeonGlow : 60);
+                    page.querySelector('#WideBannerFont').value = w.BannerFont || 'default';
+                    page.querySelector('#WideBadgeSide').value = 'left';
+                    page.querySelector('#WideBadgeVertical').value = w.BadgeVertical || 'middle';
+                    page.querySelector('#WideBadgeScale').value = (w.BadgeScale != null ? w.BadgeScale : 100);
+                    page.querySelector('#WideBadgeGapPercent').value = (w.BadgeGapPercent != null ? w.BadgeGapPercent : 1);
+                    updateWideStyleOptions();
+                    updateWideControlsEnabled();
+
                     page.querySelector('#TrendingTimeWindow').value = config.TrendingTimeWindow || 'week';
                     page.querySelector('#WatchHistoryDays').value = config.WatchHistoryDays || 20;
                     page.querySelector('#WatchHistoryAllUsers').checked = config.WatchHistoryAllUsers !== false;
@@ -1078,9 +1466,9 @@
                         return o.Name + ' | ' + (o.Year || 0) + ' | ' + (o.TmdbId || 0);
                     }).join('\n');
                     refreshVaultStats();
-                    Promise.all([loadUsers(config), loadLibraries(config)]).then(function () {
+                    Promise.all([loadUsers(config), loadLibraries(config), refreshUserArtworkStatus()]).then(function () {
                         updateUserRowVisibility();
-                        refreshBannerPreview();
+                        refreshPostersPreview();
                         loading = false;
                         setSaveState('clean');
                         Dashboard.hideLoadingMsg();
@@ -1126,6 +1514,37 @@
                 if (isNaN(config.BadgeScale)) { config.BadgeScale = 100; }
                 config.BadgeGapPercent = parseInt(page.querySelector('#BadgeGapPercent').value, 10);
                 if (isNaN(config.BadgeGapPercent)) { config.BadgeGapPercent = 1; }
+
+                // Wide-card appearance overrides. Preserve any existing nested object so unknown future
+                // keys survive a round-trip.
+                config.WideCardCustomize = page.querySelector('#WideCardCustomize').checked;
+                var wc = config.WideCard || {};
+                wc.BannerStyle = page.querySelector('#WideBannerStyle').value;
+                wc.BannerShape = page.querySelector('#WideBannerShape').value;
+                wc.BannerPosition = page.querySelector('#WideBannerPosition').value;
+                wc.BannerFontScale = parseFloat(page.querySelector('#WideBannerFontScale').value) || 1.0;
+                wc.BannerIcons = page.querySelector('#WideBannerIcons').checked;
+                wc.BannerAlign = page.querySelector('#WideBannerAlign').value;
+                wc.BannerFullWidth = page.querySelector('#WideBannerFullWidth').checked;
+                wc.BannerShadow = page.querySelector('#WideBannerShadow').checked;
+                wc.BannerShadowStrength = parseInt(page.querySelector('#WideBannerShadowStrength').value, 10);
+                if (isNaN(wc.BannerShadowStrength)) { wc.BannerShadowStrength = 60; }
+                wc.GlassTint = page.querySelector('#WideGlassTint').value;
+                wc.GlassTintStrength = parseInt(page.querySelector('#WideGlassTintStrength').value, 10);
+                if (isNaN(wc.GlassTintStrength)) { wc.GlassTintStrength = 49; }
+                wc.GlassBlur = parseInt(page.querySelector('#WideGlassBlur').value, 10);
+                if (isNaN(wc.GlassBlur)) { wc.GlassBlur = 50; }
+                wc.NeonGlow = parseInt(page.querySelector('#WideNeonGlow').value, 10);
+                if (isNaN(wc.NeonGlow)) { wc.NeonGlow = 60; }
+                wc.BannerFont = page.querySelector('#WideBannerFont').value;
+                wc.BadgeSide = 'left';
+                wc.BadgeVertical = page.querySelector('#WideBadgeVertical').value;
+                wc.BadgeScale = parseInt(page.querySelector('#WideBadgeScale').value, 10);
+                if (isNaN(wc.BadgeScale)) { wc.BadgeScale = 100; }
+                wc.BadgeGapPercent = parseInt(page.querySelector('#WideBadgeGapPercent').value, 10);
+                if (isNaN(wc.BadgeGapPercent)) { wc.BadgeGapPercent = 1; }
+                config.WideCard = wc;
+
                 config.ShowNew = page.querySelector('#ShowNew').checked;
                 config.ShowAiring = page.querySelector('#ShowAiring').checked;
                 config.ShowReturning = page.querySelector('#ShowReturning').checked;
@@ -1143,7 +1562,8 @@
                 config.WatchHistoryMaxScan = parseInt(page.querySelector('#WatchHistoryMaxScan').value, 10) || 10000;
                 config.ImdbTop250TvListId = page.querySelector('#ImdbTop250TvListId').value;
                 config.ImdbTop250MovieListId = page.querySelector('#ImdbTop250MovieListId').value;
-                config.ScheduleEnabled = page.querySelector('#ScheduleEnabled').checked;
+                config.CustomScheduleTime = page.querySelector('#CustomScheduleTime').checked;
+                config.ReapplyAfterScan = page.querySelector('#ReapplyAfterScan').checked;
                 config.ScheduleHour = parseInt(page.querySelector('#ScheduleHour').value, 10);
                 if (isNaN(config.ScheduleHour)) { config.ScheduleHour = 3; }
                 config.ScheduleMinute = parseInt(page.querySelector('#ScheduleMinute').value, 10);
@@ -1201,7 +1621,7 @@
                     page.querySelector('#OvercoatDescriptions').addEventListener('click', toggleDescriptions);
                     try { if (localStorage.getItem('overcoatDescriptions') === 'off') { toggleDescriptions(); } } catch (_) { }
                     page.querySelector('#OvercoatConfigForm').addEventListener('input', function (event) {
-                        if (!loading && !event.target.closest('#OvercoatPreviewStatuses, #OvercoatPreviewBadges')) { setSaveState('dirty'); }
+                        if (!loading && !event.target.closest('#OvercoatPreviewStatuses, #OvercoatPreviewBadges, #OvercoatWidePreviewStatuses, #OvercoatWidePreviewBadges')) { setSaveState('dirty'); }
                     });
                     page.querySelector('#OvercoatConfigForm').addEventListener('change', function () {
                         if (!loading) { setSaveState('dirty'); }
@@ -1216,15 +1636,21 @@
                         ancestor = ancestor.parentElement;
                     }
                     page.querySelector('#OvercoatVaultRefresh').addEventListener('click', refreshVaultStats);
+                    page.querySelector('#OvercoatUseWideCardsAll').addEventListener('click', function () {
+                        confirmAllUserArtworkPreference(false);
+                    });
+                    page.querySelector('#OvercoatUseEpisodeStillsAll').addEventListener('click', function () {
+                        confirmAllUserArtworkPreference(true);
+                    });
                     page.querySelector('#OvercoatRunNow').addEventListener('click', function () { runTask('OvercoatApply', 'Apply Overcoat Overlays'); });
                     page.querySelector('#OvercoatRestore').addEventListener('click', function () {
                         Dashboard.confirm('Restore the original (un-overlaid) posters Overcoat saved?', 'Restore originals', function (ok) {
-                            if (ok) runTask('OvercoatRestore', 'Restore Original Posters (Overcoat)');
+                            if (ok) runTask('OvercoatRestore', 'Restore Original Artwork (Overcoat)');
                         });
                     });
                     page.querySelector('#OvercoatConfigForm').addEventListener('submit', save);
                     page.querySelector('#WatchHistoryAllUsers').addEventListener('change', updateUserRowVisibility);
-                    ['ScheduleEnabled', 'ScheduleHour', 'ScheduleMinute'].forEach(function (id) {
+                    ['CustomScheduleTime', 'ScheduleHour', 'ScheduleMinute', 'ReapplyAfterScan'].forEach(function (id) {
                         page.querySelector('#' + id).addEventListener('change', updateScheduleUi);
                     });
                     ['BannerStyle', 'BannerShape', 'BannerPosition', 'BannerAlign', 'BannerFullWidth',
@@ -1234,8 +1660,8 @@
                      'ColorNew', 'ColorAiring', 'ColorReturning', 'ColorEnded', 'ColorCanceled',
                      'LabelNew', 'LabelAiring', 'LabelReturning', 'LabelEnded', 'LabelCanceled'].forEach(function (id) {
                         var el = page.querySelector('#' + id);
-                        el.addEventListener('change', refreshBannerPreview);
-                        el.addEventListener('input', refreshBannerPreview);
+                        el.addEventListener('change', refreshPostersPreview);
+                        el.addEventListener('input', refreshPostersPreview);
                     });
                     page.querySelector('#BannerStyle').addEventListener('change', updateStyleOptions);
                     // Clicking "Random" again re-rolls: the handler always refreshes, and the
@@ -1251,19 +1677,54 @@
                             page.querySelectorAll('#OvercoatPreviewStatuses .ovcChip').forEach(function (b) {
                                 b.classList.toggle('ovcChipActive', b === btn);
                             });
-                            refreshBannerPreview();
+                            refreshPostersPreview();
                         });
                     });
                     ['BadgeSide', 'BadgeVertical', 'BadgeScale', 'BadgeGapPercent'].forEach(function (id) {
                         var el = page.querySelector('#' + id);
-                        el.addEventListener('change', refreshBadgePreview);
-                        el.addEventListener('input', refreshBadgePreview);
+                        el.addEventListener('change', refreshPostersPreview);
+                        el.addEventListener('input', refreshPostersPreview);
                     });
                     page.querySelectorAll('#OvercoatPreviewBadges .ovcChip').forEach(function (btn) {
                         btn.addEventListener('click', function () {
                             btn.classList.toggle('ovcChipActive');  // multi-toggle
                             btn.setAttribute('aria-pressed', btn.classList.contains('ovcChipActive') ? 'true' : 'false');
-                            refreshBadgePreview();
+                            refreshPostersPreview();
+                        });
+                    });
+
+                    // --- Wide Cards tab wiring ---
+                    page.querySelector('#WideCardCustomize').addEventListener('change', updateWideControlsEnabled);
+                    ['WideBannerStyle', 'WideBannerShape', 'WideBannerPosition', 'WideBannerAlign', 'WideBannerFullWidth',
+                     'WideBannerFont', 'WideBannerFontScale', 'WideBannerIcons', 'WideBannerShadow', 'WideBannerShadowStrength',
+                     'WideGlassTint', 'WideGlassTintStrength', 'WideGlassBlur', 'WideNeonGlow'].forEach(function (id) {
+                        var el = page.querySelector('#' + id);
+                        el.addEventListener('change', refreshWidePreview);
+                        el.addEventListener('input', refreshWidePreview);
+                    });
+                    page.querySelector('#WideBannerStyle').addEventListener('change', updateWideStyleOptions);
+                    ['WideBadgeSide', 'WideBadgeVertical', 'WideBadgeScale', 'WideBadgeGapPercent'].forEach(function (id) {
+                        var el = page.querySelector('#' + id);
+                        el.addEventListener('change', refreshWidePreview);
+                        el.addEventListener('input', refreshWidePreview);
+                    });
+                    page.querySelectorAll('.ovcWideSourceBtn').forEach(function (btn) {
+                        btn.addEventListener('click', function () { setWideSource(btn.getAttribute('data-source')); });
+                    });
+                    page.querySelectorAll('#OvercoatWidePreviewStatuses .ovcChip').forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            wideStatus = btn.getAttribute('data-status');
+                            page.querySelectorAll('#OvercoatWidePreviewStatuses .ovcChip').forEach(function (b) {
+                                b.classList.toggle('ovcChipActive', b === btn);
+                            });
+                            refreshWidePreview();
+                        });
+                    });
+                    page.querySelectorAll('#OvercoatWidePreviewBadges .ovcChip').forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            btn.classList.toggle('ovcChipActive');  // multi-toggle
+                            btn.setAttribute('aria-pressed', btn.classList.contains('ovcChipActive') ? 'true' : 'false');
+                            refreshWidePreview();
                         });
                     });
                 }

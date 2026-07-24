@@ -43,6 +43,12 @@ public sealed class RecoveryController : ControllerBase
             vaulted,
             state.OriginalSize,
             id => Guid.TryParse(id, out var g) && _libraryManager.GetItemById(g) is not null);
+        var thumbState = new ProcessingState(Plugin.Instance.DataFolderPath, _logger, ProcessingState.ArtworkChannel.Thumb);
+        var wideHealth = VaultHealth.Build(
+            thumbState.CachedIds,
+            thumbState.VaultedIds().ToList(),
+            thumbState.OriginalSize,
+            id => Guid.TryParse(id, out var g) && _libraryManager.GetItemById(g) is MediaBrowser.Controller.Entities.TV.Series);
 
         return Ok(new
         {
@@ -53,6 +59,16 @@ public sealed class RecoveryController : ControllerBase
             health.VaultFiles,
             health.VaultBytes,
             health.VaultSizeDisplay,
+            WideCards = new
+            {
+                wideHealth.TrackedItems,
+                wideHealth.TrackedWithOriginal,
+                wideHealth.TrackedWithoutOriginal,
+                wideHealth.OrphanedOriginals,
+                wideHealth.VaultFiles,
+                wideHealth.VaultBytes,
+                wideHealth.VaultSizeDisplay,
+            },
         });
     }
 }

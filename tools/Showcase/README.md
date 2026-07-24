@@ -15,6 +15,10 @@ dotnet run --project tools/Showcase/Showcase.csproj -c Release -- \
 The output directory must be separate from the input directory. The harness hashes every input
 before rendering and fails if any hash changes. It always places side ribbons on the left.
 
+The generator writes five portrait plates plus `showcase-wide-cards.png`. The wide-card plate uses
+the production landscape renderer on 16:9 crops of the same clean, privately stored source art; it
+is labeled as a 0.8 beta feature so the public README does not imply stable availability.
+
 `capture-settings.js` loads the real embedded `configPage.html` in headless Chromium, injects local
 mock `ApiClient`/`Dashboard` objects and fictional libraries/users, and captures the Banners, Badges,
 and Libraries tabs. It intentionally has no server address or credentials. The script expects a
