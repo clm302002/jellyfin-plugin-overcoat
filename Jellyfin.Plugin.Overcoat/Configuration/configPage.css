@@ -145,14 +145,6 @@
     border-color: color-mix(in srgb, var(--ov-warning) 56%, var(--ov-border));
     background: linear-gradient(145deg, color-mix(in srgb, var(--ov-warning) 9%, var(--ov-surface)), var(--ov-surface));
 }
-#OvercoatConfigPage .ovcLibraryIntro {
-    display: flex; align-items: flex-start; gap: .8rem; padding: .95rem 1.1rem;
-    border: 1px solid color-mix(in srgb, var(--ov-warning) 64%, var(--ov-border));
-    border-radius: 14px;
-}
-#OvercoatConfigPage .ovcLibraryIntro > .ovcIcon { flex: 0 0 auto; margin-top: .08rem; color: var(--ov-warning); }
-#OvercoatConfigPage .ovcLibraryIntro strong { display: block; color: color-mix(in srgb, var(--ov-warning) 84%, var(--ov-text)); font-size: 1rem; }
-#OvercoatConfigPage .ovcLibraryIntro div > span { display: block; margin-top: .22rem; color: var(--ov-muted); font-size: .84rem; line-height: 1.45; }
 #OvercoatConfigPage details.ovcCard { padding: 0; overflow: clip; }
 #OvercoatConfigPage details.ovcCard > summary {
     display: flex; align-items: center; gap: .55rem; min-height: 3.25rem;
@@ -383,6 +375,14 @@
 #OvercoatConfigPage #OvercoatVaultRefresh { border-radius: 999px !important; padding-inline: 1.15rem !important; }
 #OvercoatConfigPage #OvercoatUseWideCardsAll,
 #OvercoatConfigPage #OvercoatUseEpisodeStillsAll { border-radius: 999px !important; padding-inline: 1.15rem !important; }
+#OvercoatConfigPage .ovcWarningAction {
+    border-color: color-mix(in srgb, var(--ov-warning) 76%, #fff) !important;
+    color: #251900 !important; background: var(--ov-warning) !important;
+    box-shadow: 0 8px 20px -14px color-mix(in srgb, var(--ov-warning) 80%, transparent) !important;
+}
+#OvercoatConfigPage .ovcWarningAction:hover { filter: brightness(1.08); }
+#OvercoatConfigPage #OvercoatRunRestoreCard { background: transparent; border: 0; box-shadow: none; }
+#OvercoatConfigPage #OvercoatLimitCard textarea { min-height: 6.4rem; }
 #OvercoatConfigPage .ovcDryRunBanner {
     display: flex; align-items: flex-start; gap: .75rem; grid-column: 1 / -1;
     margin-top: .9rem; padding: .85rem 1rem; border: 1px solid color-mix(in srgb, var(--ov-warning) 68%, var(--ov-border));

@@ -135,6 +135,9 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       libraryActionRadii: ['OvercoatUseWideCardsAll','OvercoatUseEpisodeStillsAll'].map(id=>parseFloat(getComputedStyle(document.querySelector('#'+id)).borderRadius)),
       runTop: document.querySelector('#OvercoatRunRestoreCard').getBoundingClientRect().top,
       behaviourTop: document.querySelector('[data-panel="automation"] .ovcCard:not(#OvercoatRunRestoreCard)').getBoundingClientRect().top,
+      applyTop: document.querySelector('#OvercoatApplyTile').getBoundingClientRect().top,
+      limitTop: document.querySelector('#OvercoatLimitCard').getBoundingClientRect().top,
+      runBackground: getComputedStyle(document.querySelector('#OvercoatRunRestoreCard')).backgroundColor,
       statusSwitches: ['ShowNew','ShowAiring','ShowReturning','ShowEnded','ShowCanceled'].map(id=>{
         const el=document.querySelector('#'+id), box=el.getBoundingClientRect(), style=getComputedStyle(el);
         return [Math.round(box.width),Math.round(box.height),style.borderRadius].join(':');
@@ -151,6 +154,10 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (computed.actionRadii.some(x=>x < 20)) throw new Error(`Run/Restore/Recheck actions are not rounded (${computed.actionRadii.join(', ')}).`);
     if (computed.libraryActionRadii.some(x=>x < 20)) throw new Error(`Library artwork actions are not rounded (${computed.libraryActionRadii.join(', ')}).`);
     if (computed.runTop >= computed.behaviourTop) throw new Error('Run Now is not the first Automation section.');
+    if (page.viewportSize().width >= 1100 && Math.abs(computed.applyTop - computed.limitTop) > 2) {
+      throw new Error('Test specific titles is not beside Apply overlays.');
+    }
+    if (computed.runBackground !== 'rgba(0, 0, 0, 0)') throw new Error(`Run Now still has an outer box (${computed.runBackground}).`);
     if (new Set(computed.statusSwitches).size !== 1) throw new Error(`Status visibility switches do not share one shape (${computed.statusSwitches.join(', ')}).`);
     if (computed.previewOverflow === 'auto' || computed.previewOverflow === 'scroll' || computed.randomOrder >= computed.posterOrder) {
       throw new Error(`Preview source controls are not accessible above the artwork (${computed.randomOrder}, ${computed.posterOrder}, ${computed.previewOverflow}).`);
@@ -168,6 +175,14 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     await dryRun.click();
     if (!await page.locator('#OvercoatDryRunBanner').isVisible()) throw new Error('Dry Run notice did not appear when Dry Run was enabled.');
     await dryRun.click();
+    await page.locator('button[data-tab="recovery"]').click();
+    const recoveryWidths = await page.evaluate(() => ({
+      restore: document.querySelector('#OvercoatRestoreTile').getBoundingClientRect().width,
+      available: document.querySelector('#OvercoatRecoveryActions').getBoundingClientRect().width,
+    }));
+    if (recoveryWidths.restore < recoveryWidths.available - 2) {
+      throw new Error(`Restore Originals is not full width (${recoveryWidths.restore}/${recoveryWidths.available}).`);
+    }
     await page.locator('button[data-tab="libraries"]').click();
     const library = page.locator('.ovcLib').first();
     const libraryEnabled = library.locator('.ovcEnabled');
@@ -217,7 +232,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     }
     await posterPresets.filter({hasText:'Ribbon'}).click();
     if (await page.locator('#BannerShape').inputValue() !== 'drop'
-        || await page.locator('#BannerFontScale').inputValue() !== '0.6'
+        || await page.locator('#BannerFontScale').inputValue() !== '1'
         || !await page.locator('#BannerFullWidth').isChecked()
         || await page.locator('#BannerIcons').isChecked()) {
       throw new Error('Ribbon preset did not update the documented appearance fields.');

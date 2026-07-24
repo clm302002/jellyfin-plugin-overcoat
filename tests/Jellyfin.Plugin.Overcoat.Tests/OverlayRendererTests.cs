@@ -19,6 +19,19 @@ public sealed class OverlayRendererTests
         Assert.Equal(expected, method.Invoke(null, new object[] { input }));
     }
 
+    [Theory]
+    [InlineData("default", 1f)]
+    [InlineData("sans", 0.6f)]
+    [InlineData("serif", 0.6f)]
+    [InlineData("mono", 0.6f)]
+    public void TypefaceScale_NormalizesSystemFontMetrics(string font, float expected)
+    {
+        var method = typeof(OverlayRenderer).GetMethod("TypefaceScale", BindingFlags.NonPublic | BindingFlags.Static);
+
+        Assert.NotNull(method);
+        Assert.Equal(expected, method.Invoke(null, new object?[] { font }));
+    }
+
     [Fact]
     public void WideCardEncoding_DownscalesWithoutUpscaling()
     {

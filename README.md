@@ -134,7 +134,8 @@ to Overcoat's configuration view.
 
 Libraries expose their banner and badge choices only while **Process this library** is enabled.
 Normal processing and scheduling live in Automation; originals-vault health and restoration live in
-Recovery; advanced library targeting is collapsed beneath the detected libraries.
+Recovery. **Test specific titles** sits beside Run Now in Automation, while the always-visible
+**Titles to ignore** section sits beneath the detected libraries.
 
 The Libraries tab also reports how many current users see series wide cards versus episode stills.
 **Use Overcoat wide cards for all current users** changes Jellyfin's Next Up/Continue Watching
@@ -144,10 +145,10 @@ users** reverses that preference. Neither action changes, overlays, or deletes e
 ### Test Overcoat on a single title
 
 You do not need to process an entire library to see whether Overcoat suits it. Open
-**Settings → Libraries → Advanced targeting**, then:
+**Settings → Automation → Run now**, then:
 
 1. Enable **Process this library** for the library that contains your test title.
-2. In **Limit to specific shows or movies**, enter the title exactly as it appears in Jellyfin.
+2. In **Test specific titles**, enter the title exactly as it appears in Jellyfin.
    Enter one title per line.
 3. Leave **Dry run** enabled, select **Apply Changes**, then open **Automation → Run now** to review
    what Overcoat would process without changing artwork.
@@ -159,7 +160,7 @@ Title matching is case-insensitive but otherwise uses the complete Jellyfin titl
 an allow-list: while it contains any titles, everything not listed is skipped. It does not enable a
 library or an overlay type by itself; the normal library options still apply.
 
-**Exclude specific shows or movies** is the companion deny-list. Put one complete title per line to
+**Libraries → Titles to ignore** is the companion deny-list. Put one complete title per line to
 leave those titles untouched while the rest of each enabled library is processed. Exclusions always
 win, so a title present in both lists is still skipped. This is useful for artwork you manage
 manually, titles that need a different treatment, or anything you simply never want Overcoat to

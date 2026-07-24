@@ -6,7 +6,17 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Changed
+- **Libraries is flatter and more direct.** The introductory warning banner is removed, explanatory
+  copy is shorter, and the two all-user artwork choices are yellow warning actions. The former
+  Advanced targeting disclosure is now an always-open **Titles to ignore** section at the bottom.
+- **Run Now puts test scope beside the action.** Test specific titles now sits directly beside Apply
+  overlays, while the redundant yellow outer container is gone.
+- **Restore Originals uses the full Recovery width.** The complete restore action card now spans the
+  page instead of occupying only half of the action grid.
+- **Alternate typefaces keep a consistent visual size.** Sans, Serif, and Mono are calibrated to
+  `0.60×` internally so switching away from Display changes the style without making banner text
+  enormous. The visible Text size control remains the user's independent multiplier.
 
 ## [0.9.0-beta.3] — 2026-07-24
 

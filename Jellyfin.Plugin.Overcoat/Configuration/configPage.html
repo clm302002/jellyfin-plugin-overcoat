@@ -486,46 +486,36 @@
 
                 <!-- ===================== LIBRARIES ===================== -->
                 <div class="ovcPanel" data-panel="libraries">
-                    <div class="ovcLibraryIntro ovcCaution ovcWide" role="note">
-                        <span class="ovcIcon" aria-hidden="true">tips_and_updates</span>
-                        <div><strong>Choose where Overcoat works</strong><span>Enable a library, then choose its banners, wide cards, and badges. Advanced targeting below can limit or exclude individual titles.</span></div>
-                    </div>
                     <div class="ovcCard ovcWide">
                         <h3>Next Up &amp; Continue Watching artwork</h3>
                         <p class="fieldDescription">
-                            Jellyfin stores this choice separately for each user. Series artwork lets every
-                            current user see Overcoat's wide-card overlays. Episode stills show each episode's
-                            own image instead, without an Overcoat overlay. These buttons change only that
-                            Jellyfin display preference—they do not edit or overlay any episode artwork.
+                            Choose whether current users see Overcoat's series wide cards or normal episode
+                            stills in Next Up and Continue Watching. This changes only Jellyfin's display
+                            preference; episode artwork is never edited.
                         </p>
                         <div class="ovcRowButtons">
-                            <button is="emby-button" type="button" id="OvercoatUseWideCardsAll" class="raised">
-                                <span>Use Overcoat wide cards for all current users</span>
+                            <button is="emby-button" type="button" id="OvercoatUseWideCardsAll" class="raised ovcWarningAction">
+                                <span>Use Overcoat wide cards</span>
                             </button>
-                            <button is="emby-button" type="button" id="OvercoatUseEpisodeStillsAll" class="raised">
-                                <span>Use episode stills for all current users</span>
+                            <button is="emby-button" type="button" id="OvercoatUseEpisodeStillsAll" class="raised ovcWarningAction">
+                                <span>Use episode stills</span>
                             </button>
                         </div>
                         <p class="ovcMuted" id="OvercoatUserArtworkStatus" role="status">Checking current users…</p>
                         <p class="ovcMuted">
-                            This applies to users that exist now. Run it again after creating a new Jellyfin
-                            user. It affects the Jellyfin web client's Next Up and Continue Watching setting;
-                            other clients may choose artwork differently.
+                            Applies to users that exist now. Run it again after adding a user. Other clients
+                            may choose artwork differently.
                         </p>
                     </div>
                     <div class="ovcCard ovcWide">
                         <h3>Libraries</h3>
                         <p class="fieldDescription">
-                            Your TV &amp; movie libraries, detected automatically. Tick the ones Overcoat should
-                            process and choose what each library gets. Settings are per library, never per title.
-                            (Status banners apply to TV only.)
+                            Enable each library Overcoat should process, then choose its overlays and badges.
+                            Status banners are available for TV libraries only.
                         </p>
                         <div id="OvercoatLibraries" class="ovcGrid"><p class="ovcMuted">Loading libraries…</p></div>
                     </div>
-                    <details class="ovcCard ovcWide ovcAdvanced">
-                        <summary>Advanced targeting</summary>
-                        <div class="ovcDetailsBody ovcPurposeGrid" id="OvercoatTargetingBody"></div>
-                    </details>
+                    <div id="OvercoatTargetingBody" class="ovcPurposeGrid ovcWide"></div>
                 </div>
 
                 <!-- ===================== MAINTENANCE ===================== -->
@@ -599,7 +589,7 @@
                         <h3>Run &amp; restore</h3>
                         <div class="fieldDescription">These actions save the settings on every tab before starting their scheduled task.</div>
                     </div>
-                    <div class="ovcCard ovcWide ovcCaution" id="OvercoatRunRestoreCard">
+                    <div class="ovcWide" id="OvercoatRunRestoreCard">
                         <div class="ovcActionGrid">
                             <div class="ovcActionTile" id="OvercoatApplyTile">
                                 <h3>Apply overlays</h3>
@@ -660,19 +650,19 @@
                         <h3>Targeting &amp; matching</h3>
                         <div class="fieldDescription">Optional advanced filters for testing, exclusions, and correcting TMDB matches.</div>
                     </div>
-                    <div class="ovcCard" id="OvercoatLimitCard">
-                        <h3>Limit to specific shows/movies</h3>
+                    <div class="ovcActionTile" id="OvercoatLimitCard">
+                        <h3>Test specific titles</h3>
                         <textarea is="emby-textarea" id="LimitToTitles" rows="4"></textarea>
                         <div class="fieldDescription">
-                            One title per line. When non-empty, ONLY these titles are processed (great for testing).
-                            Leave empty to process everything in the enabled libraries.
+                            One exact Jellyfin title per line. When this has entries, Run Now processes only
+                            those titles. Clear it to run every enabled library.
                         </div>
                     </div>
 
-                    <div class="ovcCard" id="OvercoatIgnoreCard">
-                        <h3>Ignore titles</h3>
+                    <div class="ovcCard ovcWide" id="OvercoatIgnoreCard">
+                        <h3>Titles to ignore</h3>
                         <textarea is="emby-textarea" id="IgnoreTitles" rows="4"></textarea>
-                        <div class="fieldDescription">One title per line. Matching items are skipped entirely.</div>
+                        <div class="fieldDescription">One exact Jellyfin title per line. These titles are always skipped, even if also listed under Test specific titles.</div>
                     </div>
 
                     <div class="ovcCard" id="OvercoatOverridesCard">
@@ -724,9 +714,10 @@
             function organizePurposeAreas() {
                 ['OvercoatBadgeSourcesCard', 'OvercoatWatchHistoryCard', 'OvercoatImdbListsCard', 'OvercoatOverridesCard']
                     .forEach(function (id) { moveInto(id, 'OvercoatDataSourcesBody'); });
-                ['OvercoatLimitCard', 'OvercoatIgnoreCard']
-                    .forEach(function (id) { moveInto(id, 'OvercoatTargetingBody'); });
+                moveInto('OvercoatIgnoreCard', 'OvercoatTargetingBody');
                 moveInto('OvercoatRestoreTile', 'OvercoatRecoveryActions');
+                var restoreTile = page.querySelector('#OvercoatRestoreTile');
+                if (restoreTile) { restoreTile.classList.add('ovcWide'); }
                 moveInto('OvercoatRecoveryCard', 'OvercoatRecoveryBody');
                 var targetingHeading = page.querySelector('#OvercoatTargetingHeading');
                 if (targetingHeading) { targetingHeading.remove(); }
@@ -743,7 +734,8 @@
                     runHeading.insertAdjacentElement('afterend', runCard);
                 }
                 var actionGrid = page.querySelector('#OvercoatRunRestoreCard .ovcActionGrid');
-                if (actionGrid) { actionGrid.classList.add('ovcSingleAction'); }
+                var limitCard = page.querySelector('#OvercoatLimitCard');
+                if (actionGrid && limitCard) { actionGrid.appendChild(limitCard); }
             }
 
             function setSaveState(state, message) {
@@ -1158,7 +1150,7 @@
                     clean:  { style:'solid', shape:'pill', font:'default', scale:1,   icons:true,  band:false, shadow:false, strength:60 },
                     glass:  { style:'glass', shape:'pill', font:'default', scale:1,   icons:true,  band:false, shadow:true,  strength:40 },
                     neon:   { style:'neon',  shape:'pill', font:'default', scale:1,   icons:true,  band:false, shadow:false, strength:60 },
-                    ribbon: { style:'solid', shape:'drop', font:'sans',    scale:0.6, icons:false, band:true,  shadow:true,  strength:35 }
+                    ribbon: { style:'solid', shape:'drop', font:'sans',    scale:1, icons:false, band:true,  shadow:true,  strength:35 }
                 };
                 var p = presets[button.getAttribute('data-preset')];
                 if (!p) { return; }
