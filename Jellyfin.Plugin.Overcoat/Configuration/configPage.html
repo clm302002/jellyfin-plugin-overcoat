@@ -42,7 +42,7 @@
                             <div class="ovcSectionHeading ovcWide"><h3>Banner</h3></div>
                             <div class="ovcCard ovcDenseCard">
                             <h3>Style &amp; typography</h3>
-                            <div class="ovcField">
+                            <div class="ovcField ovcWide">
                                 <span class="selectLabel">Treatment</span>
                                 <select id="BannerStyle" class="ovcHiddenInput">
                                     <option value="solid">Solid</option>
@@ -96,7 +96,7 @@
 
                             <div class="ovcCard ovcDenseCard ovcLayoutCard">
                             <h3>Shape &amp; layout</h3>
-                            <div class="ovcField">
+                            <div class="ovcField ovcWide">
                                 <span class="selectLabel">Shape</span>
                                 <select id="BannerShape" class="ovcHiddenInput">
                                     <option value="pill">Pill</option>
@@ -133,7 +133,7 @@
                                     <button type="button" data-v="right">Right</button>
                                 </div>
                             </div>
-                            <div class="ovcField">
+                            <div class="ovcField ovcWide">
                                 <div class="ovcSliderRow"><span class="inputLabel">Text size</span><span class="ovcSliderVal" id="BannerFontScaleVal">1.00×</span></div>
                                 <input type="range" id="BannerFontScale" min="0.5" max="2" step="0.05" data-out="BannerFontScaleVal" data-unit="x" />
                             </div>
@@ -157,102 +157,92 @@
                             </div></details>
 
                             <details class="ovcCard" open>
-                            <summary>Status dates</summary><div class="ovcDetailsBody ovcFieldGrid">
-                            <p class="fieldDescription ovcCardLead">AIRING shows the next episode in the chosen format, always (no "within" window). RETURNING shows the upcoming episode/season date only when it's within the chosen window. (Turn AIRING off in the Statuses group and an airing show falls back to RETURNING.)</p>
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="AiringDateFormat">Airing — format</label>
-                                <select is="emby-select" id="AiringDateFormat">
-                                    <option value="date">Date (6/28)</option>
-                                    <option value="day">Day of week (Tue)</option>
-                                    <option value="countdown">Countdown (3d)</option>
-                                </select>
-                            </div>
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="ReturningDateFormat">Returning — format</label>
-                                <select is="emby-select" id="ReturningDateFormat">
-                                    <option value="date">Date (7/14)</option>
-                                    <option value="day">Day of week (Mon)</option>
-                                    <option value="countdown">Countdown (21d)</option>
-                                </select>
-                            </div>
-                            <div class="selectContainer">
-                                <label class="selectLabel" for="ReturningDateWindowDays">Returning — show date when within</label>
-                                <select is="emby-select" id="ReturningDateWindowDays">
-                                    <option value="-1">Never</option>
-                                    <option value="30">30 days</option>
-                                    <option value="60">60 days</option>
-                                    <option value="90">90 days</option>
-                                    <option value="100000">Always (when known)</option>
-                                </select>
-                                <div class="fieldDescription">The window can't be shown in the preview (it depends on real air dates) — only the format is previewed.</div>
+                            <summary>Status dates</summary><div class="ovcDetailsBody">
+                            <div class="ovcSplit">
+                                <p class="fieldDescription ovcCardLead">AIRING always shows the next episode date in the chosen format. RETURNING shows the upcoming date only when it falls within the chosen window. Turn AIRING off and an airing show falls back to RETURNING. The window depends on real air dates, so only the format previews.</p>
+                                <div class="ovcFormStack">
+                                    <div class="ovcField">
+                                        <span class="selectLabel">Airing — format</span>
+                                        <select is="emby-select" id="AiringDateFormat">
+                                            <option value="date">Date (6/28)</option>
+                                            <option value="day">Day of week (Tue)</option>
+                                            <option value="countdown">Countdown (3d)</option>
+                                        </select>
+                                    </div>
+                                    <div class="ovcField">
+                                        <span class="selectLabel">Returning — format</span>
+                                        <select is="emby-select" id="ReturningDateFormat">
+                                            <option value="date">Date (7/14)</option>
+                                            <option value="day">Day of week (Mon)</option>
+                                            <option value="countdown">Countdown (21d)</option>
+                                        </select>
+                                    </div>
+                                    <div class="ovcField">
+                                        <span class="selectLabel">Returning — show date within</span>
+                                        <select is="emby-select" id="ReturningDateWindowDays">
+                                            <option value="-1">Never</option>
+                                            <option value="30">30 days</option>
+                                            <option value="60">60 days</option>
+                                            <option value="90">90 days</option>
+                                            <option value="100000">Always (when known)</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                             </div></details>
 
                             <details class="ovcCard" open>
                             <summary>Colours &amp; labels</summary><div class="ovcDetailsBody">
-                            <div>
-                                <label class="inputLabel inputLabelUnfocused">Status colours</label>
-                                <div class="ovcColors">
-                                    <label><input type="color" id="ColorNew" /><span>New</span></label>
-                                    <label><input type="color" id="ColorAiring" /><span>Airing</span></label>
-                                    <label><input type="color" id="ColorReturning" /><span>Returning</span></label>
-                                    <label><input type="color" id="ColorEnded" /><span>Ended</span></label>
-                                    <label><input type="color" id="ColorCanceled" /><span>Canceled</span></label>
-                                </div>
-                                <div class="fieldDescription">Tap a swatch to recolour that status. Switch the preview to that status to see it.</div>
+                            <p class="fieldDescription ovcCardLead">Recolour, rename, or hide each status. Switch the preview to a status to see it.</p>
+                            <div class="ovcStatusList">
+                                <div class="ovcStatusRow2"><input type="color" id="ColorNew" aria-label="New colour" /><span class="ovcStName">New</span><input is="emby-input" type="text" id="LabelNew" /><label class="checkboxContainer ovcStToggle"><input is="emby-checkbox" type="checkbox" id="ShowNew" /></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorAiring" aria-label="Airing colour" /><span class="ovcStName">Airing</span><input is="emby-input" type="text" id="LabelAiring" /><label class="checkboxContainer ovcStToggle"><input is="emby-checkbox" type="checkbox" id="ShowAiring" /></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorReturning" aria-label="Returning colour" /><span class="ovcStName">Returning</span><input is="emby-input" type="text" id="LabelReturning" /><label class="checkboxContainer ovcStToggle"><input is="emby-checkbox" type="checkbox" id="ShowReturning" /></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorEnded" aria-label="Ended colour" /><span class="ovcStName">Ended</span><input is="emby-input" type="text" id="LabelEnded" /><label class="checkboxContainer ovcStToggle"><input is="emby-checkbox" type="checkbox" id="ShowEnded" /></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorCanceled" aria-label="Canceled colour" /><span class="ovcStName">Canceled</span><input is="emby-input" type="text" id="LabelCanceled" /><label class="checkboxContainer ovcStToggle"><input is="emby-checkbox" type="checkbox" id="ShowCanceled" /></label></div>
                             </div>
-                            </div>
-                            <h4>Statuses &amp; labels</h4>
-                            <div>
-                                <label class="inputLabel inputLabelUnfocused">Per-status: show &amp; label</label>
-                                <div class="ovcStatusRows">
-                                    <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowNew" /><span>New</span></label><input is="emby-input" type="text" id="LabelNew" /></div>
-                                    <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowAiring" /><span>Airing</span></label><input is="emby-input" type="text" id="LabelAiring" /></div>
-                                    <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowReturning" /><span>Returning</span></label><input is="emby-input" type="text" id="LabelReturning" /></div>
-                                    <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowEnded" /><span>Ended</span></label><input is="emby-input" type="text" id="LabelEnded" /></div>
-                                    <div class="ovcStatusRow"><label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ShowCanceled" /><span>Canceled</span></label><input is="emby-input" type="text" id="LabelCanceled" /></div>
-                                </div>
-                                <div class="fieldDescription">Untick to skip a status entirely; edit the text to rename it (e.g. RETURNING → RETURNS).</div>
                             </div></details>
                             <div class="ovcSectionHeading ovcWide"><h3>Badges</h3></div>
                             <div class="ovcCard">
                                 <h3>Badge sources</h3>
                                 <div class="ovcCheck">
                                     <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BadgesEnabled" /><span>Enable badges globally</span></label>
-                                    <div class="fieldDescription">Master switch for all badge sources. Individual sources are enabled per library on the Libraries tab.</div>
+                                    <div class="fieldDescription">Master switch. Sources are chosen per library.</div>
                                 </div>
-                                <div class="selectContainer">
-                                    <label class="selectLabel" for="TrendingTimeWindow">TMDB Trending window</label>
-                                    <select is="emby-select" id="TrendingTimeWindow">
+                                <div class="ovcField">
+                                    <span class="selectLabel">TMDB Trending window</span>
+                                    <select id="TrendingTimeWindow" class="ovcHiddenInput">
                                         <option value="day">Day</option>
                                         <option value="week">Week</option>
                                         <option value="month">Month</option>
                                     </select>
-                                    <div class="fieldDescription">Month uses TMDB's most popular releases from the last 30 days because its native trending feed only provides day and week.</div>
+                                    <div class="ovcSeg ovcSegRow" data-for="TrendingTimeWindow" role="group" aria-label="TMDB trending window">
+                                        <button type="button" data-v="day">Day</button>
+                                        <button type="button" data-v="week">Week</button>
+                                        <button type="button" data-v="month">Month</button>
+                                    </div>
+                                    <div class="fieldDescription">Month = TMDB's top releases from the last 30 days.</div>
                                 </div>
                             </div>
 
                             <div class="ovcCard">
                                 <h3>Watch History badge</h3>
                                 <div class="ovcFormStack">
-                                <div class="inputContainer">
-                                    <label class="inputLabel inputLabelUnfocused" for="WatchHistoryDays">Look-back period (days)</label>
+                                <div class="ovcField">
+                                    <span class="inputLabel">Look-back period (days)</span>
                                     <input is="emby-input" type="number" id="WatchHistoryDays" min="1" />
-                                    <div class="fieldDescription">An item earns this badge if it was played within this many days.</div>
+                                    <div class="fieldDescription">Played within this many days earns the badge.</div>
                                 </div>
                                 <div class="ovcCheck">
                                     <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="WatchHistoryAllUsers" /><span>Count all users' plays</span></label>
-                                    <div class="fieldDescription">Turn off to count only the selected user's plays.</div>
                                 </div>
-                                <div class="selectContainer" id="WatchHistoryUserRow">
-                                    <label class="selectLabel" for="WatchHistoryUserId">Whose plays count</label>
+                                <div class="ovcField" id="WatchHistoryUserRow">
+                                    <span class="selectLabel">Whose plays count</span>
                                     <select is="emby-select" id="WatchHistoryUserId"></select>
-                                    <div class="fieldDescription">“First admin” uses whichever administrator Jellyfin lists first.</div>
                                 </div>
-                                <div class="inputContainer">
-                                    <label class="inputLabel inputLabelUnfocused" for="WatchHistoryMaxScan">Scan cap per user</label>
+                                <div class="ovcField">
+                                    <span class="inputLabel">Scan cap per user</span>
                                     <input is="emby-input" type="number" id="WatchHistoryMaxScan" min="500" step="500" />
-                                    <div class="fieldDescription">Safety limit for recent plays scanned per user. Most libraries can keep the default.</div>
                                 </div>
                                 </div>
                             </div>

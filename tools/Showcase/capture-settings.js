@@ -32,7 +32,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       ShowNew:true, ShowAiring:true, ShowReturning:true, ShowEnded:true, ShowCanceled:true,
       LabelNew:'NEW', LabelAiring:'AIRING', LabelReturning:'RETURNING', LabelEnded:'ENDED', LabelCanceled:'CANCELED',
       ColorNew:'#5EBD3E', ColorAiring:'#00A4DC', ColorReturning:'#8E5BEF', ColorEnded:'#5A6472', ColorCanceled:'#D23B3B',
-      AiringDateFormat:'ddd', ReturningDateFormat:'M/d', ReturningDateWindowDays:90,
+      AiringDateFormat:'day', ReturningDateFormat:'date', ReturningDateWindowDays:90,
       TrendingTimeWindow:'week', WatchHistoryAllUsers:true, WatchHistoryDays:30, WatchHistoryMaxScan:2000, WatchHistoryUserId:'',
       ImdbTop250MovieListId:'', ImdbTop250TvListId:'',
       CustomScheduleTime:false, ScheduleHour:3, ScheduleMinute:0,

@@ -230,6 +230,18 @@
 #OvercoatConfigPage .ovcStatusRow { display:grid; grid-template-columns:9rem minmax(0,1fr); gap:.75rem; align-items:center; padding:.4rem 0; }
 #OvercoatConfigPage .ovcStatusRow + .ovcStatusRow { border-top:1px solid var(--ov-border); }
 
+/* split: explanatory text on the left, stacked controls on the right */
+#OvercoatConfigPage .ovcSplit { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:1.4rem; align-items:start; }
+#OvercoatConfigPage .ovcSplit .ovcCardLead { margin:0; }
+
+/* unified per-status rows: swatch · name · label · toggle */
+#OvercoatConfigPage .ovcStatusList { display:grid; gap:.1rem; margin-top:.9rem; }
+#OvercoatConfigPage .ovcStatusRow2 { display:grid; grid-template-columns:auto 6rem minmax(0,1fr) auto; gap:.8rem; align-items:center; padding:.5rem .2rem; }
+#OvercoatConfigPage .ovcStatusRow2 + .ovcStatusRow2 { border-top:1px solid var(--ov-border); }
+#OvercoatConfigPage .ovcStatusRow2 input[type="color"] { width:2rem; height:1.9rem; padding:2px; border:1px solid var(--ov-border-2); border-radius:7px; background:none; cursor:pointer; }
+#OvercoatConfigPage .ovcStName { font-size:.86rem; font-weight:700; letter-spacing:.02em; }
+#OvercoatConfigPage .ovcStToggle { justify-self:end; }
+
 /* ---------- Libraries ---------- */
 #OvercoatConfigPage .ovcGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:1.1rem; }
 #OvercoatConfigPage .ovcLib { border:1px solid var(--ov-border); border-radius:13px; padding:1.15rem; background:linear-gradient(180deg,var(--ov-hi),transparent 44%),var(--ov-surface); }
