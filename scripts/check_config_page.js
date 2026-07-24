@@ -119,6 +119,7 @@ const cssPatterns = [
   ['save dock is revealable', /\.ovcSaveDock\.ovcVisible/],
   ['plugin overflow is corrected', /overflow:\s*visible\s*!important/],
   ['desktop preview is sticky', /\.ovcBannerPreview\s*\{[^}]*position:\s*sticky/],
+  ['preview controls stay above artwork without nested scrolling', /\.ovcBannerPreview img\s*\{[^}]*order:\s*2[\s\S]*\.ovcBannerPreview \.ovcStatusSwitch\s*\{\s*order:\s*1/],
   ['navigation stays in a top rail', /\.ovcTabs\s*\{[\s\S]*position:\s*sticky;[\s\S]*flex-direction:\s*row/],
   ['operation buttons stay rounded', /#OvercoatRunNow,[\s\S]*#OvercoatRestore,[\s\S]*#OvercoatVaultRefresh\s*\{[^}]*border-radius:\s*999px\s*!important/],
   ['library artwork buttons stay rounded', /#OvercoatUseWideCardsAll,[\s\S]*#OvercoatUseEpisodeStillsAll\s*\{[^}]*border-radius:\s*999px\s*!important/],

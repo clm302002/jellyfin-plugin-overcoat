@@ -139,6 +139,9 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
         const el=document.querySelector('#'+id), box=el.getBoundingClientRect(), style=getComputedStyle(el);
         return [Math.round(box.width),Math.round(box.height),style.borderRadius].join(':');
       }),
+      previewOverflow: getComputedStyle(document.querySelector('[data-preview-kind="poster"]')).overflowY,
+      randomOrder: parseInt(getComputedStyle(document.querySelector('.ovcSourceBtn[data-source="random"]').parentElement).order, 10),
+      posterOrder: parseInt(getComputedStyle(document.querySelector('#PostersPreview')).order, 10),
     }));
     if (computed.form < Math.min(1200, computed.available - 8)) throw new Error(`Jellyfin's 54em form cap was not overridden (${computed.form}px).`);
     if (page.viewportSize().width >= 1200 && computed.minCard < 470) throw new Error(`Maintenance card is narrower than its 480px design minimum (${computed.minCard}px).`);
@@ -149,6 +152,9 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (computed.libraryActionRadii.some(x=>x < 20)) throw new Error(`Library artwork actions are not rounded (${computed.libraryActionRadii.join(', ')}).`);
     if (computed.runTop >= computed.behaviourTop) throw new Error('Run Now is not the first Automation section.');
     if (new Set(computed.statusSwitches).size !== 1) throw new Error(`Status visibility switches do not share one shape (${computed.statusSwitches.join(', ')}).`);
+    if (computed.previewOverflow === 'auto' || computed.previewOverflow === 'scroll' || computed.randomOrder >= computed.posterOrder) {
+      throw new Error(`Preview source controls are not accessible above the artwork (${computed.randomOrder}, ${computed.posterOrder}, ${computed.previewOverflow}).`);
+    }
     if (await page.locator('#TrendingTimeWindow option[value="month"]').count() !== 1) throw new Error('Monthly TMDB trending choice is missing.');
     const customSchedule = page.locator('#CustomScheduleTime');
     if (await customSchedule.isChecked()) await customSchedule.click();

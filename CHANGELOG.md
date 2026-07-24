@@ -23,6 +23,9 @@ All notable changes to Overcoat are documented here. Format follows
   makes the faster normal operating mode clear without adding more helper text.
 - **Recovery Recheck matches the action system.** The vault refresh control now uses the same
   rounded pill treatment as Apply Overcoat and Restore Originals.
+- **Live-preview controls no longer hide below the artwork.** Status, badge, Sample, and Random
+  controls now sit above the responsive preview image, and the sticky card no longer creates its own
+  nested scrollbar. Supporting copy is shorter on both Poster and Wide Card.
 
 ## [0.9.0-beta.2] — 2026-07-24
 
