@@ -21,8 +21,10 @@ badges at the product's default scale (100%, doubled by the landscape optical mu
 plate matches what a server actually draws.
 
 `capture-settings.js` loads the real embedded `configPage.html` in headless Chromium, injects local
-mock `ApiClient`/`Dashboard` objects and fictional libraries/users, and captures the Posters, Wide
-Cards, Libraries, and Maintenance tabs (`SHOWCASE_CAPTURE_ALL=1` adds TMDB API). It intentionally has
-no server address or credentials. The script expects a local Playwright installation and Chromium
+mock `ApiClient`/`Dashboard` objects plus a fictional Jellyfin catalogue, libraries, and users. It
+captures Posters, Wide Cards, Libraries, and Automation by default; `SHOWCASE_CAPTURE_ALL=1` adds
+Data Sources and Recovery. Its behavior pass selects exact catalogue items for targeted runs and
+exclusions, then verifies that their stable Jellyfin IDs reach the saved configuration. It
+intentionally has no server address or credentials. The script expects a local Playwright installation and Chromium
 executable — `npm install playwright && npx playwright install chromium`. Standard Playwright discovery
 is used; `PLAYWRIGHT_MODULE` and `CHROMIUM_EXECUTABLE` may override them on a development workstation.

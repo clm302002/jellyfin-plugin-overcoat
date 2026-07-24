@@ -36,7 +36,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       ImdbTop250MovieListId:'', ImdbTop250TvListId:'',
       CustomScheduleTime:false, ScheduleHour:3, ScheduleMinute:0,
       CacheEnabled:true, DryRun:false, ReapplyAfterScan:true, ForceRestore:false,
-      IgnoreTitles:'', LimitToTitles:'', TmdbOverrides:'', TmdbApiKey:'',
+      IgnoreTitles:[], IgnoreItemIds:[], LimitToTitles:[], LimitToItemIds:[], TmdbOverrides:[], TmdbApiKey:'',
       FutureSetting:'preserve-me',
       Libraries:[
         {Name:'TV Shows',Enabled:true,StatusOverlays:true,TrendingBadge:true,WatchHistoryBadge:true,ImdbTop250Badge:false},
@@ -44,7 +44,11 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       ]
     };
     window.__captureUpdates = [];
-    window.ApiClient = { accessToken:()=> 'synthetic-capture-token', getUrl:(route)=>route.includes('configPage.css') ? cssUrl : previewUrl, getJSON:()=>Promise.resolve([]), ajax:()=>Promise.resolve({}), getPluginConfiguration:()=>Promise.resolve(config), updatePluginConfiguration:(_id, next)=>{ window.__captureUpdates.push(next); Object.assign(config, next); return Promise.resolve(next); }, getVirtualFolders:()=>Promise.resolve([{Name:'TV Shows',CollectionType:'tvshows'},{Name:'Movies',CollectionType:'movies'}]), getUsers:()=>Promise.resolve([{Id:'demo',Name:'Demo user'}]), getScheduledTasks:()=>Promise.resolve([]) };
+    const catalogue = [
+      {Id:'11111111111111111111111111111111',Name:'Breaking Bad',Type:'Series',ProductionYear:2008},
+      {Id:'22222222222222222222222222222222',Name:'El Camino: A Breaking Bad Movie',Type:'Movie',ProductionYear:2019}
+    ];
+    window.ApiClient = { accessToken:()=> 'synthetic-capture-token', getUrl:(route)=>route.includes('configPage.css') ? cssUrl : (route === 'Items' ? route : previewUrl), getJSON:(url)=>Promise.resolve(String(url).startsWith('Items') ? {Items:catalogue} : []), ajax:()=>Promise.resolve({}), getPluginConfiguration:()=>Promise.resolve(config), updatePluginConfiguration:(_id, next)=>{ window.__captureUpdates.push(next); Object.assign(config, next); return Promise.resolve(next); }, getVirtualFolders:()=>Promise.resolve([{Name:'TV Shows',CollectionType:'tvshows'},{Name:'Movies',CollectionType:'movies'}]), getUsers:()=>Promise.resolve([{Id:'demo',Name:'Demo user'}]), getScheduledTasks:()=>Promise.resolve([]) };
     window.Dashboard = { showLoadingMsg(){}, hideLoadingMsg(){}, processPluginConfigurationUpdateResult(){}, alert(){}, confirm(_m,_t,cb){cb(false);} };
   }, {previewUrl:'file://' + path.join(root, 'private/showcase-input/breaking-bad.jpg'), cssUrl:'file://' + path.join(root, 'Jellyfin.Plugin.Overcoat/Configuration/configPage.css')});
   await page.goto('file://' + path.join(root, 'Jellyfin.Plugin.Overcoat/Configuration/configPage.html'));
@@ -136,7 +140,8 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       runTop: document.querySelector('#OvercoatRunRestoreCard').getBoundingClientRect().top,
       behaviourTop: document.querySelector('[data-panel="automation"] .ovcCard:not(#OvercoatRunRestoreCard)').getBoundingClientRect().top,
       applyTop: document.querySelector('#OvercoatApplyTile').getBoundingClientRect().top,
-      limitTop: document.querySelector('#OvercoatLimitCard').getBoundingClientRect().top,
+      applyWidth: document.querySelector('#OvercoatApplyTile').getBoundingClientRect().width,
+      runWidth: document.querySelector('#OvercoatRunRestoreCard').getBoundingClientRect().width,
       runBackground: getComputedStyle(document.querySelector('#OvercoatRunRestoreCard')).backgroundColor,
       statusSwitches: ['ShowNew','ShowAiring','ShowReturning','ShowEnded','ShowCanceled'].map(id=>{
         const el=document.querySelector('#'+id), box=el.getBoundingClientRect(), style=getComputedStyle(el);
@@ -154,9 +159,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (computed.actionRadii.some(x=>x < 20)) throw new Error(`Run/Restore/Recheck actions are not rounded (${computed.actionRadii.join(', ')}).`);
     if (computed.libraryActionRadii.some(x=>x < 20)) throw new Error(`Library artwork actions are not rounded (${computed.libraryActionRadii.join(', ')}).`);
     if (computed.runTop >= computed.behaviourTop) throw new Error('Run Now is not the first Automation section.');
-    if (page.viewportSize().width >= 1100 && Math.abs(computed.applyTop - computed.limitTop) > 2) {
-      throw new Error('Test specific titles is not beside Apply overlays.');
-    }
+    if (Math.abs(computed.applyWidth - computed.runWidth) > 2) throw new Error('Apply and test-title card does not span the full Run Now width.');
     if (computed.runBackground !== 'rgba(0, 0, 0, 0)') throw new Error(`Run Now still has an outer box (${computed.runBackground}).`);
     if (new Set(computed.statusSwitches).size !== 1) throw new Error(`Status visibility switches do not share one shape (${computed.statusSwitches.join(', ')}).`);
     if (computed.previewOverflow === 'auto' || computed.previewOverflow === 'scroll' || computed.randomOrder >= computed.posterOrder) {
@@ -228,6 +231,17 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     await dateDetails.locator('summary').click();
     if ((await dateDetails.getAttribute('open')) === wasOpen) throw new Error('Banner accordion did not toggle.');
     await page.locator('button[data-tab="automation"]').click();
+    await page.locator('#OvercoatTitleSearch').fill('Breaking Bad');
+    await page.locator('#OvercoatTitleSearchButton').click();
+    await page.locator('#OvercoatTitleResults .ovcTitleResult').first().click();
+    if (!/locked to 1 exact title/i.test(await page.locator('#OvercoatTargetScope').textContent())) {
+      throw new Error('Targeted-run picker did not confirm its exact Jellyfin selection.');
+    }
+    await page.locator('button[data-tab="libraries"]').click();
+    await page.locator('#OvercoatIgnoreSearch').fill('El Camino');
+    await page.locator('#OvercoatIgnoreSearchButton').click();
+    await page.locator('#OvercoatIgnoreResults .ovcTitleResult').nth(1).click();
+    await page.locator('button[data-tab="automation"]').click();
     await page.locator('#CacheEnabled').click();
     await page.locator('#CacheEnabled').dispatchEvent('input');
     const dirtyText = await page.locator('#OvercoatSaveState').textContent();
@@ -240,6 +254,10 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     const update = await page.evaluate(() => window.__captureUpdates[window.__captureUpdates.length - 1] || null);
     if (!update || update.BannerShape !== 'square' || update.BadgesEnabled !== true || update.Libraries?.length !== 2) {
       throw new Error('Saved configuration did not contain the edited shape, badge switch, and libraries.');
+    }
+    if (update.LimitToItemIds?.[0] !== '11111111111111111111111111111111'
+        || update.IgnoreItemIds?.[0] !== '22222222222222222222222222222222') {
+      throw new Error('Exact Jellyfin title selections were not serialized as stable item IDs.');
     }
     if (update.FutureSetting !== 'preserve-me') throw new Error('Saving dropped an unknown future configuration field.');
     await page.locator('button[data-tab="design"]').click();

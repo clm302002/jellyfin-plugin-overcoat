@@ -358,11 +358,20 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets show/movie titles to skip entirely.</summary>
     public List<string> IgnoreTitles { get; set; } = new();
 
+    /// <summary>Gets or sets stable Jellyfin item ids to skip entirely.</summary>
+    public List<Guid> IgnoreItemIds { get; set; } = new();
+
     /// <summary>
     /// Gets or sets an allow-list of titles. When non-empty, ONLY these titles are processed
     /// (targeted reprocessing / safe single-show testing). Empty = process everything.
     /// </summary>
     public List<string> LimitToTitles { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the stable Jellyfin item ids selected for a targeted run. These are combined
+    /// with the legacy title allow-list so upgrading cannot silently drop an existing target.
+    /// </summary>
+    public List<Guid> LimitToItemIds { get; set; } = new();
 
     /// <summary>Gets or sets manual title→TMDB id overrides for items that resolve incorrectly.</summary>
     public List<TmdbOverride> TmdbOverrides { get; set; } = new();

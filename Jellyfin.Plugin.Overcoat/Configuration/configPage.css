@@ -382,7 +382,69 @@
 }
 #OvercoatConfigPage .ovcWarningAction:hover { filter: brightness(1.08); }
 #OvercoatConfigPage #OvercoatRunRestoreCard { background: transparent; border: 0; box-shadow: none; }
-#OvercoatConfigPage #OvercoatLimitCard textarea { min-height: 6.4rem; }
+#OvercoatConfigPage #OvercoatApplyTile {
+    display: grid; grid-template-columns: minmax(14rem, .7fr) minmax(22rem, 1.3fr);
+    gap: clamp(1.4rem, 4vw, 3.5rem); width: 100%; padding: clamp(1.35rem, 3vw, 2rem);
+    border-color: color-mix(in srgb, var(--ov-accent) 25%, var(--ov-border));
+    background:
+        radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--ov-accent) 10%, transparent), transparent 34%),
+        linear-gradient(155deg, var(--ov-hi), transparent 44%), var(--ov-surface);
+}
+#OvercoatConfigPage .ovcRunLead { align-self: center; }
+#OvercoatConfigPage .ovcRunLead h3 { margin: .2rem 0 .45rem; font-size: clamp(1.35rem, 2vw, 1.8rem); }
+#OvercoatConfigPage .ovcRunLead #OvercoatRunNow { margin-top: 1rem; }
+#OvercoatConfigPage .ovcTargetPicker { display: grid; gap: .85rem; min-width: 0; padding-left: clamp(1rem, 3vw, 2.2rem); border-left: 1px solid var(--ov-border); }
+#OvercoatConfigPage .ovcTargetPicker h4 { margin: 0; font-size: 1rem; }
+#OvercoatConfigPage .ovcOptional {
+    display: inline-flex; margin-left: .35rem; padding: .12rem .45rem; border: 1px solid var(--ov-border);
+    border-radius: 99px; color: var(--ov-faint); font-size: .62rem; letter-spacing: .06em; text-transform: uppercase;
+}
+#OvercoatConfigPage .ovcTitleSearch { min-width: 0; }
+#OvercoatConfigPage .ovcSearchRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .55rem; align-items: stretch; }
+#OvercoatConfigPage .ovcSearchRow button { margin: 0; min-width: 6.4rem; }
+#OvercoatConfigPage .ovcTitleResults {
+    overflow: hidden; border: 1px solid var(--ov-border-strong); border-radius: 11px;
+    background: var(--ov-canvas); box-shadow: 0 18px 36px -28px rgba(0,0,0,.9);
+}
+#OvercoatConfigPage .ovcTitleResults[hidden] { display: none !important; }
+#OvercoatConfigPage .ovcTitleResult {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    width: 100%; margin: 0; padding: .72rem .85rem !important; border: 0; border-radius: 0 !important;
+    color: var(--ov-text); background: transparent; text-align: left; cursor: pointer;
+}
+#OvercoatConfigPage .ovcTitleResult + .ovcTitleResult { border-top: 1px solid var(--ov-border); }
+#OvercoatConfigPage .ovcTitleResult:hover,
+#OvercoatConfigPage .ovcTitleResult:focus-visible { background: var(--ov-accent-soft); }
+#OvercoatConfigPage .ovcTitleResult span { flex: 0 0 auto; color: var(--ov-muted); font-size: .78rem; }
+#OvercoatConfigPage .ovcSearchEmpty { margin: 0; padding: .8rem; color: var(--ov-muted); font-size: .84rem; }
+#OvercoatConfigPage .ovcSelectedTitles { display: flex; flex-wrap: wrap; gap: .5rem; }
+#OvercoatConfigPage .ovcSelectedTitle {
+    display: inline-flex; align-items: center; gap: .55rem; min-width: 0; padding: .4rem .42rem .4rem .7rem;
+    border: 1px solid color-mix(in srgb, var(--ov-accent) 45%, var(--ov-border));
+    border-radius: 99px; color: var(--ov-text); background: var(--ov-accent-soft); font-size: .8rem; font-weight: 700;
+}
+#OvercoatConfigPage .ovcRemoveTitle {
+    display: grid; place-items: center; width: 1.35rem; height: 1.35rem; margin: 0; padding: 0 !important;
+    border: 0; border-radius: 50% !important; color: var(--ov-muted); background: var(--ov-surface-2); cursor: pointer;
+}
+#OvercoatConfigPage .ovcTargetScope {
+    margin: 0; padding: .7rem .8rem; border-left: 3px solid var(--ov-accent); border-radius: 0 9px 9px 0;
+    color: var(--ov-muted); background: var(--ov-canvas); font-size: .82rem;
+}
+#OvercoatConfigPage .ovcLegacyTargets {
+    padding: .8rem; border: 1px solid color-mix(in srgb, var(--ov-warning) 45%, var(--ov-border));
+    border-radius: 10px; background: color-mix(in srgb, var(--ov-warning) 7%, var(--ov-canvas)); font-size: .82rem;
+}
+#OvercoatConfigPage .ovcLegacyTargets[hidden] { display: none !important; }
+#OvercoatConfigPage .ovcLegacyTargets button { margin: .65rem 0 0; }
+#OvercoatConfigPage .ovcLegacyChip { display: inline-flex; margin: .35rem .35rem 0 0; padding: .28rem .5rem; border-radius: 7px; background: var(--ov-surface-2); }
+#OvercoatConfigPage #OvercoatIgnoreCard { display: grid; gap: .8rem; }
+#OvercoatConfigPage #OvercoatIgnoreCard > h3 { margin-bottom: 0; }
+#OvercoatConfigPage .ovcRestoreTile { text-align: center; padding: clamp(1.5rem, 4vw, 2.4rem); }
+#OvercoatConfigPage .ovcRestoreTile > .fieldDescription { max-width: 42rem; margin: .35rem auto; }
+#OvercoatConfigPage .ovcRestoreTile .ovcCheck { max-width: 42rem; margin: .85rem auto 0; text-align: left; }
+#OvercoatConfigPage .ovcRestoreTile .checkboxContainer { justify-content: center; }
+#OvercoatConfigPage .ovcRestoreTile .ovcCheck .fieldDescription { text-align: center; }
 #OvercoatConfigPage .ovcDryRunBanner {
     display: flex; align-items: flex-start; gap: .75rem; grid-column: 1 / -1;
     margin-top: .9rem; padding: .85rem 1rem; border: 1px solid color-mix(in srgb, var(--ov-warning) 68%, var(--ov-border));
@@ -450,6 +512,8 @@
     #OvercoatConfigPage .ovcTab { width: auto; justify-content: center; padding-inline: .9rem; }
 }
 @media (max-width: 1099px) {
+    #OvercoatConfigPage #OvercoatApplyTile { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcTargetPicker { padding: 1.1rem 0 0; border-top: 1px solid var(--ov-border); border-left: 0; }
     #OvercoatConfigPage .ovcBannerLayout { grid-template-columns: 1fr; grid-template-areas: 'surface' 'notice' 'preview' 'controls'; }
     #OvercoatConfigPage .ovcBannerPreview { position: static; max-height: none; overflow: visible; }
     #OvercoatConfigPage .ovcBannerControls { grid-template-columns: 1fr; }
@@ -487,6 +551,9 @@
     #OvercoatConfigPage .ovcBannerPreview { min-height: 0; }
     #OvercoatConfigPage .ovcBannerPreview img { max-width: 235px; }
     #OvercoatConfigPage .ovcWidePreview img { max-width: 100%; }
+    #OvercoatConfigPage .ovcSearchRow { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcSearchRow button { width: 100%; }
+    #OvercoatConfigPage .ovcTitleResult { align-items: flex-start; flex-direction: column; gap: .2rem; }
 }
 @media (max-width: 520px) {
     #OvercoatConfigPage .ovcStatusHeader { display: none; }

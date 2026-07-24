@@ -8,6 +8,24 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.9.0-beta.5] — 2026-07-24
+
+### Changed
+- **Targeting now selects exact Jellyfin items.** Run Now and Titles to ignore use guided catalogue
+  search and store stable Jellyfin item IDs instead of relying on hand-typed names. Search results
+  show media type and year, selected items are removable chips, duplicate titles are unambiguous,
+  and older name-based settings remain visible and active until explicitly cleared.
+- **Run Now and Recovery have stronger action layouts.** Apply Overcoat and its optional test scope
+  now share one full-width guided card, while Restore Originals uses centered copy, controls, and
+  restrained line lengths.
+- **Scan follow-up is visibly recommended.** Re-apply after a library scan now carries the same
+  **Recommended on** badge as Skip Cache.
+
+### Fixed
+- **Library artwork actions clearly state their scope.** Both yellow preference buttons once again
+  say **for all users**, making it explicit that these actions change every current user's Jellyfin
+  display preference rather than only the administrator's.
+
 ## [0.9.0-beta.4] — 2026-07-24
 
 ### Changed

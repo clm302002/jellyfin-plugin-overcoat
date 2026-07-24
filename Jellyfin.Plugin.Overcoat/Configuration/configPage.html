@@ -495,10 +495,10 @@
                         </p>
                         <div class="ovcRowButtons">
                             <button is="emby-button" type="button" id="OvercoatUseWideCardsAll" class="raised ovcWarningAction">
-                                <span>Use Overcoat wide cards</span>
+                                <span>Use Overcoat wide cards for all users</span>
                             </button>
                             <button is="emby-button" type="button" id="OvercoatUseEpisodeStillsAll" class="raised ovcWarningAction">
-                                <span>Use episode stills</span>
+                                <span>Use episode stills for all users</span>
                             </button>
                         </div>
                         <p class="ovcMuted" id="OvercoatUserArtworkStatus" role="status">Checking current users…</p>
@@ -569,7 +569,7 @@
                         </div>
                         <div class="fieldDescription" id="ScheduleSummary"></div>
                         <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ReapplyAfterScan" /><span>Re-apply after a library scan</span></label>
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ReapplyAfterScan" /><span>Re-apply after a library scan <span class="ovcRecommended">Recommended on</span></span></label>
                             <div class="fieldDescription">
                                 A Jellyfin library scan re-adopts posters stored in your media folders and strips
                                 Overcoat's overlays off the affected items — Jellyfin does this automatically and it
@@ -592,14 +592,41 @@
                     <div class="ovcWide" id="OvercoatRunRestoreCard">
                         <div class="ovcActionGrid">
                             <div class="ovcActionTile" id="OvercoatApplyTile">
-                                <h3>Apply overlays</h3>
-                                <p class="fieldDescription">Process enabled libraries now using the settings currently shown on this page.</p>
-                                <button is="emby-button" type="button" id="OvercoatRunNow" class="raised"><span>▶ Apply Overcoat Overlays now</span></button>
+                                <div class="ovcRunLead">
+                                    <span class="ovcEyebrow">Run now</span>
+                                    <h3>Apply Overcoat</h3>
+                                    <p class="fieldDescription">Save the settings shown on every tab, then process the selected scope.</p>
+                                    <button is="emby-button" type="button" id="OvercoatRunNow" class="raised"><span>▶ Apply Overcoat overlays now</span></button>
+                                </div>
+                                <div class="ovcTargetPicker">
+                                    <div>
+                                        <h4>Test on specific titles <span class="ovcOptional">Optional</span></h4>
+                                        <p class="fieldDescription">Search your Jellyfin library and choose an exact result. Overcoat saves the item's Jellyfin ID—not the words you typed—so duplicate names and spelling cannot target the wrong title.</p>
+                                    </div>
+                                    <div class="ovcTitleSearch">
+                                        <label class="inputLabel" for="OvercoatTitleSearch">Find a movie or series</label>
+                                        <div class="ovcSearchRow">
+                                            <input is="emby-input" type="text" id="OvercoatTitleSearch" autocomplete="off" placeholder="Start typing a title…" aria-controls="OvercoatTitleResults" data-ovc-transient />
+                                            <button is="emby-button" type="button" id="OvercoatTitleSearchButton" class="raised"><span>Search</span></button>
+                                        </div>
+                                        <div class="fieldDescription">Type at least two characters. A TMDB ID is not needed.</div>
+                                    </div>
+                                    <div id="OvercoatTitleResults" class="ovcTitleResults" role="listbox" aria-label="Matching Jellyfin titles" hidden></div>
+                                    <div id="OvercoatSelectedTitles" class="ovcSelectedTitles"></div>
+                                    <input type="hidden" id="LimitToItemIds" />
+                                    <div id="OvercoatLegacyTargets" class="ovcLegacyTargets" hidden>
+                                        <strong>Older name-based targets</strong>
+                                        <p class="fieldDescription">These came from an earlier Overcoat version. Remove them and select the title above to lock the match to Jellyfin's item ID.</p>
+                                        <div id="OvercoatLegacyTargetList"></div>
+                                        <button is="emby-button" type="button" id="OvercoatClearLegacyTargets"><span>Clear older targets</span></button>
+                                    </div>
+                                    <p class="ovcTargetScope" id="OvercoatTargetScope" role="status">No test titles selected — Apply Overcoat will process every enabled library.</p>
+                                </div>
                             </div>
                             <div class="ovcActionTile ovcRestoreTile" id="OvercoatRestoreTile">
                                 <h3>Restore originals</h3>
-                                <p class="fieldDescription">Put back clean posters saved in Overcoat's originals vault.</p>
-                                <button is="emby-button" type="button" id="OvercoatRestore" class="raised"><span>↩ Restore original posters</span></button>
+                                <p class="fieldDescription">Put back clean posters and series wide cards saved in Overcoat's originals vault.</p>
+                                <button is="emby-button" type="button" id="OvercoatRestore" class="raised"><span>↩ Restore original artwork</span></button>
                                 <div class="ovcCheck">
                                     <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ForceRestore" /><span>Force restore over changed artwork</span></label>
                                     <div class="fieldDescription">Normally Restore protects artwork changed outside Overcoat. Enable this only when the vaulted copy should win regardless.</div>
@@ -650,19 +677,30 @@
                         <h3>Targeting &amp; matching</h3>
                         <div class="fieldDescription">Optional advanced filters for testing, exclusions, and correcting TMDB matches.</div>
                     </div>
-                    <div class="ovcActionTile" id="OvercoatLimitCard">
-                        <h3>Test specific titles</h3>
-                        <textarea is="emby-textarea" id="LimitToTitles" rows="4"></textarea>
-                        <div class="fieldDescription">
-                            One exact Jellyfin title per line. When this has entries, Run Now processes only
-                            those titles. Clear it to run every enabled library.
-                        </div>
-                    </div>
+                    <textarea class="ovcHiddenInput" id="LimitToTitles" aria-hidden="true" tabindex="-1"></textarea>
 
                     <div class="ovcCard ovcWide" id="OvercoatIgnoreCard">
                         <h3>Titles to ignore</h3>
-                        <textarea is="emby-textarea" id="IgnoreTitles" rows="4"></textarea>
-                        <div class="fieldDescription">One exact Jellyfin title per line. These titles are always skipped, even if also listed under Test specific titles.</div>
+                        <p class="fieldDescription">Search your Jellyfin catalogue and select anything Overcoat should always skip. Exact item IDs prevent a similarly named movie or series from being excluded by mistake.</p>
+                        <div class="ovcTitleSearch">
+                            <label class="inputLabel" for="OvercoatIgnoreSearch">Find a movie or series</label>
+                            <div class="ovcSearchRow">
+                                <input is="emby-input" type="text" id="OvercoatIgnoreSearch" autocomplete="off" placeholder="Start typing a title…" aria-controls="OvercoatIgnoreResults" data-ovc-transient />
+                                <button is="emby-button" type="button" id="OvercoatIgnoreSearchButton" class="raised"><span>Search</span></button>
+                            </div>
+                            <div class="fieldDescription">Choose the result from Jellyfin; a TMDB ID is not needed.</div>
+                        </div>
+                        <div id="OvercoatIgnoreResults" class="ovcTitleResults" role="listbox" aria-label="Matching Jellyfin titles to ignore" hidden></div>
+                        <div id="OvercoatIgnoredTitles" class="ovcSelectedTitles"></div>
+                        <input type="hidden" id="IgnoreItemIds" />
+                        <textarea class="ovcHiddenInput" id="IgnoreTitles" aria-hidden="true" tabindex="-1"></textarea>
+                        <div id="OvercoatLegacyIgnores" class="ovcLegacyTargets" hidden>
+                            <strong>Older name-based exclusions</strong>
+                            <p class="fieldDescription">These remain active for compatibility. Clear them and select exact Jellyfin results above when convenient.</p>
+                            <div id="OvercoatLegacyIgnoreList"></div>
+                            <button is="emby-button" type="button" id="OvercoatClearLegacyIgnores"><span>Clear older exclusions</span></button>
+                        </div>
+                        <p class="ovcTargetScope" id="OvercoatIgnoreScope" role="status">No titles selected — nothing is excluded by item ID.</p>
                     </div>
 
                     <div class="ovcCard" id="OvercoatOverridesCard">
@@ -704,6 +742,8 @@
             var draftKey = 'overcoat-ui-draft-v1';
             var isDirty = false;
             var baselineSnapshot = null;
+            var selectedTargetItems = [];
+            var selectedIgnoredItems = [];
 
             function moveInto(id, targetId) {
                 var el = page.querySelector('#' + id);
@@ -734,8 +774,7 @@
                     runHeading.insertAdjacentElement('afterend', runCard);
                 }
                 var actionGrid = page.querySelector('#OvercoatRunRestoreCard .ovcActionGrid');
-                var limitCard = page.querySelector('#OvercoatLimitCard');
-                if (actionGrid && limitCard) { actionGrid.appendChild(limitCard); }
+                if (actionGrid) { actionGrid.classList.add('ovcSingleAction'); }
             }
 
             function setSaveState(state, message) {
@@ -758,7 +797,7 @@
 
             function captureDraft() {
                 var controls = {};
-                page.querySelectorAll('input[id], select[id], textarea[id]').forEach(function (el) {
+                page.querySelectorAll('input[id]:not([data-ovc-transient]), select[id], textarea[id]').forEach(function (el) {
                     if (el.type === 'checkbox') { controls[el.id] = !!el.checked; }
                     else { controls[el.id] = el.value; }
                 });
@@ -1443,6 +1482,159 @@
             function linesToList(text) {
                 return (text || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
             }
+
+            function itemLabel(item) {
+                var kind = item.Type === 'Series' ? 'Series' : 'Movie';
+                return item.Name + (item.ProductionYear ? ' (' + item.ProductionYear + ')' : '') + ' · ' + kind;
+            }
+
+            function normalizedItemId(id) {
+                return String(id || '').replace(/-/g, '').toLowerCase();
+            }
+
+            function targetPicker(kind) {
+                var ignored = kind === 'ignore';
+                return {
+                    items: ignored ? selectedIgnoredItems : selectedTargetItems,
+                    input: page.querySelector(ignored ? '#OvercoatIgnoreSearch' : '#OvercoatTitleSearch'),
+                    results: page.querySelector(ignored ? '#OvercoatIgnoreResults' : '#OvercoatTitleResults'),
+                    selected: page.querySelector(ignored ? '#OvercoatIgnoredTitles' : '#OvercoatSelectedTitles'),
+                    hidden: page.querySelector(ignored ? '#IgnoreItemIds' : '#LimitToItemIds'),
+                    scope: page.querySelector(ignored ? '#OvercoatIgnoreScope' : '#OvercoatTargetScope')
+                };
+            }
+
+            function syncTargetPicker(kind, markChanged) {
+                var picker = targetPicker(kind);
+                picker.selected.textContent = '';
+                picker.items.forEach(function (item) {
+                    var chip = document.createElement('div');
+                    chip.className = 'ovcSelectedTitle';
+                    var text = document.createElement('span');
+                    text.textContent = itemLabel(item);
+                    var remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'ovcRemoveTitle';
+                    remove.setAttribute('aria-label', 'Remove ' + item.Name);
+                    remove.textContent = '×';
+                    remove.addEventListener('click', function () {
+                        picker.items.splice(picker.items.indexOf(item), 1);
+                        syncTargetPicker(kind, true);
+                    });
+                    chip.appendChild(text);
+                    chip.appendChild(remove);
+                    picker.selected.appendChild(chip);
+                });
+                picker.hidden.value = picker.items.map(function (item) { return item.Id; }).join(',');
+                if (kind === 'ignore') {
+                    picker.scope.textContent = picker.items.length
+                        ? picker.items.length + ' exact title' + (picker.items.length === 1 ? '' : 's') + ' will always be skipped.'
+                        : 'No titles selected — nothing is excluded by item ID.';
+                } else {
+                    picker.scope.textContent = picker.items.length
+                        ? 'Test mode locked to ' + picker.items.length + ' exact title' + (picker.items.length === 1 ? '' : 's') + '.'
+                        : 'No test titles selected — Apply Overcoat will process every enabled library.';
+                }
+                if (markChanged) { markDraftChanged(); }
+            }
+
+            function renderTitleResults(kind, items, message) {
+                var picker = targetPicker(kind);
+                picker.results.textContent = '';
+                picker.results.hidden = false;
+                if (message || !items.length) {
+                    var empty = document.createElement('p');
+                    empty.className = 'ovcSearchEmpty';
+                    empty.textContent = message || 'No matching movies or series found in Jellyfin.';
+                    picker.results.appendChild(empty);
+                    return;
+                }
+                items.forEach(function (item) {
+                    var row = document.createElement('button');
+                    row.type = 'button';
+                    row.className = 'ovcTitleResult';
+                    row.setAttribute('role', 'option');
+                    var main = document.createElement('strong');
+                    main.textContent = item.Name;
+                    var meta = document.createElement('span');
+                    meta.textContent = (item.Type === 'Series' ? 'Series' : 'Movie')
+                        + (item.ProductionYear ? ' · ' + item.ProductionYear : '');
+                    row.appendChild(main);
+                    row.appendChild(meta);
+                    row.addEventListener('click', function () {
+                        if (!picker.items.some(function (chosen) {
+                            return normalizedItemId(chosen.Id) === normalizedItemId(item.Id);
+                        })) {
+                            picker.items.push(item);
+                            syncTargetPicker(kind, true);
+                        }
+                        picker.input.value = '';
+                        picker.results.hidden = true;
+                    });
+                    picker.results.appendChild(row);
+                });
+            }
+
+            function searchJellyfinTitles(kind) {
+                var picker = targetPicker(kind);
+                var term = picker.input.value.trim();
+                if (term.length < 2) {
+                    renderTitleResults(kind, [], 'Type at least two characters to search.');
+                    return;
+                }
+                renderTitleResults(kind, [], 'Searching Jellyfin…');
+                var url = ApiClient.getUrl('Items') + '?Recursive=true&IncludeItemTypes=Movie,Series'
+                    + '&Fields=ProductionYear&Limit=12&SearchTerm=' + encodeURIComponent(term);
+                ApiClient.getJSON(url).then(function (response) {
+                    renderTitleResults(kind, (response && response.Items) || []);
+                }, function () {
+                    renderTitleResults(kind, [], 'Jellyfin search could not be loaded. Try again.');
+                });
+            }
+
+            function loadSelectedItems(kind, ids) {
+                var picker = targetPicker(kind);
+                ids = (ids || []).map(String).filter(Boolean);
+                picker.items.splice(0, picker.items.length);
+                if (!ids.length) {
+                    syncTargetPicker(kind, false);
+                    return Promise.resolve();
+                }
+                var url = ApiClient.getUrl('Items') + '?Ids=' + encodeURIComponent(ids.join(','))
+                    + '&Fields=ProductionYear&Limit=' + ids.length;
+                return ApiClient.getJSON(url).then(function (response) {
+                    ((response && response.Items) || []).forEach(function (item) { picker.items.push(item); });
+                    // Keep an unresolved id active and visible instead of silently broadening the run.
+                    ids.filter(function (id) {
+                        return !picker.items.some(function (item) {
+                            return normalizedItemId(item.Id) === normalizedItemId(id);
+                        });
+                    }).forEach(function (id) {
+                        picker.items.push({ Id: id, Name: 'Unavailable Jellyfin item', Type: 'Movie' });
+                    });
+                    syncTargetPicker(kind, false);
+                }, function () {
+                    ids.forEach(function (id) {
+                        picker.items.push({ Id: id, Name: 'Unavailable Jellyfin item', Type: 'Movie' });
+                    });
+                    syncTargetPicker(kind, false);
+                });
+            }
+
+            function renderLegacyTargets(kind) {
+                var ignored = kind === 'ignore';
+                var names = linesToList(page.querySelector(ignored ? '#IgnoreTitles' : '#LimitToTitles').value);
+                var wrapper = page.querySelector(ignored ? '#OvercoatLegacyIgnores' : '#OvercoatLegacyTargets');
+                var list = page.querySelector(ignored ? '#OvercoatLegacyIgnoreList' : '#OvercoatLegacyTargetList');
+                wrapper.hidden = !names.length;
+                list.textContent = '';
+                names.forEach(function (name) {
+                    var chip = document.createElement('span');
+                    chip.className = 'ovcLegacyChip';
+                    chip.textContent = name;
+                    list.appendChild(chip);
+                });
+            }
             function parseOverrides(text) {
                 return linesToList(text).map(function (l) {
                     var p = l.split('|').map(function (s) { return s.trim(); });
@@ -1674,6 +1866,8 @@
                     page.querySelector('#ImdbTop250MovieListId').value = config.ImdbTop250MovieListId || '';
                     page.querySelector('#LimitToTitles').value = (config.LimitToTitles || []).join('\n');
                     page.querySelector('#IgnoreTitles').value = (config.IgnoreTitles || []).join('\n');
+                    renderLegacyTargets('target');
+                    renderLegacyTargets('ignore');
                     page.querySelector('#TmdbOverrides').value = (config.TmdbOverrides || []).map(function (o) {
                         return o.Name + ' | ' + (o.Year || 0) + ' | ' + (o.TmdbId || 0);
                     }).join('\n');
@@ -1681,13 +1875,32 @@
                     syncSegments();
                     syncSliders();
                     refreshVaultStats();
-                    Promise.all([loadUsers(config), loadLibraries(config), refreshUserArtworkStatus()]).then(function () {
+                    Promise.all([
+                        loadUsers(config),
+                        loadLibraries(config),
+                        refreshUserArtworkStatus(),
+                        loadSelectedItems('target', config.LimitToItemIds),
+                        loadSelectedItems('ignore', config.IgnoreItemIds)
+                    ]).then(function () {
                         updateUserRowVisibility();
                         refreshPostersPreview();
                         loading = false;
                         baselineSnapshot = captureDraft();
-                        if (!restoreDraft()) { setSaveState('clean'); }
-                        Dashboard.hideLoadingMsg();
+                        var restored = restoreDraft();
+                        if (!restored) {
+                            setSaveState('clean');
+                            Dashboard.hideLoadingMsg();
+                            return;
+                        }
+                        renderLegacyTargets('target');
+                        renderLegacyTargets('ignore');
+                        Promise.all([
+                            loadSelectedItems('target', page.querySelector('#LimitToItemIds').value.split(',').filter(Boolean)),
+                            loadSelectedItems('ignore', page.querySelector('#IgnoreItemIds').value.split(',').filter(Boolean))
+                        ]).then(function () {
+                            markDraftChanged();
+                            Dashboard.hideLoadingMsg();
+                        });
                     }, function () { loading = false; Dashboard.hideLoadingMsg(); });
                 });
             }
@@ -1787,7 +2000,9 @@
                 config.ForceRestore = page.querySelector('#ForceRestore').checked;
                 config.Libraries = collectLibraries();
                 config.LimitToTitles = linesToList(page.querySelector('#LimitToTitles').value);
+                config.LimitToItemIds = selectedTargetItems.map(function (item) { return item.Id; });
                 config.IgnoreTitles = linesToList(page.querySelector('#IgnoreTitles').value);
+                config.IgnoreItemIds = selectedIgnoredItems.map(function (item) { return item.Id; });
                 config.TmdbOverrides = parseOverrides(page.querySelector('#TmdbOverrides').value);
                 return config;
             }
@@ -1863,7 +2078,8 @@
                     organizePurposeAreas();
                     wireTabs();
                     page.querySelector('#OvercoatConfigForm').addEventListener('input', function (event) {
-                        if (!loading && !event.target.closest('#OvercoatPreviewStatuses, #OvercoatPreviewBadges, #OvercoatWidePreviewStatuses, #OvercoatWidePreviewBadges')) {
+                        if (!loading && !event.target.hasAttribute('data-ovc-transient')
+                            && !event.target.closest('#OvercoatPreviewStatuses, #OvercoatPreviewBadges, #OvercoatWidePreviewStatuses, #OvercoatWidePreviewBadges')) {
                             markDraftChanged();
                         }
                     });
@@ -1898,6 +2114,24 @@
                         ancestor = ancestor.parentElement;
                     }
                     page.querySelector('#OvercoatVaultRefresh').addEventListener('click', refreshVaultStats);
+                    page.querySelector('#OvercoatTitleSearchButton').addEventListener('click', function () { searchJellyfinTitles('target'); });
+                    page.querySelector('#OvercoatIgnoreSearchButton').addEventListener('click', function () { searchJellyfinTitles('ignore'); });
+                    page.querySelector('#OvercoatTitleSearch').addEventListener('keydown', function (event) {
+                        if (event.key === 'Enter') { event.preventDefault(); searchJellyfinTitles('target'); }
+                    });
+                    page.querySelector('#OvercoatIgnoreSearch').addEventListener('keydown', function (event) {
+                        if (event.key === 'Enter') { event.preventDefault(); searchJellyfinTitles('ignore'); }
+                    });
+                    page.querySelector('#OvercoatClearLegacyTargets').addEventListener('click', function () {
+                        page.querySelector('#LimitToTitles').value = '';
+                        renderLegacyTargets('target');
+                        markDraftChanged();
+                    });
+                    page.querySelector('#OvercoatClearLegacyIgnores').addEventListener('click', function () {
+                        page.querySelector('#IgnoreTitles').value = '';
+                        renderLegacyTargets('ignore');
+                        markDraftChanged();
+                    });
                     page.querySelector('#OvercoatUseWideCardsAll').addEventListener('click', function () {
                         confirmAllUserArtworkPreference(false);
                     });
@@ -1906,7 +2140,7 @@
                     });
                     page.querySelector('#OvercoatRunNow').addEventListener('click', function () { runTask('OvercoatApply', 'Apply Overcoat Overlays'); });
                     page.querySelector('#OvercoatRestore').addEventListener('click', function () {
-                        Dashboard.confirm('Restore the original (un-overlaid) posters Overcoat saved?', 'Restore originals', function (ok) {
+                        Dashboard.confirm('Restore the original (un-overlaid) posters and series wide cards Overcoat saved?', 'Restore originals', function (ok) {
                             if (ok) runTask('OvercoatRestore', 'Restore Original Artwork (Overcoat)');
                         });
                     });

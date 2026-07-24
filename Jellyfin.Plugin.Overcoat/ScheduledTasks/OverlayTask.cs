@@ -161,7 +161,9 @@ public class OverlayTask : IScheduledTask
         using var file = new FileLog(_appPaths.LogDirectoryPath);
 
         var ignore = new HashSet<string>(config.IgnoreTitles, StringComparer.OrdinalIgnoreCase);
+        var ignoreIds = new HashSet<Guid>(config.IgnoreItemIds);
         var limit = new HashSet<string>(config.LimitToTitles, StringComparer.OrdinalIgnoreCase);
+        var limitIds = new HashSet<Guid>(config.LimitToItemIds);
 
         // A per-library scan asks us to re-overlay just that library; anything else (the daily run, a
         // full scan) covers everything. Cheap either way thanks to the cache, but this avoids even
@@ -299,7 +301,9 @@ public class OverlayTask : IScheduledTask
             try
             {
                 var itemName = item.Name ?? string.Empty;
-                if (ignore.Contains(itemName) || (limit.Count > 0 && !limit.Contains(itemName)))
+                var hasTarget = limitIds.Count > 0 || limit.Count > 0;
+                var outsideTarget = hasTarget && !limitIds.Contains(item.Id) && !limit.Contains(itemName);
+                if (ignoreIds.Contains(item.Id) || ignore.Contains(itemName) || outsideTarget)
                 {
                     continue;
                 }

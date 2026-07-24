@@ -134,7 +134,7 @@ to Overcoat's configuration view.
 
 Libraries expose their banner and badge choices only while **Process this library** is enabled.
 Normal processing and scheduling live in Automation; originals-vault health and restoration live in
-Recovery. **Test specific titles** sits beside Run Now in Automation, while the always-visible
+Recovery. **Test on specific titles** shares a full-width Run Now card in Automation, while the always-visible
 **Titles to ignore** section sits beneath the detected libraries.
 
 The Libraries tab also reports how many current users see series wide cards versus episode stills.
@@ -148,23 +148,23 @@ You do not need to process an entire library to see whether Overcoat suits it. O
 **Settings → Automation → Run now**, then:
 
 1. Enable **Process this library** for the library that contains your test title.
-2. In **Test specific titles**, enter the title exactly as it appears in Jellyfin.
-   Enter one title per line.
+2. In **Test on specific titles**, start typing the movie or series name, select the exact Jellyfin
+   result, and repeat if you want a small test group. Overcoat stores Jellyfin's stable item ID; you
+   do not need a TMDB ID or exact spelling.
 3. Leave **Dry run** enabled, select **Apply Changes**, then open **Automation → Run now** to review
    what Overcoat would process without changing artwork.
 4. When the result looks right, turn off Dry run and run Overcoat again. Only the listed title is
    eligible.
-5. To process the rest of the enabled library later, clear the limit list and apply the change.
+5. To process the rest of the enabled library later, remove every selected test title and apply the
+   change.
 
-Title matching is case-insensitive but otherwise uses the complete Jellyfin title. The limit list is
-an allow-list: while it contains any titles, everything not listed is skipped. It does not enable a
-library or an overlay type by itself; the normal library options still apply.
+The selected items form an allow-list: while it contains anything, every other title is skipped.
+It does not enable a library or overlay type by itself; the normal library options still apply.
 
-**Libraries → Titles to ignore** is the companion deny-list. Put one complete title per line to
-leave those titles untouched while the rest of each enabled library is processed. Exclusions always
-win, so a title present in both lists is still skipped. This is useful for artwork you manage
-manually, titles that need a different treatment, or anything you simply never want Overcoat to
-change.
+**Libraries → Titles to ignore** uses the same Jellyfin search and exact-result selection. Selected
+items remain untouched while the rest of each enabled library is processed. Exclusions always win,
+so an item selected in both places is still skipped. This is useful for artwork you manage manually,
+titles that need a different treatment, or anything you never want Overcoat to change.
 
 ## Compatibility and project status
 
