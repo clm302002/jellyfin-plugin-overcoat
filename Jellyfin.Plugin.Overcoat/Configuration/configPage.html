@@ -189,7 +189,6 @@
                                         <span class="selectLabel">Returning — format</span>
                                         <select is="emby-select" id="ReturningDateFormat">
                                             <option value="date">Date (7/14)</option>
-                                            <option value="day">Day of week (Mon)</option>
                                             <option value="countdown">Countdown (21d)</option>
                                         </select>
                                     </div>
@@ -1618,7 +1617,7 @@
                     page.querySelector('#BannerFontScale').value = config.BannerFontScale || 1.0;
                     page.querySelector('#BannerIcons').checked = config.BannerIcons !== false;
                     page.querySelector('#AiringDateFormat').value = config.AiringDateFormat || 'date';
-                    page.querySelector('#ReturningDateFormat').value = config.ReturningDateFormat || 'date';
+                    page.querySelector('#ReturningDateFormat').value = config.ReturningDateFormat === 'countdown' ? 'countdown' : 'date';
                     page.querySelector('#ReturningDateWindowDays').value = String(config.ReturningDateWindowDays != null ? config.ReturningDateWindowDays : 90);
                     page.querySelector('#ColorNew').value = config.ColorNew || '#5EBD3E';
                     page.querySelector('#ColorAiring').value = config.ColorAiring || '#149BDA';

@@ -6,6 +6,10 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.9.0-beta.3] — 2026-07-24
+
 ### Changed
 - **Release notes are now mandatory per revision.** Every beta and stable tag must have its own exact,
   non-empty changelog section explaining what changed and why the build exists. The release workflow
@@ -29,6 +33,10 @@ All notable changes to Overcoat are documented here. Format follows
 - **Colours & Labels now explains the editable text.** The redundant Status and blank-looking
   Display label columns are replaced by one wide Banner text field per status, labelled with the
   status it controls. This keeps custom wording such as “CANCELLED” while making every input obvious.
+- **Returning countdowns use a legible lowercase unit.** Real overlays now preserve the lowercase
+  `d` in values such as `21d` instead of uppercasing it into a zero-like `D`. Returning format now
+  offers only Date and Countdown; existing Day-of-week settings migrate to Date. Airing retains its
+  useful Day-of-week option.
 
 ## [0.9.0-beta.2] — 2026-07-24
 

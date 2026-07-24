@@ -18,6 +18,20 @@ public sealed class ConfigurationSanitizerTests
         Assert.True(c.DryRun);
     }
 
+    [Theory]
+    [InlineData("day", "date")]
+    [InlineData("nonsense", "date")]
+    [InlineData("date", "date")]
+    [InlineData("countdown", "countdown")]
+    public void ReturningDateFormat_OnlyAllowsDateOrCountdown(string input, string expected)
+    {
+        var config = new PluginConfiguration { ReturningDateFormat = input };
+
+        ConfigurationSanitizer.Normalize(config);
+
+        Assert.Equal(expected, config.ReturningDateFormat);
+    }
+
     [Fact]
     public void AbsurdValues_AreClampedIntoRange()
     {

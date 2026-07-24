@@ -168,6 +168,11 @@ if (/data-tab="general"/.test(html) || /data-panel="general"/.test(html)) {
 if (!/id="TrendingTimeWindow"[\s\S]*?<option value="month">Month<\/option>/.test(html)) {
   console.error('FAIL monthly TMDB trending option is missing'); failures++;
 } else { console.log('ok   monthly TMDB trending option exists'); }
+const returningFormat = html.match(/<select[^>]*id="ReturningDateFormat"[^>]*>([\s\S]*?)<\/select>/);
+if (!returningFormat || /value="day"/.test(returningFormat[1])
+    || !/value="date"/.test(returningFormat[1]) || !/value="countdown"/.test(returningFormat[1])) {
+  console.error('FAIL Returning format must offer only Date and Countdown'); failures++;
+} else { console.log('ok   Returning format excludes day of week'); }
 if (!/<details class="ovcCard" open>\s*<summary>Status dates/.test(html)
     || !/<details class="ovcCard" open>\s*<summary>Colours &amp; labels/.test(html)) {
   console.error('FAIL status dates and colours/labels must default open'); failures++;

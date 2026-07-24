@@ -111,7 +111,7 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets how the AIRING next-episode is shown: "date" (6/28), "day" (Tue), or "countdown" (3d). Always shown when known (no window).</summary>
     public string AiringDateFormat { get; set; } = "date";
 
-    /// <summary>Gets or sets how the RETURNING date is shown: "date" (7/14), "day" (Mon), or "countdown" (21d).</summary>
+    /// <summary>Gets or sets how the RETURNING date is shown: "date" (7/14) or "countdown" (21d).</summary>
     public string ReturningDateFormat { get; set; } = "date";
 
     /// <summary>Gets or sets the RETURNING date window in days: show the date only when the next episode is within this many days. -1 = never, large = always-when-known.</summary>
@@ -394,6 +394,10 @@ public static class ConfigurationSanitizer
 
         // -1 means "never show the date"; anything beyond a decade is effectively "always".
         c.ReturningDateWindowDays = Math.Clamp(c.ReturningDateWindowDays, -1, 3650);
+        c.AiringDateFormat = c.AiringDateFormat is "date" or "day" or "countdown" ? c.AiringDateFormat : "date";
+        // Returning day-of-week was misleading for between-season dates and is no longer offered.
+        // Normalize old saved "day" values to Date so existing installs migrate predictably.
+        c.ReturningDateFormat = c.ReturningDateFormat is "date" or "countdown" ? c.ReturningDateFormat : "date";
 
         c.WatchHistoryDays = Math.Clamp(c.WatchHistoryDays, 1, 3650);
         c.WatchHistoryMaxScan = Math.Clamp(c.WatchHistoryMaxScan, 500, 1_000_000);
