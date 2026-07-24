@@ -32,15 +32,15 @@ and its approach to making media libraries more expressive and useful.
 
 ![Three posters demonstrating left-side watch-history and TMDB ribbons at top, middle, and bottom anchors, plus IMDb corner badges](assets/showcase-badges.png)
 
-### Wide home cards (0.8 beta)
+### Wide home cards
 
 ![Six 16:9 Series Thumb cards demonstrating status banners, watch-history and TMDB ribbons, and IMDb corner badges](assets/showcase-wide-cards.png)
 
-The optional 0.8 beta can apply the same overlays to a series' existing 16:9 **Thumb** artwork,
-which Jellyfin can show in **Next Up** and **Continue Watching**. This is a work in progress under
-live validation: only series Thumbs are eligible, series without a Thumb are skipped, and individual
-episode images and Backdrops are never modified. The Libraries tab also includes confirmed actions
-to make all current users inherit these wide cards, or return all current users to episode stills.
+Overcoat can optionally apply the same overlays to a series' existing 16:9 **Thumb** artwork, which
+Jellyfin can show in **Next Up** and **Continue Watching**. It is opt-in: only series Thumbs are
+eligible, series without a Thumb are skipped, and individual episode images and Backdrops are never
+modified. The Libraries tab also includes confirmed actions to make all current users inherit these
+wide cards, or return all current users to episode stills.
 
 ### What gets changed?
 
@@ -72,11 +72,13 @@ to make all current users inherit these wide cards, or return all current users 
 3. Open **Dashboard → Plugins → Overcoat**. Add a free TMDB API key and select your libraries.
 4. Start conservatively: enable **Dry run**, save, then use **Maintenance → Run now**.
 5. Review the Overcoat log. Disable dry run and run **Apply Overcoat Overlays** again when ready.
-6. Under **General → Schedule**, choose **Let Overcoat set the run time**, or turn it off and manage
-   the task's triggers yourself in **Dashboard → Scheduled Tasks**.
+6. The daily run happens automatically at a quiet 3:00 AM. To pick a different time, use
+   **Maintenance → Schedule → Set a custom run time**.
 
-Overcoat normally runs once daily. Choose a time after anything else that refreshes poster artwork;
-a later library scan or metadata tool can replace an overlaid poster until Overcoat runs again.
+Overcoat runs once daily to keep status dates and badges current. If a library scan or metadata tool
+later replaces an overlaid poster, Overcoat re-applies the overlay automatically within about a minute
+(see the FAQ) — the daily run is not what recovers it. You can still manage the task's trigger in
+**Dashboard → Scheduled Tasks**, but Overcoat re-writes it to the configured time on save/restart.
 
 ## Customize it
 
@@ -111,10 +113,10 @@ the Posters and Wide Cards tabs; it changes only when you explicitly request ano
 Click any screenshot to open the full-size image.
 
 <p align="center">
-  <a href="assets/settings-ui-v072-banners.png"><img src="assets/settings-ui-v072-banners.png" width="48%" alt="Overcoat Banners studio with appearance, placement, expanded advanced controls, and sticky live preview" /></a>
-  <a href="assets/settings-ui-v072-badges.png"><img src="assets/settings-ui-v072-badges.png" width="48%" alt="Overcoat Badges studio with source settings, watch-history rules, layout controls, and live preview" /></a>
-  <a href="assets/settings-ui-v072-libraries.png"><img src="assets/settings-ui-v072-libraries.png" width="48%" alt="Overcoat Libraries settings with fictional TV and movie libraries and indented per-library options" /></a>
-  <a href="assets/settings-ui-v072-maintenance.png"><img src="assets/settings-ui-v072-maintenance.png" width="48%" alt="Overcoat Maintenance settings with automation, scheduling, apply, restore, recovery, and targeting sections" /></a>
+  <a href="assets/settings-posters.png"><img src="assets/settings-posters.png" width="48%" alt="Overcoat Posters tab with banner style, shape, and layout controls beside a sticky live preview" /></a>
+  <a href="assets/settings-wide.png"><img src="assets/settings-wide.png" width="48%" alt="Overcoat Wide Cards tab with independent wide-card banner and badge controls and a 16:9 live preview" /></a>
+  <a href="assets/settings-libraries.png"><img src="assets/settings-libraries.png" width="48%" alt="Overcoat Libraries tab with all-user wide-card controls and per-library overlay and badge options" /></a>
+  <a href="assets/settings-maintenance.png"><img src="assets/settings-maintenance.png" width="48%" alt="Overcoat Maintenance tab with automation, schedule, scan re-apply, and run and restore actions" /></a>
 </p>
 
 These are separate full-size captures of the real embedded configuration HTML in a standalone
@@ -144,9 +146,9 @@ users** reverses that preference. Neither action changes, overlays, or deletes e
 | Originals vault, dry run, restore task | Working for posters and managed series Thumbs |
 | Badge art/style selection | Planned |
 
-Current prerelease: **v0.8.0-beta.3** (`0.8.0.3`) on the optional beta channel. It contains the
-wide-card pipeline, the all-current-user artwork controls, and larger wide-card badges;
-live-library validation is in progress.
+Current release: **v0.8.0** (`0.8.0.500`) on the stable channel. It adds the series Thumb wide-card
+pipeline, all-current-user artwork controls, automatic re-apply after a library scan, and independent
+wide-card styling. Prereleases of upcoming work land on the optional beta channel (below).
 
 A TMDB API key is required for status and TMDB-backed lists. Overcoat is tested against the pinned
 Jellyfin 10.11 API surface; newer Jellyfin releases may require a plugin update.
