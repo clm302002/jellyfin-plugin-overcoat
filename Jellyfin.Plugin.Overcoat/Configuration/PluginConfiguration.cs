@@ -87,7 +87,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool ForceRestore { get; set; }
 
     /// <summary>Gets or sets a value indicating whether the task computes overlays but skips saving (diagnostics).</summary>
-    public bool DryRun { get; set; }
+    public bool DryRun { get; set; } = true;
 
     // --- Status banner appearance ---
 

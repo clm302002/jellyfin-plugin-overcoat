@@ -129,7 +129,8 @@ never contacts a live server.
 The development studio is organized by purpose: **Design**, **Libraries**, **Data Sources**,
 **Automation**, and **Recovery**. Poster and Wide Card share one preview-first workspace with editable
 Quick Looks. The Apply bar appears only for a draft, offers Discard, and can restore an unsaved session
-after a reload. All styling remains scoped to Overcoat's configuration view.
+after a reload. Purpose navigation stays across the top at every width, and all styling remains scoped
+to Overcoat's configuration view.
 
 Libraries expose their banner and badge choices only while **Process this library** is enabled.
 Normal processing and scheduling live in Automation; originals-vault health and restoration live in
@@ -139,6 +140,30 @@ The Libraries tab also reports how many current users see series wide cards vers
 **Use Overcoat wide cards for all current users** changes Jellyfin's Next Up/Continue Watching
 preference so those users inherit the overlaid Series Thumb. **Use episode stills for all current
 users** reverses that preference. Neither action changes, overlays, or deletes episode images.
+
+### Test Overcoat on a single title
+
+You do not need to process an entire library to see whether Overcoat suits it. Open
+**Settings → Libraries → Advanced targeting**, then:
+
+1. Enable **Process this library** for the library that contains your test title.
+2. In **Limit to specific shows or movies**, enter the title exactly as it appears in Jellyfin.
+   Enter one title per line.
+3. Leave **Dry run** enabled, select **Apply Changes**, then open **Automation → Run now** to review
+   what Overcoat would process without changing artwork.
+4. When the result looks right, turn off Dry run and run Overcoat again. Only the listed title is
+   eligible.
+5. To process the rest of the enabled library later, clear the limit list and apply the change.
+
+Title matching is case-insensitive but otherwise uses the complete Jellyfin title. The limit list is
+an allow-list: while it contains any titles, everything not listed is skipped. It does not enable a
+library or an overlay type by itself; the normal library options still apply.
+
+**Exclude specific shows or movies** is the companion deny-list. Put one complete title per line to
+leave those titles untouched while the rest of each enabled library is processed. Exclusions always
+win, so a title present in both lists is still skipped. This is useful for artwork you manage
+manually, titles that need a different treatment, or anything you simply never want Overcoat to
+change.
 
 ## Compatibility and project status
 

@@ -66,7 +66,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (capture.surface) await page.locator(`[data-panel="${capture.tab}"] button[data-surface="${capture.surface}"]`).click();
     await page.evaluate(() => { window.scrollTo(0, 0); const shell = document.querySelector('.jellyfinViewport'); if (shell) shell.scrollTop = 0; });
     await page.waitForTimeout(250);
-    await page.screenshot({ path:path.join(out,`settings-${capture.name}.png`), fullPage:true });
+    await page.screenshot({ path:path.join(out,`settings-${capture.name}.png`), fullPage:false });
   }
   if (process.env.SHOWCASE_CAPTURE_DETAILS === '1') {
     await page.locator('button[data-tab="design"]').click();
@@ -100,20 +100,28 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (await page.locator('#TmdbApiKey').getAttribute('type') !== 'password') throw new Error('TMDB key hide control failed.');
     await page.locator('button[data-tab="design"]').click();
     await page.evaluate(() => {
-      window.scrollTo(0, Math.floor(document.body.scrollHeight * .35));
+      window.scrollTo(0, 0);
       const shell = document.querySelector('.jellyfinViewport');
       const preview = document.querySelector('[data-preview-kind="poster"]');
       const stacked = matchMedia('(max-width:1099px)').matches;
-      shell.scrollTop += Math.max(0, stacked ? preview.getBoundingClientRect().bottom + 80 : preview.getBoundingClientRect().top - 150);
+      if (stacked) {
+        document.querySelector('[data-panel="design"] .ovcBannerControls').scrollIntoView({block:'start'});
+      } else {
+        shell.scrollTop = Math.min(shell.scrollHeight - shell.clientHeight, 720);
+      }
+      shell.dispatchEvent(new Event('scroll'));
     });
     await page.waitForTimeout(150);
     const state = await page.evaluate(() => ({
       mobile: window.matchMedia('(max-width: 1099px)').matches,
       floating: document.querySelector('#OvercoatFloatingPreview').classList.contains('ovcVisible'),
       previewTop: document.querySelector('[data-preview-kind="poster"]').getBoundingClientRect().top,
+      previewHeight: document.querySelector('[data-preview-kind="poster"]').getBoundingClientRect().height,
+      previewPosition: getComputedStyle(document.querySelector('[data-preview-kind="poster"]')).position,
+      previewMaxHeight: getComputedStyle(document.querySelector('[data-preview-kind="poster"]')).maxHeight,
     }));
     if (state.mobile && !state.floating) throw new Error('Mobile floating preview did not appear after scrolling.');
-    if (!state.mobile && (state.previewTop < 100 || state.previewTop > 600)) throw new Error(`Desktop preview is not sticky below the page chrome (top=${state.previewTop}).`);
+    if (!state.mobile && (state.previewTop < 50 || state.previewTop > 600)) throw new Error(`Desktop preview is not sticky below the page chrome (${JSON.stringify(state)}).`);
     console.log(`scroll preview ok: ${state.mobile ? 'floating mobile' : 'sticky desktop'}`);
     await page.locator('button[data-tab="automation"]').click();
     const computed = await page.evaluate(() => ({
@@ -122,12 +130,32 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       minCard: Math.min(...[...document.querySelectorAll('[data-panel="automation"] > .ovcCard')].map(x=>x.getBoundingClientRect().width)),
       badgeOptions: [...document.querySelectorAll('#BadgeSide option')].map(x=>x.value),
       details: document.querySelectorAll('[data-panel="design"] details.ovcCard').length,
+      tabTops: [...document.querySelectorAll('.ovcTab')].map(x=>Math.round(x.getBoundingClientRect().top)),
+      actionRadii: ['OvercoatRunNow','OvercoatRestore'].map(id=>parseFloat(getComputedStyle(document.querySelector('#'+id)).borderRadius)),
+      libraryActionRadii: ['OvercoatUseWideCardsAll','OvercoatUseEpisodeStillsAll'].map(id=>parseFloat(getComputedStyle(document.querySelector('#'+id)).borderRadius)),
+      runTop: document.querySelector('#OvercoatRunRestoreCard').getBoundingClientRect().top,
+      behaviourTop: document.querySelector('[data-panel="automation"] .ovcCard:not(#OvercoatRunRestoreCard)').getBoundingClientRect().top,
+      statusSwitches: ['ShowNew','ShowAiring','ShowReturning','ShowEnded','ShowCanceled'].map(id=>{
+        const el=document.querySelector('#'+id), box=el.getBoundingClientRect(), style=getComputedStyle(el);
+        return [Math.round(box.width),Math.round(box.height),style.borderRadius].join(':');
+      }),
     }));
     if (computed.form < Math.min(1200, computed.available - 8)) throw new Error(`Jellyfin's 54em form cap was not overridden (${computed.form}px).`);
     if (page.viewportSize().width >= 1200 && computed.minCard < 470) throw new Error(`Maintenance card is narrower than its 480px design minimum (${computed.minCard}px).`);
     if (computed.badgeOptions.join(',') !== 'left') throw new Error('Badge placement exposes an unsupported side.');
     if (computed.details < 3) throw new Error('Advanced banner controls are not accordions.');
+    if (new Set(computed.tabTops).size !== 1) throw new Error('Purpose navigation is not aligned across the top.');
+    if (computed.actionRadii.some(x=>x < 20)) throw new Error(`Run/Restore actions are not rounded (${computed.actionRadii.join(', ')}).`);
+    if (computed.libraryActionRadii.some(x=>x < 20)) throw new Error(`Library artwork actions are not rounded (${computed.libraryActionRadii.join(', ')}).`);
+    if (computed.runTop >= computed.behaviourTop) throw new Error('Run Now is not the first Automation section.');
+    if (new Set(computed.statusSwitches).size !== 1) throw new Error(`Status visibility switches do not share one shape (${computed.statusSwitches.join(', ')}).`);
     if (await page.locator('#TrendingTimeWindow option[value="month"]').count() !== 1) throw new Error('Monthly TMDB trending choice is missing.');
+    const dryRun = page.locator('#DryRun');
+    if (await dryRun.isChecked()) await dryRun.click();
+    if (await page.locator('#OvercoatDryRunBanner').isVisible()) throw new Error('Dry Run notice stayed visible while Dry Run was off.');
+    await dryRun.click();
+    if (!await page.locator('#OvercoatDryRunBanner').isVisible()) throw new Error('Dry Run notice did not appear when Dry Run was enabled.');
+    await dryRun.click();
     await page.locator('button[data-tab="libraries"]').click();
     const library = page.locator('.ovcLib').first();
     const libraryEnabled = library.locator('.ovcEnabled');
@@ -156,6 +184,8 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     await page.locator('#CacheEnabled').dispatchEvent('input');
     const dirtyText = await page.locator('#OvercoatSaveState').textContent();
     if (!/unsaved/i.test(dirtyText)) throw new Error(`Dirty-state feedback did not appear (${dirtyText}).`);
+    const applyRadius = parseFloat(await page.locator('#OvercoatSaveDock .button-submit').evaluate(el=>getComputedStyle(el).borderRadius));
+    if (applyRadius < 20) throw new Error(`Apply Changes is not rounded (${applyRadius}px).`);
     await page.locator('#OvercoatConfigForm button[type="submit"]').click();
     await page.waitForTimeout(30);
     if (!/saved/i.test(await page.locator('#OvercoatSaveState').textContent())) throw new Error('Saved confirmation did not appear.');
@@ -165,7 +195,12 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     }
     if (update.FutureSetting !== 'preserve-me') throw new Error('Saving dropped an unknown future configuration field.');
     await page.locator('button[data-tab="design"]').click();
-    await page.locator('[data-panel="design"] .ovcPreset[data-preset="ribbon"]').click();
+    const posterPresets = page.locator('[data-panel="design"] .ovcPreset:not([data-wide])');
+    const presetWidths = await posterPresets.evaluateAll(buttons => buttons.map(button => Math.round(button.getBoundingClientRect().width)));
+    if (Math.max(...presetWidths) > 130 || Math.max(...presetWidths) > Math.min(...presetWidths) * 1.8) {
+      throw new Error(`Poster Quick Look button sizing is inconsistent (${presetWidths.join(', ')}).`);
+    }
+    await posterPresets.filter({hasText:'Ribbon'}).click();
     if (await page.locator('#BannerShape').inputValue() !== 'drop'
         || !await page.locator('#BannerFullWidth').isChecked()
         || await page.locator('#BannerIcons').isChecked()) {

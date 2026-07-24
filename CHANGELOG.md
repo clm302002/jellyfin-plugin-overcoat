@@ -13,14 +13,20 @@ All notable changes to Overcoat are documented here. Format follows
   Poster or Wide Card appearance and remain fully adjustable before applying.
 - **Recoverable unsaved drafts.** Edits survive an accidental page reload or trip elsewhere in the
   Jellyfin dashboard until they are applied or explicitly discarded.
+- **New installations start safely in Dry Run.** A yellow notice remains visible while Dry Run is on
+  and disappears immediately when it is turned off. Existing installations keep their saved choice.
 
 ### Changed
 - **The settings page is now a purpose-based creative studio.** Design, Libraries, Data Sources,
   Automation, and Recovery replace the old form-oriented tabs. Poster and Wide Card are surfaces in
   one preview-first Design workspace, while destructive recovery is isolated from everyday automation.
-- **The responsive shell is rebuilt for each screen size.** Large screens use a navigation rail,
-  inspector, and persistent artwork stage; tablets use a sticky horizontal navigator; phones keep the
-  complete feature set with a compact preview and bottom navigation.
+- **The responsive shell is rebuilt around top navigation.** Every screen size keeps the five
+  purpose tabs across the top; the Design inspector and persistent artwork stage stack cleanly as the
+  viewport narrows.
+- **Actions use one consistent rounded shape.** Apply Changes, Apply Overcoat, Restore Originals, and
+  both all-user Library artwork actions can no longer fall back to Jellyfin's square button styling.
+- **Quick Looks keep their compact pill sizing.** Jellyfin's global button rules can no longer
+  stretch the Poster or Wide Card Ribbon preset into an oversized control.
 - **Wide Cards controls now match Posters.** Wide-card treatments, shapes, layout choices, typography,
   effects, badge anchors, and numeric tuning use the same segmented controls and sliders as the Posters
   tab. Inherited poster settings remain the default and are clearly reflected in the Wide Cards panel.
@@ -33,6 +39,8 @@ All notable changes to Overcoat are documented here. Format follows
 - **Settings screenshots and capture checks were refreshed.** The README gallery now reflects the current
   embedded page, and the standalone capture verifies visible segmented controls, responsive previews,
   random-preview stability, library collapsing, and that edited values reach the plugin configuration update.
+- **Advanced targeting is documented as a safe first-run tool.** The README explains how to limit a
+  run to one exact Jellyfin title and how exclusions take precedence.
 
 ## [0.8.0] — 2026-07-24
 

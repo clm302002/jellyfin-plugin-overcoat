@@ -26,7 +26,7 @@
                     <div class="ovcTabs" role="tablist" aria-label="Overcoat settings">
                         <button type="button" class="ovcTab ovcActive" data-tab="design" role="tab"><span class="ovcIcon" aria-hidden="true">palette</span><span class="ovcTabLabel">Design</span></button>
                         <button type="button" class="ovcTab" data-tab="libraries" role="tab"><span class="ovcIcon" aria-hidden="true">video_library</span><span class="ovcTabLabel">Libraries</span></button>
-                        <button type="button" class="ovcTab" data-tab="sources" role="tab"><span class="ovcIcon" aria-hidden="true">database</span><span class="ovcTabLabel">Data Sources</span></button>
+                        <button type="button" class="ovcTab" data-tab="sources" role="tab"><span class="ovcIcon" aria-hidden="true">storage</span><span class="ovcTabLabel">Data Sources</span></button>
                         <button type="button" class="ovcTab" data-tab="automation" role="tab"><span class="ovcIcon" aria-hidden="true">schedule</span><span class="ovcTabLabel">Automation</span></button>
                         <button type="button" class="ovcTab" data-tab="recovery" role="tab"><span class="ovcIcon" aria-hidden="true">restore</span><span class="ovcTabLabel">Recovery</span></button>
                     </div>
@@ -212,11 +212,11 @@
                             <p class="fieldDescription ovcCardLead">Recolour, rename, or hide each status. Switch the preview to a status to see it.</p>
                             <div class="ovcStatusList">
                                 <div class="ovcStatusHeader" aria-hidden="true"><span>Colour</span><span>Status</span><span>Display label</span><span>Show</span></div>
-                                <div class="ovcStatusRow2"><input type="color" id="ColorNew" aria-label="New colour" /><span class="ovcStName">New</span><input is="emby-input" type="text" id="LabelNew" aria-label="New display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show New status"><input is="emby-checkbox" type="checkbox" id="ShowNew" /></label></div>
-                                <div class="ovcStatusRow2"><input type="color" id="ColorAiring" aria-label="Airing colour" /><span class="ovcStName">Airing</span><input is="emby-input" type="text" id="LabelAiring" aria-label="Airing display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Airing status"><input is="emby-checkbox" type="checkbox" id="ShowAiring" /></label></div>
-                                <div class="ovcStatusRow2"><input type="color" id="ColorReturning" aria-label="Returning colour" /><span class="ovcStName">Returning</span><input is="emby-input" type="text" id="LabelReturning" aria-label="Returning display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Returning status"><input is="emby-checkbox" type="checkbox" id="ShowReturning" /></label></div>
-                                <div class="ovcStatusRow2"><input type="color" id="ColorEnded" aria-label="Ended colour" /><span class="ovcStName">Ended</span><input is="emby-input" type="text" id="LabelEnded" aria-label="Ended display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Ended status"><input is="emby-checkbox" type="checkbox" id="ShowEnded" /></label></div>
-                                <div class="ovcStatusRow2"><input type="color" id="ColorCanceled" aria-label="Canceled colour" /><span class="ovcStName">Canceled</span><input is="emby-input" type="text" id="LabelCanceled" aria-label="Canceled display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Canceled status"><input is="emby-checkbox" type="checkbox" id="ShowCanceled" /></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorNew" aria-label="New colour" /><span class="ovcStName">New</span><input is="emby-input" type="text" id="LabelNew" aria-label="New display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show New status"><input type="checkbox" id="ShowNew" /><span class="ovcSrOnly">Show New</span></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorAiring" aria-label="Airing colour" /><span class="ovcStName">Airing</span><input is="emby-input" type="text" id="LabelAiring" aria-label="Airing display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Airing status"><input type="checkbox" id="ShowAiring" /><span class="ovcSrOnly">Show Airing</span></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorReturning" aria-label="Returning colour" /><span class="ovcStName">Returning</span><input is="emby-input" type="text" id="LabelReturning" aria-label="Returning display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Returning status"><input type="checkbox" id="ShowReturning" /><span class="ovcSrOnly">Show Returning</span></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorEnded" aria-label="Ended colour" /><span class="ovcStName">Ended</span><input is="emby-input" type="text" id="LabelEnded" aria-label="Ended display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Ended status"><input type="checkbox" id="ShowEnded" /><span class="ovcSrOnly">Show Ended</span></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorCanceled" aria-label="Canceled colour" /><span class="ovcStName">Canceled</span><input is="emby-input" type="text" id="LabelCanceled" aria-label="Canceled display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Canceled status"><input type="checkbox" id="ShowCanceled" /><span class="ovcSrOnly">Show Canceled</span></label></div>
                             </div>
                             </div></details>
                             <div class="ovcSectionHeading ovcWide"><h3>Badges</h3></div>
@@ -544,6 +544,10 @@
                             <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="DryRun" /><span>Dry run</span></label>
                             <div class="fieldDescription">Test mode — works out what it would do but doesn't change any posters.</div>
                         </div>
+                        <div class="ovcDryRunBanner" id="OvercoatDryRunBanner" role="status" hidden>
+                            <span class="ovcIcon" aria-hidden="true">warning</span>
+                            <div><strong>Dry Run is on</strong><span>Overcoat will calculate and report changes, but it will not write artwork.</span></div>
+                        </div>
                     </div>
 
                     <div class="ovcCard">
@@ -734,6 +738,13 @@
                     runHeading.querySelector('h3').textContent = 'Run now';
                     runHeading.querySelector('.fieldDescription').textContent = 'Apply the current draft, then start an overlay pass.';
                 }
+                var automation = page.querySelector('[data-panel="automation"]');
+                var automationIntro = automation && automation.querySelector('.ovcPageIntro');
+                var runCard = page.querySelector('#OvercoatRunRestoreCard');
+                if (automationIntro && runHeading && runCard) {
+                    automationIntro.insertAdjacentElement('afterend', runHeading);
+                    runHeading.insertAdjacentElement('afterend', runCard);
+                }
                 var actionGrid = page.querySelector('#OvercoatRunRestoreCard .ovcActionGrid');
                 if (actionGrid) { actionGrid.classList.add('ovcSingleAction'); }
             }
@@ -772,7 +783,18 @@
                     return total + (String(current.controls[id]) === String(baselineSnapshot.controls[id]) ? 0 : 1);
                 }, 0);
                 if (JSON.stringify(current.libraries) !== JSON.stringify(baselineSnapshot.libraries)) { count++; }
-                return Math.max(1, count);
+                return count;
+            }
+
+            function markDraftChanged(message) {
+                var count = dirtyCount();
+                if (!count) {
+                    clearDraft();
+                    setSaveState('clean');
+                    return;
+                }
+                setSaveState('dirty', message);
+                window.setTimeout(saveDraft, 0);
             }
 
             function saveDraft() {
@@ -812,6 +834,7 @@
                 updateWideControlsEnabled();
                 updateScheduleUi();
                 updateUserRowVisibility();
+                if (!dirtyCount()) { clearDraft(); setSaveState('clean'); return false; }
                 setSaveState('dirty', 'Unsaved draft restored');
                 refreshPostersPreview();
                 refreshWidePreview();
@@ -822,6 +845,11 @@
                 var rgb = getComputedStyle(document.body).backgroundColor.match(/\d+/g) || [20,20,20];
                 var light = (Number(rgb[0]) * 299 + Number(rgb[1]) * 587 + Number(rgb[2]) * 114) / 1000 > 150;
                 page.classList.toggle('ovcLight', light);
+            }
+
+            function updateDryRunUi() {
+                var banner = page.querySelector('#OvercoatDryRunBanner');
+                if (banner) { banner.hidden = !page.querySelector('#DryRun').checked; }
             }
 
             // Preview state: which status the live preview renders, and how each maps to text + colour picker.
@@ -1157,8 +1185,7 @@
                 syncSliders();
                 if (wide) { updateWideStyleOptions(); refreshWidePreview(); }
                 else { updateStyleOptions(); refreshPostersPreview(); }
-                setSaveState('dirty', button.textContent.trim() + ' look applied — review, then apply changes');
-                saveDraft();
+                markDraftChanged(button.textContent.trim() + ' look applied — review, then apply changes');
             }
 
             function wireTabs() {
@@ -1579,6 +1606,7 @@
                     page.querySelector('#BadgesEnabled').checked = config.BadgesEnabled !== false;
                     page.querySelector('#CacheEnabled').checked = config.CacheEnabled !== false;
                     page.querySelector('#DryRun').checked = !!config.DryRun;
+                    updateDryRunUi();
                     page.querySelector('#ForceRestore').checked = !!config.ForceRestore;
                     fillHours();
                     page.querySelector('#CustomScheduleTime').checked = !!config.CustomScheduleTime;
@@ -1847,12 +1875,11 @@
                     wireTabs();
                     page.querySelector('#OvercoatConfigForm').addEventListener('input', function (event) {
                         if (!loading && !event.target.closest('#OvercoatPreviewStatuses, #OvercoatPreviewBadges, #OvercoatWidePreviewStatuses, #OvercoatWidePreviewBadges')) {
-                            setSaveState('dirty');
-                            window.setTimeout(saveDraft, 0);
+                            markDraftChanged();
                         }
                     });
                     page.querySelector('#OvercoatConfigForm').addEventListener('change', function () {
-                        if (!loading) { setSaveState('dirty'); window.setTimeout(saveDraft, 0); }
+                        if (!loading) { markDraftChanged(); }
                     });
                     page.querySelectorAll('.ovcSurface').forEach(function (button) {
                         button.addEventListener('click', function () { showTab(button.getAttribute('data-surface')); });
@@ -1872,6 +1899,7 @@
                     });
                     page.querySelector('#ToggleTmdbApiKey').addEventListener('click', toggleApiKeyVisibility);
                     page.querySelector('#TmdbOverrides').addEventListener('input', validateDraft);
+                    page.querySelector('#DryRun').addEventListener('change', updateDryRunUi);
                     window.addEventListener('scroll', updateFloatingPreview, { passive: true });
                     window.addEventListener('resize', updateFloatingPreview);
                     var ancestor = page.parentElement;

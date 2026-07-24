@@ -11,6 +11,14 @@ namespace Jellyfin.Plugin.Overcoat.Tests;
 public sealed class ConfigurationSanitizerTests
 {
     [Fact]
+    public void NewConfiguration_StartsInDryRun()
+    {
+        var c = new PluginConfiguration();
+
+        Assert.True(c.DryRun);
+    }
+
+    [Fact]
     public void AbsurdValues_AreClampedIntoRange()
     {
         var c = new PluginConfiguration
