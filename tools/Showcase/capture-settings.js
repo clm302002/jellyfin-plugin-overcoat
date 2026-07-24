@@ -137,6 +137,8 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       tabTops: [...document.querySelectorAll('.ovcTab')].map(x=>Math.round(x.getBoundingClientRect().top)),
       actionRadii: ['OvercoatRunNow','OvercoatRestore','OvercoatVaultRefresh'].map(id=>parseFloat(getComputedStyle(document.querySelector('#'+id)).borderRadius)),
       libraryActionRadii: ['OvercoatUseWideCardsAll','OvercoatUseEpisodeStillsAll'].map(id=>parseFloat(getComputedStyle(document.querySelector('#'+id)).borderRadius)),
+      forceRestoreGap: parseFloat(getComputedStyle(document.querySelector('.ovcForceRestore')).columnGap),
+      searchButtonWidths: ['OvercoatTitleSearchButton','OvercoatIgnoreSearchButton'].map(id=>Math.round(document.querySelector('#'+id).getBoundingClientRect().width)),
       runTop: document.querySelector('#OvercoatRunRestoreCard').getBoundingClientRect().top,
       behaviourTop: document.querySelector('[data-panel="automation"] .ovcCard:not(#OvercoatRunRestoreCard)').getBoundingClientRect().top,
       applyTop: document.querySelector('#OvercoatApplyTile').getBoundingClientRect().top,
@@ -158,6 +160,8 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (new Set(computed.tabTops).size !== 1) throw new Error('Purpose navigation is not aligned across the top.');
     if (computed.actionRadii.some(x=>x < 20)) throw new Error(`Run/Restore/Recheck actions are not rounded (${computed.actionRadii.join(', ')}).`);
     if (computed.libraryActionRadii.some(x=>x < 20)) throw new Error(`Library artwork actions are not rounded (${computed.libraryActionRadii.join(', ')}).`);
+    if (computed.forceRestoreGap < 4 || computed.forceRestoreGap > 24) throw new Error(`Force Restore switch is detached from its wording (${computed.forceRestoreGap}px gap).`);
+    if (computed.searchButtonWidths.some(x=>x > 112)) throw new Error(`Catalogue Search button is oversized (${computed.searchButtonWidths.join(', ')}).`);
     if (computed.runTop >= computed.behaviourTop) throw new Error('Run Now is not the first Automation section.');
     if (Math.abs(computed.applyWidth - computed.runWidth) > 2) throw new Error('Apply and test-title card does not span the full Run Now width.');
     if (computed.runBackground !== 'rgba(0, 0, 0, 0)') throw new Error(`Run Now still has an outer box (${computed.runBackground}).`);

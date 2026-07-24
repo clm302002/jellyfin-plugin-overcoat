@@ -8,6 +8,15 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.9.0-beta.6] — 2026-07-24
+
+### Changed
+- **Force Restore is easier to read safely.** Restore Originals now separates the primary recovery
+  action from a compact inset safety panel, keeping the Force Restore switch directly beside its
+  label and explanation at desktop and mobile widths.
+- **Automation reaches the action faster.** Redundant Run Now heading copy is removed, the page
+  introduction is shorter, and both catalogue search rows stay left-aligned with compact buttons.
+
 ## [0.9.0-beta.5] — 2026-07-24
 
 ### Changed

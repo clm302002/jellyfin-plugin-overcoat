@@ -520,7 +520,7 @@
 
                 <!-- ===================== MAINTENANCE ===================== -->
                 <div class="ovcPanel" data-panel="automation">
-                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Automation</span><h2>Run quietly, recover visibly</h2><p>Control background upkeep and start a focused overlay pass.</p></div>
+                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Automation</span><h2>Run overlays and keep them current</h2><p>Start a focused pass or choose how Overcoat runs in the background.</p></div>
                     <div class="ovcCard">
                         <h3>Behaviour</h3>
                         <div class="ovcCheck">
@@ -624,13 +624,19 @@
                                 </div>
                             </div>
                             <div class="ovcActionTile ovcRestoreTile" id="OvercoatRestoreTile">
-                                <h3>Restore originals</h3>
-                                <p class="fieldDescription">Put back clean posters and series wide cards saved in Overcoat's originals vault.</p>
-                                <button is="emby-button" type="button" id="OvercoatRestore" class="raised"><span>↩ Restore original artwork</span></button>
-                                <div class="ovcCheck">
-                                    <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="ForceRestore" /><span>Force restore over changed artwork</span></label>
-                                    <div class="fieldDescription">Normally Restore protects artwork changed outside Overcoat. Enable this only when the vaulted copy should win regardless.</div>
+                                <div class="ovcRestoreHero">
+                                    <span class="ovcEyebrow">Recovery action</span>
+                                    <h3>Restore originals</h3>
+                                    <p class="fieldDescription">Put back clean posters and series wide cards saved in Overcoat's originals vault.</p>
+                                    <button is="emby-button" type="button" id="OvercoatRestore" class="raised"><span>↩ Restore original artwork</span></button>
                                 </div>
+                                <label class="checkboxContainer ovcForceRestore">
+                                    <input is="emby-checkbox" type="checkbox" id="ForceRestore" />
+                                    <span>
+                                        <strong>Force restore over changed artwork</strong>
+                                        <small>Normally, Restore protects artwork changed outside Overcoat. Turn this on only when the vaulted copy should replace it anyway.</small>
+                                    </span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -762,16 +768,12 @@
                 var targetingHeading = page.querySelector('#OvercoatTargetingHeading');
                 if (targetingHeading) { targetingHeading.remove(); }
                 var runHeading = page.querySelector('#OvercoatRunRestoreHeading');
-                if (runHeading) {
-                    runHeading.querySelector('h3').textContent = 'Run now';
-                    runHeading.querySelector('.fieldDescription').textContent = 'Apply the current draft, then start an overlay pass.';
-                }
                 var automation = page.querySelector('[data-panel="automation"]');
                 var automationIntro = automation && automation.querySelector('.ovcPageIntro');
                 var runCard = page.querySelector('#OvercoatRunRestoreCard');
-                if (automationIntro && runHeading && runCard) {
-                    automationIntro.insertAdjacentElement('afterend', runHeading);
-                    runHeading.insertAdjacentElement('afterend', runCard);
+                if (runHeading) { runHeading.remove(); }
+                if (automationIntro && runCard) {
+                    automationIntro.insertAdjacentElement('afterend', runCard);
                 }
                 var actionGrid = page.querySelector('#OvercoatRunRestoreCard .ovcActionGrid');
                 if (actionGrid) { actionGrid.classList.add('ovcSingleAction'); }

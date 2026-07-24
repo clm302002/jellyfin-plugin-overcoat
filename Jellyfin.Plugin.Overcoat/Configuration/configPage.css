@@ -399,9 +399,12 @@
     display: inline-flex; margin-left: .35rem; padding: .12rem .45rem; border: 1px solid var(--ov-border);
     border-radius: 99px; color: var(--ov-faint); font-size: .62rem; letter-spacing: .06em; text-transform: uppercase;
 }
-#OvercoatConfigPage .ovcTitleSearch { min-width: 0; }
+#OvercoatConfigPage .ovcTitleSearch { width: min(100%, 46rem); min-width: 0; justify-self: start; }
 #OvercoatConfigPage .ovcSearchRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .55rem; align-items: stretch; }
-#OvercoatConfigPage .ovcSearchRow button { margin: 0; min-width: 6.4rem; }
+#OvercoatConfigPage .ovcSearchRow button {
+    justify-self: start; width: auto !important; min-width: 5.5rem; max-width: 7rem;
+    margin: 0; padding: .58rem .9rem !important;
+}
 #OvercoatConfigPage .ovcTitleResults {
     overflow: hidden; border: 1px solid var(--ov-border-strong); border-radius: 11px;
     background: var(--ov-canvas); box-shadow: 0 18px 36px -28px rgba(0,0,0,.9);
@@ -440,11 +443,23 @@
 #OvercoatConfigPage .ovcLegacyChip { display: inline-flex; margin: .35rem .35rem 0 0; padding: .28rem .5rem; border-radius: 7px; background: var(--ov-surface-2); }
 #OvercoatConfigPage #OvercoatIgnoreCard { display: grid; gap: .8rem; }
 #OvercoatConfigPage #OvercoatIgnoreCard > h3 { margin-bottom: 0; }
-#OvercoatConfigPage .ovcRestoreTile { text-align: center; padding: clamp(1.5rem, 4vw, 2.4rem); }
-#OvercoatConfigPage .ovcRestoreTile > .fieldDescription { max-width: 42rem; margin: .35rem auto; }
-#OvercoatConfigPage .ovcRestoreTile .ovcCheck { max-width: 42rem; margin: .85rem auto 0; text-align: left; }
-#OvercoatConfigPage .ovcRestoreTile .checkboxContainer { justify-content: center; }
-#OvercoatConfigPage .ovcRestoreTile .ovcCheck .fieldDescription { text-align: center; }
+#OvercoatConfigPage .ovcRestoreTile {
+    display: grid; grid-template-columns: minmax(14rem, .72fr) minmax(22rem, 1.28fr);
+    align-items: center; gap: clamp(1.4rem, 4vw, 3.5rem); padding: clamp(1.5rem, 4vw, 2.4rem);
+}
+#OvercoatConfigPage .ovcRestoreHero { text-align: center; }
+#OvercoatConfigPage .ovcRestoreHero h3 { margin: .2rem 0 .35rem; font-size: clamp(1.3rem, 2vw, 1.65rem); }
+#OvercoatConfigPage .ovcRestoreHero .fieldDescription { max-width: 32rem; margin: .35rem auto; }
+#OvercoatConfigPage .ovcForceRestore {
+    display: grid; grid-template-columns: 42px minmax(0, 1fr); align-items: start; gap: .85rem;
+    min-height: 0; padding: 1rem 1.05rem; border: 1px solid color-mix(in srgb, var(--ov-warning) 38%, var(--ov-border));
+    border-radius: 13px; text-align: left;
+    background: color-mix(in srgb, var(--ov-warning) 7%, var(--ov-canvas));
+}
+#OvercoatConfigPage .ovcForceRestore input[type="checkbox"] { margin-top: .1rem; }
+#OvercoatConfigPage .ovcForceRestore > span { display: grid; gap: .28rem; min-width: 0; }
+#OvercoatConfigPage .ovcForceRestore strong { color: var(--ov-text); font-size: .92rem; line-height: 1.35; }
+#OvercoatConfigPage .ovcForceRestore small { color: var(--ov-muted); font-size: .8rem; font-weight: 400; line-height: 1.5; }
 #OvercoatConfigPage .ovcDryRunBanner {
     display: flex; align-items: flex-start; gap: .75rem; grid-column: 1 / -1;
     margin-top: .9rem; padding: .85rem 1rem; border: 1px solid color-mix(in srgb, var(--ov-warning) 68%, var(--ov-border));
@@ -514,6 +529,8 @@
 @media (max-width: 1099px) {
     #OvercoatConfigPage #OvercoatApplyTile { grid-template-columns: 1fr; }
     #OvercoatConfigPage .ovcTargetPicker { padding: 1.1rem 0 0; border-top: 1px solid var(--ov-border); border-left: 0; }
+    #OvercoatConfigPage .ovcRestoreTile { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcForceRestore { width: min(100%, 42rem); margin: 0 auto; }
     #OvercoatConfigPage .ovcBannerLayout { grid-template-columns: 1fr; grid-template-areas: 'surface' 'notice' 'preview' 'controls'; }
     #OvercoatConfigPage .ovcBannerPreview { position: static; max-height: none; overflow: visible; }
     #OvercoatConfigPage .ovcBannerControls { grid-template-columns: 1fr; }
@@ -551,8 +568,7 @@
     #OvercoatConfigPage .ovcBannerPreview { min-height: 0; }
     #OvercoatConfigPage .ovcBannerPreview img { max-width: 235px; }
     #OvercoatConfigPage .ovcWidePreview img { max-width: 100%; }
-    #OvercoatConfigPage .ovcSearchRow { grid-template-columns: 1fr; }
-    #OvercoatConfigPage .ovcSearchRow button { width: 100%; }
+    #OvercoatConfigPage .ovcSearchRow { grid-template-columns: 1fr auto; }
     #OvercoatConfigPage .ovcTitleResult { align-items: flex-start; flex-direction: column; gap: .2rem; }
 }
 @media (max-width: 520px) {
