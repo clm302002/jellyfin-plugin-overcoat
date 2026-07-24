@@ -6,6 +6,10 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.9.0-beta.4] — 2026-07-24
+
 ### Changed
 - **Libraries is flatter and more direct.** The introductory warning banner is removed, explanatory
   copy is shorter, and the two all-user artwork choices are yellow warning actions. The former

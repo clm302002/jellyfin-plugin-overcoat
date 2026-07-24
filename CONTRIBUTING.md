@@ -118,6 +118,7 @@ Releases are cut by pushing a tag; **pushing to a branch publishes nothing.**
 | `v0.9.0-beta.1` | `0.9.0.1` | beta | purpose-based creative studio rebuild |
 | `v0.9.0-beta.2` | `0.9.0.2` | beta | studio rendering and interaction fixes |
 | `v0.9.0-beta.3` | `0.9.0.3` | beta | follow-up studio polish and Returning-date fixes |
+| `v0.9.0-beta.4` | `0.9.0.4` | beta | action-layout cleanup and typeface calibration |
 
 GitHub's "latest" excludes prereleases, so a beta can never appear on the stable URL. The beta channel
 is a **superset** — stable releases are published there too — so subscribing to the beta URL alone is
