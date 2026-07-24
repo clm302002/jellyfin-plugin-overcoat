@@ -284,10 +284,26 @@
 #OvercoatConfigPage .ovcColors label { display: grid; justify-items: center; gap: .3rem; color: var(--ov-muted); font-size: .72rem; }
 #OvercoatConfigPage .ovcColors input,
 #OvercoatConfigPage .ovcStatusRow2 input[type="color"] { width: 2.6rem; height: 2.1rem; padding: 2px; border: 1px solid var(--ov-border-strong); border-radius: 8px; background: none; cursor: pointer; }
-#OvercoatConfigPage .ovcStatusList { display: grid; gap: .1rem; margin-top: .9rem; }
-#OvercoatConfigPage .ovcStatusRow2 { display: grid; grid-template-columns: auto 6rem minmax(0,1fr) auto; align-items: center; gap: .75rem; padding: .5rem .15rem; }
+#OvercoatConfigPage .ovcStatusList {
+    display: grid; gap: 0; margin-top: .9rem; overflow: hidden;
+    border: 1px solid var(--ov-border); border-radius: 12px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage .ovcStatusHeader,
+#OvercoatConfigPage .ovcStatusRow2 {
+    display: grid; grid-template-columns: 3.2rem 7rem minmax(0,1fr) 3.5rem;
+    align-items: center; gap: .75rem;
+}
+#OvercoatConfigPage .ovcStatusHeader {
+    padding: .62rem .8rem; border-bottom: 1px solid var(--ov-border-strong);
+    color: var(--ov-faint); background: var(--ov-surface-2);
+    font-size: .66rem; font-weight: 850; letter-spacing: .085em; text-transform: uppercase;
+}
+#OvercoatConfigPage .ovcStatusHeader span:last-child { text-align: center; }
+#OvercoatConfigPage .ovcStatusRow2 { min-height: 3.8rem; padding: .55rem .8rem; }
 #OvercoatConfigPage .ovcStatusRow2 + .ovcStatusRow2 { border-top: 1px solid var(--ov-border); }
-#OvercoatConfigPage .ovcStatusRow2 input[type="color"] { width: 2.1rem; height: 1.9rem; }
+#OvercoatConfigPage .ovcStatusRow2:hover { background: color-mix(in srgb, var(--ov-accent) 4%, transparent); }
+#OvercoatConfigPage .ovcStatusRow2 input[type="color"] { width: 2.55rem; height: 2.25rem; border-radius: 9px; }
+#OvercoatConfigPage .ovcStatusRow2 input[type="text"] { min-width: 0; }
 #OvercoatConfigPage .ovcStName { font-size: .86rem; font-weight: 800; }
 #OvercoatConfigPage .ovcStToggle { justify-self: end; }
 #OvercoatConfigPage .ovcSplit { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.15fr); gap: 1.35rem; align-items: start; }
@@ -358,10 +374,19 @@
     #OvercoatConfigPage .ovcRow { grid-template-columns: 1fr; }
     #OvercoatConfigPage .ovcDenseCard > h3,
     #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column: auto; }
-    #OvercoatConfigPage .ovcStatusRow2 { grid-template-columns: auto 5.3rem minmax(0,1fr) auto; gap: .5rem; }
+    #OvercoatConfigPage .ovcStatusHeader,
+    #OvercoatConfigPage .ovcStatusRow2 { grid-template-columns: 3rem 5.3rem minmax(0,1fr) 3.25rem; gap: .5rem; }
     #OvercoatConfigPage .ovcTab { min-width: 7rem; padding-inline: .75rem; }
     #OvercoatConfigPage .ovcSaveDock { bottom: .5rem; width: calc(100% - 1rem); }
     #OvercoatConfigPage .ovcFloatingPreview { right: .55rem; bottom: 5rem; }
+}
+@media (max-width: 520px) {
+    #OvercoatConfigPage .ovcStatusHeader { display: none; }
+    #OvercoatConfigPage .ovcStatusRow2 { grid-template-columns: 2.8rem minmax(0,1fr) auto; gap: .55rem; padding: .7rem; }
+    #OvercoatConfigPage .ovcStatusRow2 input[type="color"] { grid-column: 1; grid-row: 1; }
+    #OvercoatConfigPage .ovcStatusRow2 .ovcStName { grid-column: 2; grid-row: 1; }
+    #OvercoatConfigPage .ovcStatusRow2 .ovcStToggle { grid-column: 3; grid-row: 1; }
+    #OvercoatConfigPage .ovcStatusRow2 input[type="text"] { grid-column: 1 / -1; grid-row: 2; }
 }
 @media (prefers-reduced-motion: reduce) {
     #OvercoatConfigPage *, #OvercoatConfigPage *::before, #OvercoatConfigPage *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }

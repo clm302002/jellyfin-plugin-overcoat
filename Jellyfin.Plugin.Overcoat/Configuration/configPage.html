@@ -146,13 +146,16 @@
                             <summary>Effects</summary><div class="ovcDetailsBody ovcFieldGrid">
                             <div class="ovcCheck">
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerIcons" /><span>Show status icons</span></label>
+                                <div class="fieldDescription">Draw the ★ / ⟳ / ✓ icon beside the banner text. Off keeps the banner text-only.</div>
                             </div>
                             <div class="ovcCheck">
                                 <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="BannerShadow" /><span>Drop shadow</span></label>
+                                <div class="fieldDescription">Add a soft shadow beneath the banner so it stays readable over detailed artwork.</div>
                             </div>
-                            <div class="ovcField ovcWide">
+                            <div class="ovcField">
                                 <div class="ovcSliderRow"><span class="inputLabel">Shadow strength</span><span class="ovcSliderVal" id="BannerShadowStrengthVal">60%</span></div>
                                 <input type="range" id="BannerShadowStrength" min="0" max="100" step="1" data-out="BannerShadowStrengthVal" data-unit="%" />
+                                <div class="fieldDescription">Controls the depth and opacity of the shadow.</div>
                             </div>
                             </div></details>
 
@@ -195,11 +198,12 @@
                             <summary>Colours &amp; labels</summary><div class="ovcDetailsBody">
                             <p class="fieldDescription ovcCardLead">Recolour, rename, or hide each status. Switch the preview to a status to see it.</p>
                             <div class="ovcStatusList">
-                                <div class="ovcStatusRow2"><input type="color" id="ColorNew" aria-label="New colour" /><span class="ovcStName">New</span><input is="emby-input" type="text" id="LabelNew" /><label class="checkboxContainer ovcStToggle"><input is="emby-checkbox" type="checkbox" id="ShowNew" /></label></div>
-                                <div class="ovcStatusRow2"><input type="color" id="ColorAiring" aria-label="Airing colour" /><span class="ovcStName">Airing</span><input is="emby-input" type="text" id="LabelAiring" /><label class="checkboxContainer ovcStToggle"><input is="emby-checkbox" type="checkbox" id="ShowAiring" /></label></div>
-                                <div class="ovcStatusRow2"><input type="color" id="ColorReturning" aria-label="Returning colour" /><span class="ovcStName">Returning</span><input is="emby-input" type="text" id="LabelReturning" /><label class="checkboxContainer ovcStToggle"><input is="emby-checkbox" type="checkbox" id="ShowReturning" /></label></div>
-                                <div class="ovcStatusRow2"><input type="color" id="ColorEnded" aria-label="Ended colour" /><span class="ovcStName">Ended</span><input is="emby-input" type="text" id="LabelEnded" /><label class="checkboxContainer ovcStToggle"><input is="emby-checkbox" type="checkbox" id="ShowEnded" /></label></div>
-                                <div class="ovcStatusRow2"><input type="color" id="ColorCanceled" aria-label="Canceled colour" /><span class="ovcStName">Canceled</span><input is="emby-input" type="text" id="LabelCanceled" /><label class="checkboxContainer ovcStToggle"><input is="emby-checkbox" type="checkbox" id="ShowCanceled" /></label></div>
+                                <div class="ovcStatusHeader" aria-hidden="true"><span>Colour</span><span>Status</span><span>Display label</span><span>Show</span></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorNew" aria-label="New colour" /><span class="ovcStName">New</span><input is="emby-input" type="text" id="LabelNew" aria-label="New display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show New status"><input is="emby-checkbox" type="checkbox" id="ShowNew" /></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorAiring" aria-label="Airing colour" /><span class="ovcStName">Airing</span><input is="emby-input" type="text" id="LabelAiring" aria-label="Airing display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Airing status"><input is="emby-checkbox" type="checkbox" id="ShowAiring" /></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorReturning" aria-label="Returning colour" /><span class="ovcStName">Returning</span><input is="emby-input" type="text" id="LabelReturning" aria-label="Returning display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Returning status"><input is="emby-checkbox" type="checkbox" id="ShowReturning" /></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorEnded" aria-label="Ended colour" /><span class="ovcStName">Ended</span><input is="emby-input" type="text" id="LabelEnded" aria-label="Ended display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Ended status"><input is="emby-checkbox" type="checkbox" id="ShowEnded" /></label></div>
+                                <div class="ovcStatusRow2"><input type="color" id="ColorCanceled" aria-label="Canceled colour" /><span class="ovcStName">Canceled</span><input is="emby-input" type="text" id="LabelCanceled" aria-label="Canceled display label" /><label class="checkboxContainer ovcStToggle" aria-label="Show Canceled status"><input is="emby-checkbox" type="checkbox" id="ShowCanceled" /></label></div>
                             </div>
                             </div></details>
                             <div class="ovcSectionHeading ovcWide"><h3>Badges</h3></div>

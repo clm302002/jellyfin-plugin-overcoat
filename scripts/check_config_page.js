@@ -78,6 +78,8 @@ const requiredPatterns = [
   ['full form serialization exists', /config\.Libraries\s*=\s*collectLibraries\(\)/],
   ['segmented controls expose radio state', /setAttribute\('aria-checked'/],
   ['save dock exposes status feedback', /id="OvercoatSaveState"[^>]*role="status"/],
+  ['status editor exposes labelled columns', /class="ovcStatusHeader"[^>]*>[\s\S]*Display label[\s\S]*Show/],
+  ['poster effects explain their controls', /id="BannerIcons"[\s\S]*Draw the ★[\s\S]*id="BannerShadow"[\s\S]*Add a soft shadow/],
   ['preview requests carry a stable poster key', /previewKey=' \+ encodeURIComponent\(previewKey\)/],
   ['all-user wide-card action exists', /id="OvercoatUseWideCardsAll"/],
   ['all-user episode-still action exists', /id="OvercoatUseEpisodeStillsAll"/],

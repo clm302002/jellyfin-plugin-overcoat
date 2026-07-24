@@ -18,6 +18,9 @@ All notable changes to Overcoat are documented here. Format follows
 - **Wide Cards controls now match Posters.** Wide-card treatments, shapes, layout choices, typography,
   effects, badge anchors, and numeric tuning use the same segmented controls and sliders as the Posters
   tab. Inherited poster settings remain the default and are clearly reflected in the Wide Cards panel.
+- **Poster detail sections are visually consistent.** Effects now uses the same balanced, explanatory
+  layout as Wide Cards. Colours & Labels is a labelled status table with clear colour, name, label, and
+  visibility columns, plus a compact stacked layout on phones.
 - **Save feedback is contextual.** The save action is hidden while the page is clean, appears after an
   edit, reports saving and failure states, and no longer permanently covers the settings being edited.
 - **Settings screenshots and capture checks were refreshed.** The README gallery now reflects the current

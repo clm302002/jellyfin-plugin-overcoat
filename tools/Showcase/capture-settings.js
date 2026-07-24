@@ -67,6 +67,16 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     await page.waitForTimeout(250);
     await page.screenshot({ path:path.join(out,`settings-${tab}.png`), fullPage:true });
   }
+  if (process.env.SHOWCASE_CAPTURE_DETAILS === '1') {
+    await page.locator('button[data-tab="posters"]').click();
+    const posterEffects = page.locator('[data-panel="posters"] details').filter({has:page.locator('summary', {hasText:'Effects'})});
+    const statusDesign = page.locator('[data-panel="posters"] details').filter({has:page.locator('summary', {hasText:'Colours & labels'})});
+    await posterEffects.screenshot({path:path.join(out, 'settings-posters-effects.png')});
+    await statusDesign.screenshot({path:path.join(out, 'settings-posters-colours-labels.png')});
+    await page.locator('button[data-tab="wide"]').click();
+    const wideEffects = page.locator('[data-panel="wide"] details').filter({has:page.locator('summary', {hasText:'Effects'})});
+    await wideEffects.screenshot({path:path.join(out, 'settings-wide-effects.png')});
+  }
   if (process.env.SHOWCASE_VERIFY_SCROLL === '1') {
     for (const tab of ['posters','wide','apikeys','libraries','maintenance']) {
       await page.locator(`button[data-tab="${tab}"]`).click();
