@@ -492,7 +492,10 @@
 
                 <!-- ===================== LIBRARIES ===================== -->
                 <div class="ovcPanel" data-panel="libraries">
-                    <div class="ovcPageIntro ovcWide"><span class="ovcEyebrow">Libraries</span><h2>Choose where Overcoat works</h2><p>Enable only the surfaces and signals each library should receive.</p></div>
+                    <div class="ovcLibraryIntro ovcCaution ovcWide" role="note">
+                        <span class="ovcIcon" aria-hidden="true">tips_and_updates</span>
+                        <div><strong>Choose where Overcoat works</strong><span>Enable a library, then choose its banners, wide cards, and badges. Advanced targeting below can limit or exclude individual titles.</span></div>
+                    </div>
                     <div class="ovcCard ovcWide">
                         <h3>Next Up &amp; Continue Watching artwork</h3>
                         <p class="fieldDescription">
@@ -537,7 +540,7 @@
                     <div class="ovcCard">
                         <h3>Behaviour</h3>
                         <div class="ovcCheck">
-                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="CacheEnabled" /><span>Use skip cache</span></label>
+                            <label class="checkboxContainer"><input is="emby-checkbox" type="checkbox" id="CacheEnabled" /><span>Use skip cache <span class="ovcRecommended">Recommended on</span></span></label>
                             <div class="fieldDescription">Only reprocess items that changed since the last run (much faster). Off reprocesses everything.</div>
                         </div>
                         <div class="ovcCheck">

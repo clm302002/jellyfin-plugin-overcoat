@@ -145,6 +145,14 @@
     border-color: color-mix(in srgb, var(--ov-warning) 56%, var(--ov-border));
     background: linear-gradient(145deg, color-mix(in srgb, var(--ov-warning) 9%, var(--ov-surface)), var(--ov-surface));
 }
+#OvercoatConfigPage .ovcLibraryIntro {
+    display: flex; align-items: flex-start; gap: .8rem; padding: .95rem 1.1rem;
+    border: 1px solid color-mix(in srgb, var(--ov-warning) 64%, var(--ov-border));
+    border-radius: 14px;
+}
+#OvercoatConfigPage .ovcLibraryIntro > .ovcIcon { flex: 0 0 auto; margin-top: .08rem; color: var(--ov-warning); }
+#OvercoatConfigPage .ovcLibraryIntro strong { display: block; color: color-mix(in srgb, var(--ov-warning) 84%, var(--ov-text)); font-size: 1rem; }
+#OvercoatConfigPage .ovcLibraryIntro div > span { display: block; margin-top: .22rem; color: var(--ov-muted); font-size: .84rem; line-height: 1.45; }
 #OvercoatConfigPage details.ovcCard { padding: 0; overflow: clip; }
 #OvercoatConfigPage details.ovcCard > summary {
     display: flex; align-items: center; gap: .55rem; min-height: 3.25rem;
@@ -286,6 +294,7 @@
     margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important;
 }
 #OvercoatConfigPage .ovcRow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+#OvercoatConfigPage #ScheduleTimeRow[hidden] { display: none !important; }
 
 /* Segmented controls and sliders */
 #OvercoatConfigPage .ovcSeg { display: flex; gap: .22rem; padding: .24rem; background: var(--ov-canvas); border: 1px solid var(--ov-border-strong); border-radius: 11px; }
@@ -364,7 +373,8 @@
     margin: .7rem 0; padding: .68rem 1.15rem !important; border-radius: 999px !important;
 }
 #OvercoatConfigPage #OvercoatRunNow,
-#OvercoatConfigPage #OvercoatRestore { border-radius: 999px !important; }
+#OvercoatConfigPage #OvercoatRestore,
+#OvercoatConfigPage #OvercoatVaultRefresh { border-radius: 999px !important; padding-inline: 1.15rem !important; }
 #OvercoatConfigPage #OvercoatUseWideCardsAll,
 #OvercoatConfigPage #OvercoatUseEpisodeStillsAll { border-radius: 999px !important; padding-inline: 1.15rem !important; }
 #OvercoatConfigPage .ovcDryRunBanner {
@@ -387,6 +397,12 @@
 #OvercoatConfigPage .ovcSecretRow { display: flex; align-items: flex-end; gap: .7rem; }
 #OvercoatConfigPage .ovcSecretRow .inputContainer { flex: 1; min-width: 0; }
 #OvercoatConfigPage .ovcWip { display: inline-block; margin-left: .35rem; padding: .14rem .5rem; border-radius: 99px; background: var(--ov-warning); color: #281c00; font-size: .64rem; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
+#OvercoatConfigPage .ovcRecommended {
+    display: inline-flex; align-items: center; margin-left: .38rem; padding: .12rem .46rem;
+    border: 1px solid color-mix(in srgb, var(--ov-success) 42%, var(--ov-border)); border-radius: 99px;
+    color: var(--ov-success); background: color-mix(in srgb, var(--ov-success) 9%, transparent);
+    font-size: .62rem; font-weight: 850; letter-spacing: .045em; line-height: 1.2; text-transform: uppercase;
+}
 #OvercoatConfigPage .ovcRecoveryHelp { margin-top: .5rem; font-size: .9rem; }
 #OvercoatConfigPage .ovcRecoveryHelp summary { cursor: pointer; color: var(--ov-muted); }
 #OvercoatConfigPage .ovcRecoveryHelp ul { margin: .6rem 0 0; padding-left: 1.2rem; line-height: 1.55; }

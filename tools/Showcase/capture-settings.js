@@ -131,7 +131,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
       badgeOptions: [...document.querySelectorAll('#BadgeSide option')].map(x=>x.value),
       details: document.querySelectorAll('[data-panel="design"] details.ovcCard').length,
       tabTops: [...document.querySelectorAll('.ovcTab')].map(x=>Math.round(x.getBoundingClientRect().top)),
-      actionRadii: ['OvercoatRunNow','OvercoatRestore'].map(id=>parseFloat(getComputedStyle(document.querySelector('#'+id)).borderRadius)),
+      actionRadii: ['OvercoatRunNow','OvercoatRestore','OvercoatVaultRefresh'].map(id=>parseFloat(getComputedStyle(document.querySelector('#'+id)).borderRadius)),
       libraryActionRadii: ['OvercoatUseWideCardsAll','OvercoatUseEpisodeStillsAll'].map(id=>parseFloat(getComputedStyle(document.querySelector('#'+id)).borderRadius)),
       runTop: document.querySelector('#OvercoatRunRestoreCard').getBoundingClientRect().top,
       behaviourTop: document.querySelector('[data-panel="automation"] .ovcCard:not(#OvercoatRunRestoreCard)').getBoundingClientRect().top,
@@ -145,11 +145,17 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (computed.badgeOptions.join(',') !== 'left') throw new Error('Badge placement exposes an unsupported side.');
     if (computed.details < 3) throw new Error('Advanced banner controls are not accordions.');
     if (new Set(computed.tabTops).size !== 1) throw new Error('Purpose navigation is not aligned across the top.');
-    if (computed.actionRadii.some(x=>x < 20)) throw new Error(`Run/Restore actions are not rounded (${computed.actionRadii.join(', ')}).`);
+    if (computed.actionRadii.some(x=>x < 20)) throw new Error(`Run/Restore/Recheck actions are not rounded (${computed.actionRadii.join(', ')}).`);
     if (computed.libraryActionRadii.some(x=>x < 20)) throw new Error(`Library artwork actions are not rounded (${computed.libraryActionRadii.join(', ')}).`);
     if (computed.runTop >= computed.behaviourTop) throw new Error('Run Now is not the first Automation section.');
     if (new Set(computed.statusSwitches).size !== 1) throw new Error(`Status visibility switches do not share one shape (${computed.statusSwitches.join(', ')}).`);
     if (await page.locator('#TrendingTimeWindow option[value="month"]').count() !== 1) throw new Error('Monthly TMDB trending choice is missing.');
+    const customSchedule = page.locator('#CustomScheduleTime');
+    if (await customSchedule.isChecked()) await customSchedule.click();
+    if (await page.locator('#ScheduleTimeRow').isVisible()) throw new Error('Custom schedule fields are visible while custom time is off.');
+    await customSchedule.click();
+    if (!await page.locator('#ScheduleTimeRow').isVisible()) throw new Error('Custom schedule fields did not appear when custom time was enabled.');
+    await customSchedule.click();
     const dryRun = page.locator('#DryRun');
     if (await dryRun.isChecked()) await dryRun.click();
     if (await page.locator('#OvercoatDryRunBanner').isVisible()) throw new Error('Dry Run notice stayed visible while Dry Run was off.');

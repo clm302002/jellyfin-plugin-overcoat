@@ -14,6 +14,15 @@ All notable changes to Overcoat are documented here. Format follows
   `0.60×` on Posters or Wide Cards, matching the full-width treatment instead of forcing the
   oversized `1.00×` default. Manually enabling Full-width band on another look does not change its
   text scale.
+- **Library selection guidance is easier to scan.** “Choose where Overcoat works” is now a compact
+  yellow banner explaining library enablement and per-title targeting without a large introductory
+  text block.
+- **Custom schedule fields stay out of the way until requested.** Hour and minute appear only while
+  “Set a custom run time” is enabled; the default 3:00 AM summary remains visible otherwise.
+- **Skip cache now carries a recommendation.** A compact “Recommended on” badge beside the setting
+  makes the faster normal operating mode clear without adding more helper text.
+- **Recovery Recheck matches the action system.** The vault refresh control now uses the same
+  rounded pill treatment as Apply Overcoat and Restore Originals.
 
 ## [0.9.0-beta.2] — 2026-07-24
 
