@@ -8,6 +8,42 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.9.0] — 2026-07-24
+
+Overcoat 0.9.0 promotes the owner-approved beta.9 build to stable after live Jellyfin testing. This
+release turns the settings experience into a cohesive, responsive studio and hardens the artwork
+write boundary so the interface and safety promises hold on a real server.
+
+### Safety
+- **Overcoat output is forced into Jellyfin's internal metadata storage.** Apply, automatic cleanup,
+  and Restore Originals all use Jellyfin's explicit `saveLocallyWithMedia: false` path regardless of
+  the library's **Save artwork into media folders** preference. The former direct shadow-file
+  deletion workaround is gone.
+- **New libraries remain off until deliberately enabled.** The Libraries page also explains the
+  media-folder guarantee prominently.
+
+### Changed
+- **A complete settings-studio redesign.** Design, Libraries, Data Sources, Automation, and Recovery
+  now share one modern visual system, top navigation, responsive cards, consistent rounded actions,
+  clear hierarchy, and dependable desktop/mobile layouts.
+- **Poster and Wide Card are matching design surfaces.** Both provide Quick Looks, structured banner
+  and badge controls, and a contained real-render preview. Wide Cards can inherit Poster styling or
+  use their own 16:9 appearance.
+- **Libraries is a modern control workspace.** Per-library processing and feature choices use clear
+  pill toggles, all-user home-screen artwork choices are explicit, and exact-title exclusions remain
+  visible and searchable.
+- **Automation supports safe exact-title testing.** Search Jellyfin, select a stable item match, and
+  apply to only that title before processing an entire library. Recovery presents the originals
+  vault and guarded restore controls as a connected workspace.
+
+### Fixed
+- **Controls now retain their intended layout inside Jellyfin itself.** The two catalogue searches,
+  library toggles, and Force Restore bypass Jellyfin custom-element geometry that could shift inputs,
+  produce square checkboxes, or overlap text after the standalone page had rendered correctly.
+- **Saving and applying remain explicit and reliable.** Draft tracking, Apply/Discard feedback,
+  validation, unknown-setting preservation, apply-before-run ordering, and versioned stylesheet
+  loading are all covered by the browser regression harness.
+
 ## [0.9.0-beta.9] — 2026-07-24
 
 This beta exists because Jellyfin's runtime upgrades of `emby-input` and `emby-checkbox` changed
