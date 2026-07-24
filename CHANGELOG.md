@@ -6,6 +6,10 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.8.0] — 2026-07-24
+
 ### Changed
 - **Clearer schedule settings.** The daily run now always happens (it keeps status dates and
   trending/watch-history badges current — things no library change touches), so the confusing toggle
