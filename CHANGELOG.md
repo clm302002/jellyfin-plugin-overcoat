@@ -10,6 +10,10 @@ All notable changes to Overcoat are documented here. Format follows
 - **Release notes are now mandatory per revision.** Every beta and stable tag must have its own exact,
   non-empty changelog section explaining what changed and why the build exists. The release workflow
   rejects tags that would publish an unexplained Jellyfin Revision History entry.
+- **Ribbon Quick Look now uses a proportional text size.** Applying Ribbon sets banner text to
+  `0.60×` on Posters or Wide Cards, matching the full-width treatment instead of forcing the
+  oversized `1.00×` default. Manually enabling Full-width band on another look does not change its
+  text scale.
 
 ## [0.9.0-beta.2] — 2026-07-24
 

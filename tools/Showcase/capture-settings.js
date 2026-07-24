@@ -202,6 +202,7 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     }
     await posterPresets.filter({hasText:'Ribbon'}).click();
     if (await page.locator('#BannerShape').inputValue() !== 'drop'
+        || await page.locator('#BannerFontScale').inputValue() !== '0.6'
         || !await page.locator('#BannerFullWidth').isChecked()
         || await page.locator('#BannerIcons').isChecked()) {
       throw new Error('Ribbon preset did not update the documented appearance fields.');
