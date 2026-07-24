@@ -82,7 +82,16 @@ again after creating them.
   vault, atomic writes and recovery, image-format detection and config clamping. Run it before
   changing `ProcessingState` or `OverlayTask`; that state machine is where every overlay-loss bug in
   this project has lived.
-- **Settings page:** `node scripts/check_config_page.js` — nothing else compiles that file.
+- **Settings page:** `node scripts/check_config_page.js` — nothing else compiles that hand-edited file.
+  It checks JavaScript parsing, referenced/unique IDs, masked credentials, preview and recovery hooks,
+  configuration serialization, responsive CSS hooks, and the supported tab structure.
+- **Settings capture:** with Playwright/Chromium installed, run
+  `SHOWCASE_CAPTURE_ALL=1 SHOWCASE_VERIFY_SCROLL=1 node tools/Showcase/capture-settings.js /tmp/overcoat-settings`
+  to exercise the real embedded page in a mocked, credential-free shell. The verification covers tab
+  navigation, sticky/floating previews, segmented controls, library option collapsing, API-key reveal,
+  save feedback, and that an edited value is sent to `updatePluginConfiguration`. Set
+  `SHOWCASE_VIEWPORT_WIDTH=390 SHOWCASE_VIEWPORT_HEIGHT=844` for the mobile pass; use
+  `SHOWCASE_THEME=light` to inspect the light-theme tokens.
 - **End-to-end:** install the built DLL on a test Jellyfin, run the **Apply Overcoat Overlays** task
   on a small/limited library, and confirm posters update. For wide cards, also enable the library's
   Series Thumb option, exercise both all-user artwork buttons, verify Next Up/Continue Watching,
@@ -140,6 +149,8 @@ The page's CSS lives in `Configuration/configPage.css`, embedded in the assembly
 - `node scripts/check_config_page.js` validates the page — the inline script parses, every element id
   the script references exists and is unique, and a set of layout/security hooks are present. Nothing
   else compiles that file, so run it.
+- The README settings images are generated from the same embedded HTML by `tools/Showcase/capture-settings.js`.
+  Regenerate them after visual changes and inspect both dark and light captures before updating the gallery.
 
 ## Pull requests
 

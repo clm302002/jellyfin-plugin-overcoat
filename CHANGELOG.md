@@ -11,8 +11,18 @@ All notable changes to Overcoat are documented here. Format follows
   the admin navigation (with a layers icon), not only buried in the plugin list.
 
 ### Changed
-- **Settings page restyle (in progress).** A cleaner, higher-contrast "studio" look for the
-  configuration page — refined cards, pill tabs, toggle switches, and a more prominent live preview.
+- **Settings studio redesign.** The configuration page now uses a consistent, higher-contrast cinematic
+  workspace across Posters, Wide Cards, Libraries, TMDB API, and Maintenance. The tab rail stays
+  available while scrolling, utility pages use appropriate widths, previews lead the design workspace,
+  and the layout stacks cleanly on mobile and in light themes.
+- **Wide Cards controls now match Posters.** Wide-card treatments, shapes, layout choices, typography,
+  effects, badge anchors, and numeric tuning use the same segmented controls and sliders as the Posters
+  tab. Inherited poster settings remain the default and are clearly reflected in the Wide Cards panel.
+- **Save feedback is contextual.** The save action is hidden while the page is clean, appears after an
+  edit, reports saving and failure states, and no longer permanently covers the settings being edited.
+- **Settings screenshots and capture checks were refreshed.** The README gallery now reflects the current
+  embedded page, and the standalone capture verifies visible segmented controls, responsive previews,
+  random-preview stability, library collapsing, and that edited values reach the plugin configuration update.
 
 ## [0.8.0] — 2026-07-24
 

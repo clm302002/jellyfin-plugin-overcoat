@@ -43,7 +43,8 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
         {Name:'Movies',Enabled:true,StatusOverlays:false,TrendingBadge:true,WatchHistoryBadge:true,ImdbTop250Badge:true}
       ]
     };
-    window.ApiClient = { accessToken:()=> 'synthetic-capture-token', getUrl:(route)=>route.includes('configPage.css') ? cssUrl : previewUrl, getJSON:()=>Promise.resolve([]), ajax:()=>Promise.resolve({}), getPluginConfiguration:()=>Promise.resolve(config), updatePluginConfiguration:()=>Promise.resolve({}), getVirtualFolders:()=>Promise.resolve([{Name:'TV Shows',CollectionType:'tvshows'},{Name:'Movies',CollectionType:'movies'}]), getUsers:()=>Promise.resolve([{Id:'demo',Name:'Demo user'}]), getScheduledTasks:()=>Promise.resolve([]) };
+    window.__captureUpdates = [];
+    window.ApiClient = { accessToken:()=> 'synthetic-capture-token', getUrl:(route)=>route.includes('configPage.css') ? cssUrl : previewUrl, getJSON:()=>Promise.resolve([]), ajax:()=>Promise.resolve({}), getPluginConfiguration:()=>Promise.resolve(config), updatePluginConfiguration:(_id, next)=>{ window.__captureUpdates.push(next); return Promise.resolve(next); }, getVirtualFolders:()=>Promise.resolve([{Name:'TV Shows',CollectionType:'tvshows'},{Name:'Movies',CollectionType:'movies'}]), getUsers:()=>Promise.resolve([{Id:'demo',Name:'Demo user'}]), getScheduledTasks:()=>Promise.resolve([]) };
     window.Dashboard = { showLoadingMsg(){}, hideLoadingMsg(){}, processPluginConfigurationUpdateResult(){}, alert(){}, confirm(_m,_t,cb){cb(false);} };
   }, {previewUrl:'file://' + path.join(root, 'private/showcase-input/breaking-bad.jpg'), cssUrl:'file://' + path.join(root, 'Jellyfin.Plugin.Overcoat/Configuration/configPage.css')});
   await page.goto('file://' + path.join(root, 'Jellyfin.Plugin.Overcoat/Configuration/configPage.html'));
@@ -60,7 +61,9 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     ? ['posters','wide','apikeys','libraries','maintenance']
     : ['posters','wide','libraries','maintenance'];
   for (const tab of captureTabs) {
+    await page.evaluate(() => { window.scrollTo(0, 0); const shell = document.querySelector('.jellyfinViewport'); if (shell) shell.scrollTop = 0; });
     await page.locator(`button[data-tab="${tab}"]`).click();
+    await page.evaluate(() => { window.scrollTo(0, 0); const shell = document.querySelector('.jellyfinViewport'); if (shell) shell.scrollTop = 0; });
     await page.waitForTimeout(250);
     await page.screenshot({ path:path.join(out,`settings-${tab}.png`), fullPage:true });
   }
@@ -124,14 +127,14 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     await page.locator('button[data-tab="posters"]').click();
     await page.locator('[data-panel="posters"] .ovcSourceBtn[data-source="random"]').click();
     const posterKey = new URL(await page.locator('#PostersPreview').getAttribute('src')).searchParams.get('previewKey');
-    await page.locator('#BannerShape').selectOption('square');
+    await page.locator('[data-for="BannerShape"] button[data-v="square"]').click();
     const keyAfterEdit = new URL(await page.locator('#PostersPreview').getAttribute('src')).searchParams.get('previewKey');
     await page.locator('button[data-tab="wide"]').click();
-    const keyAfterTab = new URL(await page.locator('#WidePreview').getAttribute('src')).searchParams.get('previewKey');
-    if (!posterKey || posterKey !== keyAfterEdit || posterKey !== keyAfterTab) throw new Error('Random poster key changed during an edit or tab switch.');
-    await page.locator('[data-panel="wide"] .ovcSourceBtn[data-source="random"]').click();
+    const wideKeyBefore = new URL(await page.locator('#WidePreview').getAttribute('src')).searchParams.get('previewKey');
+    if (!posterKey || posterKey !== keyAfterEdit) throw new Error('Random poster key changed during an edit.');
+    await page.locator('[data-panel="wide"] .ovcWideSourceBtn[data-source="random"]').click();
     const rerolledKey = new URL(await page.locator('#WidePreview').getAttribute('src')).searchParams.get('previewKey');
-    if (rerolledKey === posterKey) throw new Error('Explicit Random click did not select a new poster key.');
+    if (rerolledKey === wideKeyBefore) throw new Error('Explicit Random click did not select a new wide-card key.');
     await page.locator('button[data-tab="posters"]').click();
     const dateDetails = page.locator('[data-panel="posters"] details').filter({hasText:'Status dates'});
     const wasOpen = await dateDetails.getAttribute('open');
@@ -145,6 +148,10 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     await page.locator('#OvercoatConfigForm button[type="submit"]').click();
     await page.waitForTimeout(30);
     if (!/saved/i.test(await page.locator('#OvercoatSaveState').textContent())) throw new Error('Saved confirmation did not appear.');
+    const update = await page.evaluate(() => window.__captureUpdates[window.__captureUpdates.length - 1] || null);
+    if (!update || update.BannerShape !== 'square' || update.BadgesEnabled !== true || update.Libraries?.length !== 2) {
+      throw new Error('Saved configuration did not contain the edited shape, badge switch, and libraries.');
+    }
     const collision = await page.evaluate(() => {
       const a=document.querySelector('#OvercoatSaveDock').getBoundingClientRect();
       const b=document.querySelector('#OvercoatFloatingPreview').getBoundingClientRect();

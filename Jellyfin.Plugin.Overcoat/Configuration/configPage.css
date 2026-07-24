@@ -1,312 +1,368 @@
-/* Overcoat dashboard — page-scoped "studio" restyle. Jellyfin themes stay in control outside #OvercoatConfigPage. */
+/* Overcoat settings studio. Everything is scoped so Jellyfin's dashboard theme remains untouched. */
 #OvercoatConfigPage {
-    --ov-accent: #34c6f4;
-    --ov-accent-ink: #04202b;
-    --ov-accent-soft: color-mix(in srgb, var(--ov-accent) 15%, transparent);
-    --ov-canvas: #0b0e13;
-    --ov-bg: #0b0e13;
-    --ov-surface: #12161d;
-    --ov-surface-2: #1a1f28;
-    --ov-raised: #20262f;
-    --ov-hi: rgba(255,255,255,.045);
-    --ov-border: rgba(255,255,255,.08);
-    --ov-border-2: rgba(255,255,255,.13);
-    --ov-text: #eef2f8;
-    --ov-muted: #98a2b0;
-    --ov-faint: #5f6a78;
-    --ov-danger: #e04d61;
-    --ov-warning: #f2b84b;
-    /* section hues (decoration only; interactive controls stay accent) */
-    --ov-h1: #34c6f4; --ov-h2: #a582ff; --ov-h3: #f4c258; --ov-h4: #5fcf8c; --ov-h5: #e8bd52;
+    --ov-accent: #39c8f4;
+    --ov-accent-strong: #18b6e8;
+    --ov-accent-ink: #031d27;
+    --ov-accent-soft: rgba(57, 200, 244, .16);
+    --ov-canvas: #090d12;
+    --ov-bg: #0d1117;
+    --ov-surface: #141a22;
+    --ov-surface-2: #1b232d;
+    --ov-raised: #232d39;
+    --ov-border: rgba(224, 235, 247, .11);
+    --ov-border-strong: rgba(224, 235, 247, .19);
+    --ov-hi: rgba(255, 255, 255, .045);
+    --ov-text: #f1f5fa;
+    --ov-muted: #aab6c5;
+    --ov-faint: #8290a1;
+    --ov-warning: #f4bd58;
+    --ov-danger: #ef6c78;
+    --ov-success: #69d49a;
+    --ov-radius: 14px;
     color: var(--ov-text);
-    overflow: visible !important;
+    background: var(--ov-bg);
     font-size: 15px;
+    overflow: visible !important;
 }
+
 #OvercoatConfigPage.ovcLight {
-    --ov-canvas: #eef1f5; --ov-bg: #eef1f5; --ov-surface: #ffffff; --ov-surface-2: #f4f6fa; --ov-raised: #e9edf3;
-    --ov-hi: rgba(255,255,255,.6); --ov-border: rgba(20,28,40,.10); --ov-border-2: rgba(20,28,40,.16);
-    --ov-text: #17202c; --ov-muted: #566274; --ov-faint: #8a93a2;
+    --ov-canvas: #edf1f6;
+    --ov-bg: #f6f8fb;
+    --ov-surface: #ffffff;
+    --ov-surface-2: #f0f4f8;
+    --ov-raised: #e5ebf2;
+    --ov-border: rgba(20, 35, 52, .13);
+    --ov-border-strong: rgba(20, 35, 52, .23);
+    --ov-hi: rgba(255, 255, 255, .88);
+    --ov-text: #152231;
+    --ov-muted: #536274;
+    --ov-faint: #657589;
+    --ov-accent-ink: #05202a;
 }
+
 #OvercoatConfigPage,
 #OvercoatConfigPage [data-role="content"],
 #OvercoatConfigPage .content-primary { overflow: visible !important; }
+
 #OvercoatConfigPage .content-primary {
-    width: min(1600px, calc(100% - 3rem)) !important;
+    width: min(1480px, calc(100% - 3rem)) !important;
     max-width: none !important;
     margin: 0 auto !important;
-    padding: 0 0 7rem !important;
+    padding: 0 0 6rem !important;
 }
+
 #OvercoatConfigPage #OvercoatConfigForm {
     width: 100% !important;
-    max-width: 1600px !important;
+    max-width: none !important;
     min-width: 0;
     margin: 0 auto !important;
 }
+
 #OvercoatConfigPage *, #OvercoatConfigPage *::before, #OvercoatConfigPage *::after { box-sizing: border-box; }
 
-/* ---------- Header ---------- */
+/* ---------- Product header and navigation ---------- */
 #OvercoatConfigPage .ovcHeader {
-    position: sticky; top: 0; z-index: 1000; margin: 0 0 1.6rem; padding: 1.25rem 0 .9rem;
-    background: color-mix(in srgb, var(--ov-bg) 88%, transparent);
-    border-bottom: 1px solid var(--ov-border); backdrop-filter: blur(20px);
+    margin: 0 0 1.45rem;
+    padding: 1.35rem 0 .8rem;
+    background: linear-gradient(180deg, var(--ov-bg), rgba(13, 17, 23, .86));
+    border-bottom: 1px solid var(--ov-border);
 }
-#OvercoatConfigPage .ovcHeaderTop { display:flex; align-items:flex-start; gap:1rem; justify-content:space-between; }
-#OvercoatConfigPage .ovcTitle { margin:0; font-size:1.75rem; font-weight:800; letter-spacing:-.015em; line-height:1.1; }
-#OvercoatConfigPage .ovcSubtitle { margin:.4rem 0 0; color:var(--ov-muted); max-width:64rem; font-size:.95rem; }
-#OvercoatConfigPage .ovcDescriptionToggle { flex:0 0 auto; white-space:nowrap; }
-
-/* ---------- Tabs (pills) ---------- */
+#OvercoatConfigPage.ovcLight .ovcHeader { background: linear-gradient(180deg, var(--ov-bg), rgba(246, 248, 251, .9)); }
+#OvercoatConfigPage .ovcHeaderTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+#OvercoatConfigPage .ovcTitle { margin: 0; font-size: 1.9rem; font-weight: 850; letter-spacing: -.035em; line-height: 1.05; }
+#OvercoatConfigPage .ovcSubtitle { max-width: 58rem; margin: .45rem 0 0; color: var(--ov-muted); font-size: .96rem; }
+#OvercoatConfigPage .ovcDescriptionToggle { flex: 0 0 auto; white-space: nowrap; }
 #OvercoatConfigPage .ovcTabs {
-    display:flex; gap:.3rem; margin-top:1.15rem; padding:.3rem; overflow-x:auto; scrollbar-width:thin;
-    background:var(--ov-surface); border:1px solid var(--ov-border); border-radius:13px;
+    position: sticky; top: 0; z-index: 1000;
+    display: flex; gap: .35rem; margin-top: 1.2rem; padding: .35rem;
+    overflow-x: auto; scrollbar-width: thin;
+    background: color-mix(in srgb, var(--ov-surface) 94%, transparent);
+    border: 1px solid var(--ov-border); border-radius: 14px;
+    box-shadow: 0 12px 32px -24px rgba(0, 0, 0, .9);
+    backdrop-filter: blur(18px);
 }
 #OvercoatConfigPage .ovcTab {
-    display:flex; align-items:center; gap:.45rem; flex:0 0 auto; min-height:2.4rem; padding:.5rem .95rem;
-    border:1px solid transparent; border-radius:9px; background:transparent; color:var(--ov-muted); cursor:pointer;
-    font-weight:600; font-size:.92rem; letter-spacing:.01em; transition:background .15s,color .15s,box-shadow .15s;
+    display: flex; align-items: center; justify-content: center; gap: .45rem;
+    flex: 0 0 auto; min-height: 2.55rem; padding: .55rem 1rem;
+    border: 1px solid transparent; border-radius: 10px;
+    background: transparent; color: var(--ov-muted); cursor: pointer;
+    font: inherit; font-size: .9rem; font-weight: 700; letter-spacing: .01em;
+    transition: background .16s ease, color .16s ease, border-color .16s ease;
 }
-#OvercoatConfigPage .ovcTab:hover, #OvercoatConfigPage .ovcTab:focus-visible { color:var(--ov-text); background:var(--ov-surface-2); }
+#OvercoatConfigPage .ovcTab:hover,
+#OvercoatConfigPage .ovcTab:focus-visible { color: var(--ov-text); background: var(--ov-surface-2); }
 #OvercoatConfigPage .ovcTab.ovcActive {
-    color:var(--ov-text); background:color-mix(in srgb,var(--ov-accent) 14%,var(--ov-raised));
-    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ov-accent) 40%,var(--ov-border-2));
+    color: var(--ov-text); background: var(--ov-accent-soft);
+    border-color: color-mix(in srgb, var(--ov-accent) 66%, var(--ov-border-strong));
 }
-#OvercoatConfigPage .ovcTab.ovcActive .ovcIcon { color:var(--ov-accent); }
-#OvercoatConfigPage .ovcIcon { font-family:'Material Icons'; font-size:1.2rem; line-height:1; }
+#OvercoatConfigPage .ovcTab.ovcActive .ovcIcon { color: var(--ov-accent); }
+#OvercoatConfigPage .ovcIcon { font-family: 'Material Icons'; font-size: 1.15rem; line-height: 1; }
 
-/* ---------- Panels ---------- */
-#OvercoatConfigPage .ovcPanel { display:none; }
-#OvercoatConfigPage .ovcPanel.ovcActive { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:1.1rem; align-items:start; }
+/* ---------- Panels and cards ---------- */
+#OvercoatConfigPage .ovcPanel { display: none; }
+#OvercoatConfigPage .ovcPanel.ovcActive {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.1rem; align-items: start;
+}
 #OvercoatConfigPage [data-panel="posters"].ovcActive,
-#OvercoatConfigPage [data-panel="wide"].ovcActive { display:block; }
-
-/* ---------- Cards ---------- */
-#OvercoatConfigPage .ovcCard, #OvercoatConfigPage details.ovcCard, #OvercoatConfigPage fieldset.ovcCard {
-    min-width:0; margin:0; padding:1.25rem 1.35rem; border:1px solid var(--ov-border); border-radius:14px;
-    background:linear-gradient(180deg,var(--ov-hi),transparent 44%),var(--ov-surface); color:var(--ov-text);
-    box-shadow:0 1px 0 var(--ov-hi) inset, 0 10px 26px -14px rgba(0,0,0,.6);
+#OvercoatConfigPage [data-panel="wide"].ovcActive { display: block; }
+#OvercoatConfigPage [data-panel="apikeys"].ovcActive { max-width: 860px; margin-inline: auto; }
+#OvercoatConfigPage [data-panel="apikeys"] > .ovcCard { grid-column: 1 / -1; width: 100%; }
+#OvercoatConfigPage .ovcCard,
+#OvercoatConfigPage details.ovcCard,
+#OvercoatConfigPage fieldset.ovcCard {
+    min-width: 0; margin: 0; padding: 1.25rem 1.35rem;
+    border: 1px solid var(--ov-border); border-radius: var(--ov-radius);
+    background: linear-gradient(155deg, var(--ov-hi), transparent 42%), var(--ov-surface);
+    color: var(--ov-text); box-shadow: 0 15px 34px -28px rgba(0, 0, 0, .9);
 }
 #OvercoatConfigPage .ovcCard > h3 {
-    display:flex; align-items:center; gap:.6rem; margin:0 0 1.1rem; padding-bottom:.75rem;
-    border-bottom:1px solid var(--ov-border); font-size:1rem; font-weight:700; letter-spacing:.01em;
+    display: flex; align-items: center; gap: .55rem;
+    margin: 0 0 1.05rem; padding-bottom: .72rem;
+    border-bottom: 1px solid var(--ov-border);
+    font-size: 1.02rem; font-weight: 800; letter-spacing: -.005em;
 }
-#OvercoatConfigPage .ovcCard > h3::before {
-    content:''; flex:0 0 auto; width:.28rem; height:1.05em; border-radius:1rem;
-    background:linear-gradient(var(--ov-hue,var(--ov-accent)), color-mix(in srgb,var(--ov-hue,var(--ov-accent)) 55%,#000));
-}
-/* rotate section hues across the flagship control column for a touch of identity */
-#OvercoatConfigPage .ovcBannerControls > .ovcCard:nth-of-type(3n+1){ --ov-hue:var(--ov-h1); }
-#OvercoatConfigPage .ovcBannerControls > .ovcCard:nth-of-type(3n+2){ --ov-hue:var(--ov-h2); }
-#OvercoatConfigPage .ovcBannerControls > .ovcCard:nth-of-type(3n+3){ --ov-hue:var(--ov-h3); }
-#OvercoatConfigPage .ovcCard h4 { margin:1.3rem 0 .6rem; font-size:.9rem; font-weight:700; color:var(--ov-muted); letter-spacing:.02em; }
-
-#OvercoatConfigPage details.ovcCard { padding:0; overflow:clip; }
-#OvercoatConfigPage details.ovcCard > summary {
-    display:flex; align-items:center; gap:.6rem; cursor:pointer; padding:1.05rem 1.35rem; font-weight:700; font-size:.98rem; list-style:none;
-}
-#OvercoatConfigPage details.ovcCard > summary::-webkit-details-marker { display:none; }
+#OvercoatConfigPage .ovcCard > h3::before,
 #OvercoatConfigPage details.ovcCard > summary::before {
-    content:''; flex:0 0 auto; width:.28rem; height:1.05em; border-radius:1rem;
-    background:linear-gradient(var(--ov-accent), color-mix(in srgb,var(--ov-accent) 55%,#000));
+    content: ''; flex: 0 0 auto; width: .27rem; height: 1.05em;
+    border-radius: 1rem; background: var(--ov-accent);
 }
+#OvercoatConfigPage .ovcCard h4 { margin: 1.1rem 0 .55rem; color: var(--ov-muted); font-size: .9rem; }
+#OvercoatConfigPage .ovcWide { grid-column: 1 / -1; }
+#OvercoatConfigPage .ovcNotice {
+    border-color: color-mix(in srgb, var(--ov-accent) 42%, var(--ov-border));
+    background: linear-gradient(145deg, color-mix(in srgb, var(--ov-accent) 11%, var(--ov-surface)), var(--ov-surface));
+}
+#OvercoatConfigPage .ovcNotice strong { font-size: 1rem; }
+#OvercoatConfigPage .ovcCaution {
+    border-color: color-mix(in srgb, var(--ov-warning) 56%, var(--ov-border));
+    background: linear-gradient(145deg, color-mix(in srgb, var(--ov-warning) 9%, var(--ov-surface)), var(--ov-surface));
+}
+#OvercoatConfigPage details.ovcCard { padding: 0; overflow: clip; }
+#OvercoatConfigPage details.ovcCard > summary {
+    display: flex; align-items: center; gap: .55rem; min-height: 3.25rem;
+    padding: .95rem 1.35rem; cursor: pointer; list-style: none;
+    font-size: .98rem; font-weight: 800;
+}
+#OvercoatConfigPage details.ovcCard > summary::-webkit-details-marker { display: none; }
 #OvercoatConfigPage details.ovcCard > summary::after {
-    content:''; margin-left:auto; width:.5rem; height:.5rem; border-right:2px solid var(--ov-faint); border-bottom:2px solid var(--ov-faint);
-    transform:rotate(45deg); transition:transform .18s;
+    content: ''; width: .55rem; height: .55rem; margin-left: auto;
+    border-right: 2px solid var(--ov-faint); border-bottom: 2px solid var(--ov-faint);
+    transform: rotate(45deg); transition: transform .16s ease;
 }
-#OvercoatConfigPage details.ovcCard[open] > summary::after { transform:rotate(-135deg); }
-#OvercoatConfigPage details.ovcCard > .ovcDetailsBody { padding:.2rem 1.35rem 1.3rem; }
+#OvercoatConfigPage details.ovcCard[open] > summary::after { transform: rotate(-135deg); }
+#OvercoatConfigPage details.ovcCard > .ovcDetailsBody { padding: .1rem 1.35rem 1.25rem; }
 
-/* ---------- Notices ---------- */
-#OvercoatConfigPage .ovcWide { grid-column:1/-1; }
-#OvercoatConfigPage .ovcNotice { grid-column:1/-1; border:1px solid color-mix(in srgb,var(--ov-accent) 22%,var(--ov-border)); background:linear-gradient(180deg,color-mix(in srgb,var(--ov-accent) 9%,var(--ov-surface)),var(--ov-surface)); }
-#OvercoatConfigPage .ovcNotice strong { font-size:1rem; }
-#OvercoatConfigPage .ovcCaution { border:1px solid color-mix(in srgb,var(--ov-warning) 40%,var(--ov-border)); background:linear-gradient(180deg,color-mix(in srgb,var(--ov-warning) 10%,var(--ov-surface)),var(--ov-surface)); }
-
-/* ---------- Studio layout ---------- */
-#OvercoatConfigPage .ovcBannerLayout { display:grid; grid-template-columns:minmax(0,1fr) 380px; grid-template-areas:'notice notice' 'controls preview'; gap:1.1rem; align-items:start; }
-#OvercoatConfigPage .ovcStudioNotice { grid-area:notice; }
-#OvercoatConfigPage .ovcBannerControls { grid-area:controls; min-width:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.1rem; }
-#OvercoatConfigPage .ovcBannerControls > .ovcWide, #OvercoatConfigPage .ovcBannerControls > details, #OvercoatConfigPage .ovcBannerControls > .ovcSectionHeading { grid-column:1/-1; }
-
-/* ---------- Preview stage ---------- */
+/* ---------- Design workbench ---------- */
+#OvercoatConfigPage .ovcBannerLayout {
+    display: grid; grid-template-columns: minmax(0, 1fr) 370px;
+    grid-template-areas: 'notice notice' 'controls preview'; gap: 1.1rem; align-items: start;
+}
+#OvercoatConfigPage .ovcStudioNotice { grid-area: notice; }
+#OvercoatConfigPage .ovcBannerControls {
+    grid-area: controls; min-width: 0; display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem;
+}
+#OvercoatConfigPage .ovcBannerControls > .ovcWide,
+#OvercoatConfigPage .ovcBannerControls > details,
+#OvercoatConfigPage .ovcBannerControls > .ovcSectionHeading { grid-column: 1 / -1; }
+#OvercoatConfigPage .ovcSectionHeading {
+    margin: .45rem 0 -.1rem; padding: .1rem 0 .6rem;
+    border-bottom: 1px solid var(--ov-border);
+}
+#OvercoatConfigPage .ovcSectionHeading h3 {
+    display: flex; align-items: center; gap: .6rem; margin: 0;
+    font-size: 1.08rem; font-weight: 850; letter-spacing: .045em; text-transform: uppercase;
+}
+#OvercoatConfigPage .ovcSectionHeading h3::before { content: ''; width: .3rem; height: 1.05em; border-radius: 1rem; background: var(--ov-accent); }
 #OvercoatConfigPage .ovcBannerPreview {
-    grid-area:preview; text-align:center; padding:1.1rem;
-    background:linear-gradient(180deg,var(--ov-surface-2),var(--ov-surface));
-    border:1px solid var(--ov-border-2); border-radius:18px;
-    box-shadow:0 24px 60px -30px rgba(0,0,0,.8);
+    grid-area: preview; position: sticky; top: 4.5rem; z-index: 2;
+    display: flex; flex-direction: column; align-items: stretch; gap: .35rem;
+    padding: 1.05rem; text-align: center;
+    background: linear-gradient(155deg, var(--ov-surface-2), var(--ov-surface));
+    border-color: var(--ov-border-strong); border-radius: 18px;
+    box-shadow: 0 25px 65px -38px rgba(0, 0, 0, .95);
 }
-#OvercoatConfigPage .ovcBannerPreview > h3 { justify-content:flex-start; }
-#OvercoatConfigPage .ovcPreviewRail { position:sticky; top:8.5rem; }
-#OvercoatConfigPage .ovcBannerPreview img { width:100%; max-width:300px; border-radius:12px; box-shadow:0 20px 40px -18px rgba(0,0,0,.9); }
-#OvercoatConfigPage .ovcWidePreview img { max-width:340px; }
-#OvercoatConfigPage .ovcWideLocked { opacity:.5; }
+#OvercoatConfigPage .ovcBannerPreview > h3 { order: 0; justify-content: flex-start; }
+#OvercoatConfigPage .ovcBannerPreview img { order: 1; display: block; width: 100%; max-width: 310px; margin: .25rem auto .55rem; border-radius: 12px; box-shadow: 0 22px 45px -24px rgba(0, 0, 0, .95); }
+#OvercoatConfigPage .ovcWidePreview img { max-width: 350px; }
+#OvercoatConfigPage .ovcBannerPreview .ovcStatusSwitch,
+#OvercoatConfigPage .ovcBannerPreview > .fieldDescription,
+#OvercoatConfigPage .ovcBannerPreview > .ovcMuted { order: 2; }
+#OvercoatConfigPage .ovcBannerPreview .ovcStatusSwitch { margin: .2rem 0; }
+#OvercoatConfigPage .ovcWideLocked { opacity: .58; filter: saturate(.7); }
+#OvercoatConfigPage .ovcPreviewHint { margin: .2rem 0 .45rem; color: var(--ov-faint); font-size: .72rem; text-transform: uppercase; letter-spacing: .09em; }
 
-/* ---------- Field groups ---------- */
-#OvercoatConfigPage .ovcDenseCard, #OvercoatConfigPage .ovcFieldGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem 1.1rem; }
-#OvercoatConfigPage .ovcDenseCard > h3, #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column:1/-1; }
-#OvercoatConfigPage .ovcSubGroup { display:grid; gap:.8rem; grid-column:1/-1; padding:.9rem 1rem; border:1px dashed var(--ov-border-2); border-radius:11px; background:var(--ov-canvas); }
-#OvercoatConfigPage .ovcFormStack { display:grid; gap:1.05rem; }
-
-/* labels + inputs */
-#OvercoatConfigPage .selectLabel, #OvercoatConfigPage .inputLabel {
-    display:block; margin-bottom:.35rem; font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ov-muted);
+/* ---------- Form controls ---------- */
+#OvercoatConfigPage .ovcDenseCard,
+#OvercoatConfigPage .ovcFieldGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.1rem; }
+#OvercoatConfigPage .ovcDenseCard > h3,
+#OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column: 1 / -1; }
+#OvercoatConfigPage .ovcSubGroup {
+    display: grid; grid-column: 1 / -1; gap: .8rem; padding: .9rem 1rem;
+    border: 1px dashed var(--ov-border-strong); border-radius: 11px; background: var(--ov-canvas);
 }
-#OvercoatConfigPage input[type="text"], #OvercoatConfigPage input[type="password"], #OvercoatConfigPage input[type="number"], #OvercoatConfigPage select, #OvercoatConfigPage textarea {
-    width:100%; max-width:100%; color:var(--ov-text); background:var(--ov-canvas);
-    border:1px solid var(--ov-border-2); border-radius:9px; padding:.6rem .7rem; font:inherit; font-size:.92rem;
+#OvercoatConfigPage .ovcFormStack { display: grid; gap: 1.05rem; }
+#OvercoatConfigPage .ovcField { display: flex; flex-direction: column; gap: .48rem; min-width: 0; }
+#OvercoatConfigPage .ovcHiddenInput { display: none !important; }
+#OvercoatConfigPage .selectLabel,
+#OvercoatConfigPage .inputLabel {
+    display: block; margin-bottom: .28rem; color: var(--ov-muted);
+    font-size: .71rem; font-weight: 800; letter-spacing: .095em; text-transform: uppercase;
 }
-#OvercoatConfigPage select { cursor:pointer; }
-#OvercoatConfigPage input:focus, #OvercoatConfigPage select:focus, #OvercoatConfigPage textarea:focus {
-    outline:none; border-color:var(--ov-accent); box-shadow:0 0 0 3px var(--ov-accent-soft);
+#OvercoatConfigPage input[type="text"],
+#OvercoatConfigPage input[type="password"],
+#OvercoatConfigPage input[type="number"],
+#OvercoatConfigPage select,
+#OvercoatConfigPage textarea {
+    width: 100%; max-width: 100%; padding: .66rem .75rem;
+    border: 1px solid var(--ov-border-strong); border-radius: 9px;
+    color: var(--ov-text); background: var(--ov-canvas); font: inherit; font-size: .92rem;
 }
-#OvercoatConfigPage textarea { min-height:6.5rem; resize:vertical; }
-#OvercoatConfigPage .ovcCheck { display:grid; gap:.2rem; }
-
-/* checkbox -> switch */
-#OvercoatConfigPage .checkboxContainer { display:flex; align-items:center; gap:.6rem; cursor:pointer; margin:0; }
+#OvercoatConfigPage textarea { min-height: 7rem; resize: vertical; }
+#OvercoatConfigPage input:focus-visible,
+#OvercoatConfigPage select:focus-visible,
+#OvercoatConfigPage textarea:focus-visible,
+#OvercoatConfigPage button:focus-visible,
+#OvercoatConfigPage summary:focus-visible {
+    outline: 2px solid var(--ov-accent); outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--ov-accent-soft);
+}
+#OvercoatConfigPage button { font: inherit; }
+#OvercoatConfigPage .checkboxContainer { display: flex; align-items: center; gap: .65rem; min-height: 2.1rem; margin: 0; cursor: pointer; }
 #OvercoatConfigPage .checkboxContainer input[type="checkbox"] {
-    -webkit-appearance:none; appearance:none; flex:0 0 auto; width:40px; height:23px; margin:0; border-radius:20px;
-    background:var(--ov-raised); border:1px solid var(--ov-border-2); position:relative; cursor:pointer; transition:.16s;
+    appearance: none; flex: 0 0 auto; position: relative; width: 42px; height: 24px; margin: 0;
+    border: 1px solid var(--ov-border-strong); border-radius: 99px; background: var(--ov-raised); cursor: pointer;
+    transition: background .16s ease, border-color .16s ease;
 }
 #OvercoatConfigPage .checkboxContainer input[type="checkbox"]::after {
-    content:''; position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%; background:#c3ccd8; transition:.16s;
+    content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+    border-radius: 50%; background: #d0d9e4; box-shadow: 0 2px 5px rgba(0,0,0,.3); transition: left .16s ease;
 }
-#OvercoatConfigPage .checkboxContainer input[type="checkbox"]:checked { background:linear-gradient(180deg,#5fd6ff,var(--ov-accent)); border-color:transparent; }
-#OvercoatConfigPage .checkboxContainer input[type="checkbox"]:checked::after { left:19px; background:#fff; }
-#OvercoatConfigPage .checkboxContainer input[type="checkbox"]:focus-visible { box-shadow:0 0 0 3px var(--ov-accent-soft); }
-#OvercoatConfigPage .checkboxContainer > span { font-size:.92rem; font-weight:600; }
+#OvercoatConfigPage .checkboxContainer input[type="checkbox"]:checked { border-color: transparent; background: linear-gradient(180deg, #73ddff, var(--ov-accent-strong)); }
+#OvercoatConfigPage .checkboxContainer input[type="checkbox"]:checked::after { left: 20px; background: #fff; }
+#OvercoatConfigPage .checkboxContainer > span { font-size: .92rem; font-weight: 700; }
+#OvercoatConfigPage .ovcRow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 
-/* field wrapper (label above control) */
-#OvercoatConfigPage .ovcField { display:flex; flex-direction:column; gap:.5rem; }
-#OvercoatConfigPage .ovcHiddenInput { display:none !important; }
-
-/* segmented control (skins a hidden <select>) */
-#OvercoatConfigPage .ovcSeg { display:flex; gap:.25rem; padding:.25rem; background:var(--ov-canvas); border:1px solid var(--ov-border-2); border-radius:11px; }
+/* Segmented controls and sliders */
+#OvercoatConfigPage .ovcSeg { display: flex; gap: .22rem; padding: .24rem; background: var(--ov-canvas); border: 1px solid var(--ov-border-strong); border-radius: 11px; }
 #OvercoatConfigPage .ovcSeg button {
-    flex:1; display:flex; flex-direction:column; align-items:center; gap:.32rem; padding:.5rem .3rem; border:0; border-radius:8px;
-    background:transparent; color:var(--ov-muted); font:inherit; font-size:.82rem; font-weight:600; cursor:pointer; transition:.14s; min-width:0;
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem;
+    min-height: 2.55rem; min-width: 0; padding: .42rem .3rem;
+    border: 0; border-radius: 8px; background: transparent; color: var(--ov-muted); cursor: pointer;
+    font-size: .81rem; font-weight: 750; transition: background .14s ease, color .14s ease, box-shadow .14s ease;
 }
-#OvercoatConfigPage .ovcSeg.ovcSegRow button { flex-direction:row; justify-content:center; }
-#OvercoatConfigPage .ovcSeg button .ovcSegSw { width:100%; height:14px; border-radius:5px; }
-#OvercoatConfigPage .ovcSeg button:hover { color:var(--ov-text); background:rgba(255,255,255,.04); }
-#OvercoatConfigPage .ovcSeg button.ovcSegOn { color:var(--ov-text); background:var(--ov-raised); box-shadow:inset 0 0 0 1px var(--ov-border-2), 0 3px 10px -6px rgba(0,0,0,.7); }
-#OvercoatConfigPage .ovcSwSolid { background:var(--ov-h2); }
-#OvercoatConfigPage .ovcSwGlass { background:color-mix(in srgb,var(--ov-h2) 32%,#101317); box-shadow:inset 0 0 0 1px rgba(255,255,255,.25); }
-#OvercoatConfigPage .ovcSwNeon { background:#0c0e12; box-shadow:0 0 8px var(--ov-h2), inset 0 0 0 1px var(--ov-h2); }
-#OvercoatConfigPage .ovcSwPill { background:var(--ov-raised); box-shadow:inset 0 0 0 1.5px var(--ov-muted); border-radius:20px; }
-#OvercoatConfigPage .ovcSwSquare { background:var(--ov-raised); box-shadow:inset 0 0 0 1.5px var(--ov-muted); border-radius:3px; }
-#OvercoatConfigPage .ovcSwDrop { background:var(--ov-raised); box-shadow:inset 0 0 0 1.5px var(--ov-muted); border-radius:0 0 6px 6px; }
+#OvercoatConfigPage .ovcSeg.ovcSegRow button { flex-direction: row; }
+#OvercoatConfigPage .ovcSeg button:hover { color: var(--ov-text); background: var(--ov-surface-2); }
+#OvercoatConfigPage .ovcSeg button.ovcSegOn { color: var(--ov-text); background: var(--ov-raised); box-shadow: inset 0 0 0 1px var(--ov-border-strong), 0 4px 13px -9px rgba(0,0,0,.9); }
+#OvercoatConfigPage .ovcSeg button:disabled { opacity: .45; cursor: not-allowed; }
+#OvercoatConfigPage .ovcSegSw { width: 100%; height: 13px; border-radius: 5px; }
+#OvercoatConfigPage .ovcSwSolid { background: #a582ff; }
+#OvercoatConfigPage .ovcSwGlass { background: rgba(165, 130, 255, .38); box-shadow: inset 0 0 0 1px rgba(255,255,255,.32); }
+#OvercoatConfigPage .ovcSwNeon { background: #0d1117; box-shadow: 0 0 9px #a582ff, inset 0 0 0 1px #a582ff; }
+#OvercoatConfigPage .ovcSwPill { background: var(--ov-raised); border: 1.5px solid var(--ov-muted); border-radius: 20px; }
+#OvercoatConfigPage .ovcSwSquare { background: var(--ov-raised); border: 1.5px solid var(--ov-muted); border-radius: 3px; }
+#OvercoatConfigPage .ovcSwDrop { background: var(--ov-raised); border: 1.5px solid var(--ov-muted); border-radius: 0 0 6px 6px; }
+#OvercoatConfigPage .ovcSliderRow { display: flex; align-items: center; justify-content: space-between; gap: .7rem; margin-bottom: .28rem; }
+#OvercoatConfigPage .ovcSliderRow .inputLabel { margin: 0; }
+#OvercoatConfigPage .ovcSliderVal { color: var(--ov-accent); font-size: .8rem; font-weight: 850; font-variant-numeric: tabular-nums; }
+#OvercoatConfigPage input[type="range"] { appearance: none; width: 100%; height: 7px; border-radius: 8px; cursor: pointer; background: linear-gradient(90deg, var(--ov-accent) var(--ovp, 50%), var(--ov-raised) var(--ovp, 50%)); }
+#OvercoatConfigPage input[type="range"]::-webkit-slider-thumb { appearance: none; width: 19px; height: 19px; border: 3px solid var(--ov-accent); border-radius: 50%; background: #fff; box-shadow: 0 2px 7px rgba(0,0,0,.45); }
+#OvercoatConfigPage input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 3px solid var(--ov-accent); border-radius: 50%; background: #fff; }
 
-/* slider row (label + live value read-out) */
-#OvercoatConfigPage .ovcSliderRow { display:flex; align-items:center; justify-content:space-between; margin-bottom:.4rem; }
-#OvercoatConfigPage .ovcSliderRow .inputLabel { margin:0; }
-#OvercoatConfigPage .ovcSliderVal { font-size:.78rem; font-weight:800; color:var(--ov-accent); font-variant-numeric:tabular-nums; letter-spacing:.02em; }
-
-/* range slider */
-#OvercoatConfigPage input[type="range"] {
-    -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:6px; cursor:pointer;
-    background:linear-gradient(90deg, var(--ov-accent) var(--ovp,50%), var(--ov-raised) var(--ovp,50%));
+/* ---------- Preview chips, libraries, actions, copy ---------- */
+#OvercoatConfigPage .ovcStatusSwitch,
+#OvercoatConfigPage .ovcRowButtons { display: flex; flex-wrap: wrap; justify-content: center; gap: .42rem; margin: .45rem 0 .75rem; }
+#OvercoatConfigPage .ovcChip {
+    min-height: 2.15rem; padding: .4rem .78rem; border: 1px solid var(--ov-border-strong); border-radius: 99px;
+    background: transparent; color: var(--ov-muted); cursor: pointer; font-size: .78rem; font-weight: 750;
+    transition: background .14s ease, color .14s ease, border-color .14s ease;
 }
-#OvercoatConfigPage input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:#fff; border:3px solid var(--ov-accent); box-shadow:0 2px 6px rgba(0,0,0,.5); }
-#OvercoatConfigPage input[type="range"]::-moz-range-thumb { width:14px; height:14px; border-radius:50%; background:#fff; border:3px solid var(--ov-accent); }
+#OvercoatConfigPage .ovcChip:hover { color: var(--ov-text); background: var(--ov-surface-2); }
+#OvercoatConfigPage .ovcChip.ovcChipActive { border-color: transparent; background: var(--ov-accent); color: var(--ov-accent-ink); }
+#OvercoatConfigPage .ovcColors { display: flex; flex-wrap: wrap; gap: .9rem; }
+#OvercoatConfigPage .ovcColors label { display: grid; justify-items: center; gap: .3rem; color: var(--ov-muted); font-size: .72rem; }
+#OvercoatConfigPage .ovcColors input,
+#OvercoatConfigPage .ovcStatusRow2 input[type="color"] { width: 2.6rem; height: 2.1rem; padding: 2px; border: 1px solid var(--ov-border-strong); border-radius: 8px; background: none; cursor: pointer; }
+#OvercoatConfigPage .ovcStatusList { display: grid; gap: .1rem; margin-top: .9rem; }
+#OvercoatConfigPage .ovcStatusRow2 { display: grid; grid-template-columns: auto 6rem minmax(0,1fr) auto; align-items: center; gap: .75rem; padding: .5rem .15rem; }
+#OvercoatConfigPage .ovcStatusRow2 + .ovcStatusRow2 { border-top: 1px solid var(--ov-border); }
+#OvercoatConfigPage .ovcStatusRow2 input[type="color"] { width: 2.1rem; height: 1.9rem; }
+#OvercoatConfigPage .ovcStName { font-size: .86rem; font-weight: 800; }
+#OvercoatConfigPage .ovcStToggle { justify-self: end; }
+#OvercoatConfigPage .ovcSplit { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.15fr); gap: 1.35rem; align-items: start; }
+#OvercoatConfigPage .ovcSplit .ovcCardLead { margin: 0; }
+#OvercoatConfigPage .ovcGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 1.1rem; }
+#OvercoatConfigPage .ovcLib { min-width: 0; padding: 1.15rem; border: 1px solid var(--ov-border); border-radius: 13px; background: linear-gradient(155deg, var(--ov-hi), transparent 44%), var(--ov-surface); }
+#OvercoatConfigPage .ovcLib h4 { margin: 0 0 .8rem; font-size: 1rem; }
+#OvercoatConfigPage .ovcLibOpts { display: grid; gap: .55rem; margin: .8rem 0 0 .45rem; padding: .85rem 1rem; border-left: 3px solid var(--ov-accent); border-radius: 0 10px 10px 0; background: var(--ov-canvas); }
+#OvercoatConfigPage .ovcLibOpts[hidden] { display: none; }
+#OvercoatConfigPage .ovcActionGrid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+#OvercoatConfigPage .ovcActionTile { min-width: 0; padding: 1.15rem; border: 1px solid var(--ov-border); border-radius: 13px; background: linear-gradient(155deg, var(--ov-hi), transparent 44%), var(--ov-surface); }
+#OvercoatConfigPage .ovcActionTile h3 { margin: 0 0 .35rem; }
+#OvercoatConfigPage .ovcActionTile button { margin: .7rem 0; }
+#OvercoatConfigPage .ovcRestoreTile { border-color: color-mix(in srgb, var(--ov-warning) 55%, var(--ov-border)); }
+#OvercoatConfigPage .ovcMuted,
+#OvercoatConfigPage .fieldDescription { color: var(--ov-faint); overflow-wrap: anywhere; font-size: .84rem; line-height: 1.52; }
+#OvercoatConfigPage .fieldDescription { margin-top: .32rem; }
+#OvercoatConfigPage .ovcNoDescriptions .fieldDescription { display: none !important; }
+#OvercoatConfigPage .ovcSecretRow { display: flex; align-items: flex-end; gap: .7rem; }
+#OvercoatConfigPage .ovcSecretRow .inputContainer { flex: 1; min-width: 0; }
+#OvercoatConfigPage .ovcWip { display: inline-block; margin-left: .35rem; padding: .14rem .5rem; border-radius: 99px; background: var(--ov-warning); color: #281c00; font-size: .64rem; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
+#OvercoatConfigPage .ovcRecoveryHelp { margin-top: .5rem; font-size: .9rem; }
+#OvercoatConfigPage .ovcRecoveryHelp summary { cursor: pointer; color: var(--ov-muted); }
+#OvercoatConfigPage .ovcRecoveryHelp ul { margin: .6rem 0 0; padding-left: 1.2rem; line-height: 1.55; }
+#OvercoatConfigPage .ovcRecoveryHelp li + li { margin-top: .45rem; }
+#OvercoatConfigPage .ovcVaultStats { display: flex; flex-wrap: wrap; align-items: stretch; gap: .75rem; margin: .75rem 0 1rem; }
+#OvercoatConfigPage .ovcStat { flex: 1 1 8.5rem; min-width: 8.5rem; padding: .7rem .85rem; border: 1px solid var(--ov-border); border-radius: 11px; background: var(--ov-canvas); }
+#OvercoatConfigPage .ovcStatValue { display: block; font-size: 1.5rem; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+#OvercoatConfigPage .ovcStatLabel { display: block; margin-top: .15rem; color: var(--ov-muted); font-size: .76rem; }
+#OvercoatConfigPage .ovcStatGood { border-color: rgba(105, 212, 154, .55); background: rgba(105, 212, 154, .1); }
+#OvercoatConfigPage .ovcStatWarn { border-color: rgba(239, 108, 120, .6); background: rgba(239, 108, 120, .1); }
 
-/* ---------- Section heading ---------- */
-#OvercoatConfigPage .ovcSectionHeading { margin:.9rem 0 -.15rem; padding-bottom:.55rem; border-bottom:1px solid var(--ov-border); }
-#OvercoatConfigPage .ovcSectionHeading h3 { display:flex; align-items:center; gap:.6rem; margin:0; font-size:1.15rem; font-weight:800; letter-spacing:.03em; text-transform:uppercase; }
-#OvercoatConfigPage .ovcSectionHeading h3::before { content:''; flex:0 0 auto; width:.34rem; height:1.05em; border-radius:1rem; background:var(--ov-accent); }
-
-/* ---------- Chips / switches in preview ---------- */
-#OvercoatConfigPage .ovcStatusSwitch, #OvercoatConfigPage .ovcRowButtons { display:flex; flex-wrap:wrap; gap:.4rem; justify-content:center; margin:.6rem 0 .9rem; }
-#OvercoatConfigPage .ovcChip { border:1px solid var(--ov-border-2); border-radius:2rem; padding:.4rem .8rem; background:transparent; color:var(--ov-muted); cursor:pointer; font-weight:600; font-size:.82rem; transition:.14s; }
-#OvercoatConfigPage .ovcChip:hover { color:var(--ov-text); }
-#OvercoatConfigPage .ovcChip.ovcChipActive { background:var(--ov-accent); border-color:transparent; color:var(--ov-accent-ink); }
-
-/* ---------- Colours ---------- */
-#OvercoatConfigPage .ovcColors { display:flex; flex-wrap:wrap; gap:.9rem; }
-#OvercoatConfigPage .ovcColors label { display:grid; justify-items:center; gap:.3rem; font-size:.72rem; color:var(--ov-muted); }
-#OvercoatConfigPage .ovcColors input { width:2.6rem; height:2.1rem; padding:2px; border:1px solid var(--ov-border-2); border-radius:8px; background:none; cursor:pointer; }
-
-/* ---------- Status rows ---------- */
-#OvercoatConfigPage .ovcStatusRows { display:grid; gap:.15rem; }
-#OvercoatConfigPage .ovcStatusRow { display:grid; grid-template-columns:9rem minmax(0,1fr); gap:.75rem; align-items:center; padding:.4rem 0; }
-#OvercoatConfigPage .ovcStatusRow + .ovcStatusRow { border-top:1px solid var(--ov-border); }
-
-/* split: explanatory text on the left, stacked controls on the right */
-#OvercoatConfigPage .ovcSplit { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:1.4rem; align-items:start; }
-#OvercoatConfigPage .ovcSplit .ovcCardLead { margin:0; }
-
-/* unified per-status rows: swatch · name · label · toggle */
-#OvercoatConfigPage .ovcStatusList { display:grid; gap:.1rem; margin-top:.9rem; }
-#OvercoatConfigPage .ovcStatusRow2 { display:grid; grid-template-columns:auto 6rem minmax(0,1fr) auto; gap:.8rem; align-items:center; padding:.5rem .2rem; }
-#OvercoatConfigPage .ovcStatusRow2 + .ovcStatusRow2 { border-top:1px solid var(--ov-border); }
-#OvercoatConfigPage .ovcStatusRow2 input[type="color"] { width:2rem; height:1.9rem; padding:2px; border:1px solid var(--ov-border-2); border-radius:7px; background:none; cursor:pointer; }
-#OvercoatConfigPage .ovcStName { font-size:.86rem; font-weight:700; letter-spacing:.02em; }
-#OvercoatConfigPage .ovcStToggle { justify-self:end; }
-
-/* ---------- Libraries ---------- */
-#OvercoatConfigPage .ovcGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:1.1rem; }
-#OvercoatConfigPage .ovcLib { border:1px solid var(--ov-border); border-radius:13px; padding:1.15rem; background:linear-gradient(180deg,var(--ov-hi),transparent 44%),var(--ov-surface); }
-#OvercoatConfigPage .ovcLib h4 { margin:0 0 .85rem; font-size:1rem; }
-#OvercoatConfigPage .ovcLibOpts { display:grid; gap:.6rem; margin:.85rem 0 0 .5rem; padding:.9rem 1rem; border-left:3px solid var(--ov-accent); border-radius:0 .6rem .6rem 0; background:var(--ov-canvas); }
-#OvercoatConfigPage .ovcLibOpts[hidden] { display:none; }
-
-/* ---------- Action tiles ---------- */
-#OvercoatConfigPage .ovcActionGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
-#OvercoatConfigPage .ovcActionTile { min-width:0; padding:1.2rem; border:1px solid var(--ov-border); border-radius:13px; background:linear-gradient(180deg,var(--ov-hi),transparent 44%),var(--ov-surface); }
-#OvercoatConfigPage .ovcActionTile h3 { margin:0 0 .4rem; }
-#OvercoatConfigPage .ovcActionTile button { margin:.75rem 0; }
-#OvercoatConfigPage .ovcRestoreTile { border-color:color-mix(in srgb,var(--ov-warning) 45%,var(--ov-border)); }
-
-/* ---------- Misc ---------- */
-#OvercoatConfigPage .ovcMuted, #OvercoatConfigPage .fieldDescription { color:var(--ov-faint); overflow-wrap:anywhere; font-size:.82rem; line-height:1.5; }
-#OvercoatConfigPage .fieldDescription { margin-top:.35rem; }
-#OvercoatConfigPage .ovcNoDescriptions .fieldDescription { display:none !important; }
-#OvercoatConfigPage textarea { min-height:7rem; }
-#OvercoatConfigPage .ovcSecretRow { display:flex; align-items:flex-end; gap:.7rem; }
-#OvercoatConfigPage .ovcSecretRow .inputContainer { flex:1; min-width:0; }
-#OvercoatConfigPage .ovcWip { display:inline-block; margin-left:.4rem; padding:.15rem .5rem; border-radius:1rem; background:var(--ov-warning); color:#211700; font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; }
-
-/* ---------- Save dock ---------- */
+/* ---------- Save and mobile preview ---------- */
 #OvercoatConfigPage .ovcSaveDock {
-    position:fixed; z-index:1050; left:50%; bottom:1.1rem; transform:translateX(-50%); display:flex; align-items:center; gap:1rem;
-    width:min(42rem,calc(100% - 2rem)); padding:.7rem .8rem .7rem 1.1rem; border:1px solid var(--ov-border-2); border-radius:14px;
-    background:color-mix(in srgb,var(--ov-surface) 92%,transparent); box-shadow:0 18px 45px -18px rgba(0,0,0,.7); backdrop-filter:blur(18px);
+    position: fixed; z-index: 1050; left: 50%; bottom: 1rem; transform: translate(-50%, 1rem);
+    display: flex; align-items: center; gap: 1rem; width: min(38rem, calc(100% - 2rem));
+    padding: .7rem .8rem .7rem 1rem; border: 1px solid var(--ov-border-strong); border-radius: 14px;
+    background: color-mix(in srgb, var(--ov-surface) 95%, transparent); box-shadow: 0 18px 45px -18px rgba(0,0,0,.8);
+    opacity: 0; pointer-events: none; transition: opacity .16s ease, transform .16s ease; backdrop-filter: blur(18px);
 }
-#OvercoatConfigPage .ovcSaveDock button { margin:0; flex:0 0 auto; }
-#OvercoatConfigPage .ovcSaveState { flex:1; color:var(--ov-muted); font-size:.9rem; }
-#OvercoatConfigPage .ovcSaveDock.ovcDirty .ovcSaveState { color:var(--ov-warning); }
-#OvercoatConfigPage .ovcFloatingPreview { display:none; position:fixed; z-index:1040; right:.75rem; bottom:5.5rem; width:112px; padding:.4rem; border:1px solid var(--ov-border-2); border-radius:12px; background:var(--ov-surface); box-shadow:0 8px 25px rgba(0,0,0,.5); text-align:center; pointer-events:none; }
-#OvercoatConfigPage .ovcFloatingPreview img { display:block; width:100%; border-radius:8px; }
+#OvercoatConfigPage .ovcSaveDock.ovcVisible { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+#OvercoatConfigPage .ovcSaveDock button { flex: 0 0 auto; margin: 0; }
+#OvercoatConfigPage .ovcSaveState { flex: 1; color: var(--ov-muted); font-size: .9rem; }
+#OvercoatConfigPage .ovcSaveDock.ovcDirty .ovcSaveState { color: var(--ov-warning); }
+#OvercoatConfigPage .ovcSaveDock.ovcError .ovcSaveState { color: var(--ov-danger); }
+#OvercoatConfigPage .ovcFloatingPreview { display: none; position: fixed; z-index: 1040; right: .75rem; bottom: 5.5rem; width: 112px; padding: .4rem; border: 1px solid var(--ov-border-strong); border-radius: 12px; background: var(--ov-surface); box-shadow: 0 8px 25px rgba(0,0,0,.5); text-align: center; pointer-events: none; }
+#OvercoatConfigPage .ovcFloatingPreview.ovcVisible { display: block; }
+#OvercoatConfigPage .ovcFloatingPreview img { display: block; width: 100%; border-radius: 8px; }
 
-@media (max-width:1099px) {
-    #OvercoatConfigPage .ovcBannerLayout { grid-template-columns:1fr; grid-template-areas:'notice' 'preview' 'controls'; }
-    #OvercoatConfigPage .ovcBannerControls { grid-template-columns:1fr; }
-    #OvercoatConfigPage .ovcPreviewRail { position:static; }
-    #OvercoatConfigPage .ovcFloatingPreview.ovcVisible { display:block; }
+@media (max-width: 1099px) {
+    #OvercoatConfigPage .ovcBannerLayout { grid-template-columns: 1fr; grid-template-areas: 'notice' 'preview' 'controls'; }
+    #OvercoatConfigPage .ovcBannerPreview { position: static; }
+    #OvercoatConfigPage .ovcBannerControls { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcBannerControls > .ovcWide,
+    #OvercoatConfigPage .ovcBannerControls > details,
+    #OvercoatConfigPage .ovcBannerControls > .ovcSectionHeading { grid-column: auto; }
 }
-@media (max-width:700px) {
-    #OvercoatConfigPage .content-primary { width:calc(100% - 1rem) !important; }
-    #OvercoatConfigPage .ovcHeader { padding-top:.7rem; }
-    #OvercoatConfigPage .ovcHeaderTop { flex-wrap:wrap; }
-    #OvercoatConfigPage .ovcDescriptionToggle { width:100%; }
-    #OvercoatConfigPage .ovcDenseCard, #OvercoatConfigPage .ovcFieldGrid { grid-template-columns:1fr; }
-    #OvercoatConfigPage .ovcDenseCard > h3, #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column:auto; }
-    #OvercoatConfigPage .ovcStatusRow { grid-template-columns:7rem minmax(0,1fr); }
-    #OvercoatConfigPage .ovcTab { padding:.5rem .65rem; }
-    #OvercoatConfigPage .ovcTabLabel { display:none; }
-    #OvercoatConfigPage .ovcSaveDock { bottom:.5rem; }
-    #OvercoatConfigPage .ovcActionGrid { grid-template-columns:1fr; }
+@media (max-width: 700px) {
+    #OvercoatConfigPage .content-primary { width: calc(100% - 1rem) !important; }
+    #OvercoatConfigPage .ovcPanel.ovcActive { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcHeader { padding-top: .8rem; }
+    #OvercoatConfigPage .ovcHeaderTop { flex-wrap: wrap; }
+    #OvercoatConfigPage .ovcDescriptionToggle { width: 100%; }
+    #OvercoatConfigPage .ovcDenseCard,
+    #OvercoatConfigPage .ovcFieldGrid,
+    #OvercoatConfigPage .ovcSplit,
+    #OvercoatConfigPage .ovcActionGrid,
+    #OvercoatConfigPage .ovcRow { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcDenseCard > h3,
+    #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column: auto; }
+    #OvercoatConfigPage .ovcStatusRow2 { grid-template-columns: auto 5.3rem minmax(0,1fr) auto; gap: .5rem; }
+    #OvercoatConfigPage .ovcTab { min-width: 7rem; padding-inline: .75rem; }
+    #OvercoatConfigPage .ovcSaveDock { bottom: .5rem; width: calc(100% - 1rem); }
+    #OvercoatConfigPage .ovcFloatingPreview { right: .55rem; bottom: 5rem; }
 }
-
-/* ---------- Recovery panel ---------- */
-#OvercoatConfigPage .ovcVaultStats { display:flex; flex-wrap:wrap; align-items:stretch; gap:.75rem; margin:.75rem 0 1rem; }
-#OvercoatConfigPage .ovcStat { flex:1 1 8.5rem; min-width:8.5rem; padding:.7rem .85rem; border:1px solid var(--ov-border); border-radius:11px; background:var(--ov-canvas); }
-#OvercoatConfigPage .ovcStatValue { display:block; font-size:1.5rem; font-weight:700; line-height:1.15; font-variant-numeric:tabular-nums; }
-#OvercoatConfigPage .ovcStatLabel { display:block; margin-top:.15rem; font-size:.76rem; color:var(--ov-muted); }
-#OvercoatConfigPage .ovcStatGood { border-color:rgba(94,189,62,.5); background:rgba(94,189,62,.08); }
-#OvercoatConfigPage .ovcStatWarn { border-color:rgba(224,77,97,.55); background:rgba(224,77,97,.1); }
-#OvercoatConfigPage .ovcRecoveryHelp { margin-top:.5rem; font-size:.9rem; }
-#OvercoatConfigPage .ovcRecoveryHelp summary { cursor:pointer; color:var(--ov-muted); }
-#OvercoatConfigPage .ovcRecoveryHelp ul { margin:.6rem 0 0; padding-left:1.2rem; line-height:1.55; }
-#OvercoatConfigPage .ovcRecoveryHelp li + li { margin-top:.45rem; }
-#OvercoatConfigPage .ovcVaultVerdict { width:100%; margin:0 0 .15rem; font-size:.98rem; }
-#OvercoatConfigPage .ovcVaultVerdictWarn { color:#ff8a80; }
+@media (prefers-reduced-motion: reduce) {
+    #OvercoatConfigPage *, #OvercoatConfigPage *::before, #OvercoatConfigPage *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

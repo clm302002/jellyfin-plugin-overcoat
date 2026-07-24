@@ -124,6 +124,12 @@ mocked shell. Every user, library, configuration value, preview response, and ac
 synthetic. The capture tool has no real server address or API key, never logs in to Jellyfin, and
 never contacts a live server.
 
+The current development settings studio is designed around the same workflow as the renderer: choose
+an appearance, see the real composite preview, then tune the shared status/badge rules. Posters and
+Wide Cards use the same visual controls, the preview stays prominent while editing, and the save bar
+appears only when there are unsaved changes. The page is scoped to Overcoat's configuration view, so
+it does not restyle the rest of Jellyfin's dashboard.
+
 Libraries expose their banner and badge choices only while **Process this library** is enabled. The
 Maintenance tab groups normal processing, scheduling, apply/restore actions, vault recovery, and
 advanced title targeting into separate sections.

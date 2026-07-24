@@ -75,6 +75,8 @@ const requiredPatterns = [
   ['wide-card preview image exists', /id="WidePreview"/],
   ['external stylesheet is linked', /id="OvercoatStylesheet"[^>]*configPage\.css/],
   ['descriptions toggle exists', /id="OvercoatDescriptions"/],
+  ['full form serialization exists', /config\.Libraries\s*=\s*collectLibraries\(\)/],
+  ['segmented controls expose radio state', /setAttribute\('aria-checked'/],
   ['save dock exposes status feedback', /id="OvercoatSaveState"[^>]*role="status"/],
   ['preview requests carry a stable poster key', /previewKey=' \+ encodeURIComponent\(previewKey\)/],
   ['all-user wide-card action exists', /id="OvercoatUseWideCardsAll"/],
@@ -102,11 +104,12 @@ for (const id of ['BadgesEnabled', 'TrendingTimeWindow', 'WatchHistoryDays', 'Wa
 }
 
 const cssPatterns = [
-  ['form width overrides Jellyfin cap', /#OvercoatConfigPage #OvercoatConfigForm[\s\S]*max-width:\s*1600px/],
+  ['form width overrides Jellyfin cap', /#OvercoatConfigPage #OvercoatConfigForm[\s\S]*max-width:\s*none/],
+  ['save dock is revealable', /\.ovcSaveDock\.ovcVisible/],
   ['plugin overflow is corrected', /overflow:\s*visible\s*!important/],
-  ['desktop preview is sticky', /\.ovcPreviewRail\s*\{[^}]*position:\s*sticky/],
-  ['studio stacks below 1100px', /@media\s*\(max-width:1099px\)/],
-  ['responsive cards use 480px minimum', /minmax\(min\(100%,480px\),1fr\)/],
+  ['desktop preview is sticky', /\.ovcBannerPreview\s*\{[^}]*position:\s*sticky/],
+  ['studio stacks below 1100px', /@media\s*\(max-width:\s*1099px\)/],
+  ['responsive cards use a bounded minimum', /minmax\(min\(100%,\s*440px\)\s*,\s*1fr\)/],
 ];
 for (const [label, pattern] of cssPatterns) {
   if (!pattern.test(css)) { console.error(`FAIL ${label}`); failures++; }
