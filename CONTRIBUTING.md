@@ -134,10 +134,20 @@ reaching a version number the release won't have, they're numbered wrong.
 
 Cutting a release:
 
-1. Land the work on `dev`, with `CHANGELOG.md` updated under `## [Unreleased]`.
-2. Test it — beta tag from `dev` if you want it on a real server first.
-3. Move the `Unreleased` entries under a `## [x.y.z] — date` heading, bump `<Version>` in the csproj,
-   merge to `main`, tag, push the tag.
+> [!IMPORTANT]
+> **Every published revision must explain why it exists.** Before pushing any tag, move that build's
+> user-facing changes from `## [Unreleased]` into an exact section for the tag:
+> `## [0.9.0-beta.3] — 2026-07-24` for a beta or `## [0.9.0] — 2026-07-24` for stable. A beta section
+> must describe what changed since the previous beta and why someone should install it. Generic text
+> such as “beta update,” a commit title alone, or notes copied unchanged from the previous revision
+> do not satisfy this rule. These notes become Jellyfin's **Revision History** and the GitHub release
+> body. The release workflow rejects a tag whose exact section is absent or empty.
+
+1. Land the work on `dev`, recording user-visible changes under `CHANGELOG.md` → `## [Unreleased]`.
+2. Before a beta tag, move only that beta's changes into its exact `## [x.y.z-beta.N] — date`
+   section, test, then tag from `dev`.
+3. Before stable, move the complete release notes into `## [x.y.z] — date`, bump `<Version>` in the
+   csproj, merge to `main`, tag, and push the tag.
 
 The release notes on GitHub and the changelog text shown *inside Jellyfin's plugin catalogue* are
 both extracted from that `## [x.y.z]` section automatically — so write it for users, not for you.

@@ -13,7 +13,7 @@
 - [ ] Builds clean (`dotnet build -c Release -warnaserror`)
 - [ ] Settings page still valid (`node scripts/check_config_page.js`)
 - [ ] Overlay geometry/status constants preserved (or intentional look change noted)
-- [ ] `CHANGELOG.md` updated under `## [Unreleased]` for user-visible changes
+- [ ] `CHANGELOG.md` explains what changed and why under `## [Unreleased]` for the next beta/stable Revision History
 
 ## If this touches when a poster gets written or reverted
 

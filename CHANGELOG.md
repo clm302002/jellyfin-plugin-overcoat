@@ -6,6 +6,13 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+### Changed
+- **Release notes are now mandatory per revision.** Every beta and stable tag must have its own exact,
+  non-empty changelog section explaining what changed and why the build exists. The release workflow
+  rejects tags that would publish an unexplained Jellyfin Revision History entry.
+
+## [0.9.0-beta.2] — 2026-07-24
+
 ### Added
 - **Overcoat now appears in the dashboard's left sidebar.** Its settings page is linked directly in
   the admin navigation (with a layers icon), not only buried in the plugin list.

@@ -71,9 +71,8 @@ def extract_changelog(path, tag, max_chars=None):
     beta of 0.7.0 advertise the identical 5,000-character 0.7.0 section — the plugin page's revision
     history then showed the same wall of text four times over, which is worse than showing nothing.
 
-    So a prerelease prefers the '## [Unreleased]' section, which is where work that has not shipped
-    yet is recorded and therefore changes between betas, and is labelled with its beta number so two
-    entries are never indistinguishable. A stable release uses its own '## [x.y.z]' section.
+    Every release uses its exact tag version section. This keeps each beta's Revision History entry
+    specific to that build instead of repeating an accumulating Unreleased section.
     """
     raw = tag.lstrip("v")
     base = raw.split("-")[0]
@@ -87,13 +86,37 @@ def extract_changelog(path, tag, max_chars=None):
 
     if prerelease:
         suffix = raw.split("-", 1)[1]
-        body = extract_section(text, "Unreleased") or extract_section(text, base)
+        body = extract_section(text, raw)
         header = f"Pre-release ({suffix}) of {base}. Expect rough edges."
         body = f"{header}\n\n{body}" if body else header
     else:
         body = extract_section(text, base) or f"Overcoat {tag}."
 
     return truncate_changelog(body, max_chars)
+
+
+def validate_release_changelog(path, tag):
+    """Refuse a release whose Jellyfin Revision History would not explain the build.
+
+    Betas and stable releases both require their exact numbered section. This deliberately has no
+    fallback: a tag must never publish first and leave users guessing why that revision exists.
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+    except OSError as exc:
+        raise ValueError(f"cannot read release notes from {path}: {exc}") from exc
+
+    raw = tag.lstrip("v")
+    heading = raw
+    body = extract_section(text, heading)
+    if not body:
+        kind = "beta" if "-" in raw else "stable"
+        raise ValueError(
+            f"{kind} release {tag} requires a non-empty CHANGELOG.md "
+            f"'## [{heading}]' section explaining what changed and why this revision exists"
+        )
+    return body
 
 
 def truncate_changelog(body, max_chars):

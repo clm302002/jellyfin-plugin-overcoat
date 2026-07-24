@@ -116,6 +116,21 @@ jobs:
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
           echo "Releasing $TAG on the $CHANNEL channel (plugin version $PLUGIN_VER)"
 
+      - name: Require revision-specific release notes
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          python3 - <<'PY'
+          import os, sys
+          sys.path.insert(0, "scripts")
+          from package_release import validate_release_changelog
+          try:
+              validate_release_changelog("CHANGELOG.md", os.environ["TAG"])
+          except ValueError as exc:
+              sys.exit(f"::error::{exc}")
+          print(f"Revision History notes verified for {os.environ['TAG']}")
+          PY
+
       # -p:Version pins the ASSEMBLY version to the same number the manifest will advertise. Without
       # it the DLL keeps whatever is hardcoded in the csproj, and Jellyfin shows the assembly version
       # while logging the meta.json one — the exact mismatch that suppresses the catalogue's update
