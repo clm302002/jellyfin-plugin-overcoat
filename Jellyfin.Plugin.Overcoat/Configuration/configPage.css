@@ -361,15 +361,22 @@
 #OvercoatConfigPage button { font: inherit; }
 #OvercoatConfigPage .checkboxContainer { display: flex; align-items: center; gap: .65rem; min-height: 2.1rem; margin: 0; cursor: pointer; }
 #OvercoatConfigPage .checkboxContainer input[type="checkbox"] {
-    appearance: none; flex: 0 0 auto; position: relative; width: 42px; height: 24px; margin: 0;
-    border: 1px solid var(--ov-border-strong); border-radius: 99px; background: var(--ov-raised); cursor: pointer;
+    appearance: none !important; -webkit-appearance: none !important;
+    display: inline-block !important; flex: 0 0 42px; position: relative;
+    width: 42px !important; min-width: 42px !important; max-width: 42px !important;
+    height: 24px !important; min-height: 24px !important; margin: 0 !important; padding: 0 !important;
+    border: 1px solid var(--ov-border-strong) !important; border-radius: 99px !important;
+    background: var(--ov-raised) !important; background-image: none !important; cursor: pointer;
     transition: background .16s ease, border-color .16s ease;
 }
 #OvercoatConfigPage .checkboxContainer input[type="checkbox"]::after {
     content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
     border-radius: 50%; background: #d0d9e4; box-shadow: 0 2px 5px rgba(0,0,0,.3); transition: left .16s ease;
 }
-#OvercoatConfigPage .checkboxContainer input[type="checkbox"]:checked { border-color: transparent; background: linear-gradient(180deg, #73ddff, var(--ov-accent-strong)); }
+#OvercoatConfigPage .checkboxContainer input[type="checkbox"]:checked {
+    border-color: transparent !important;
+    background: linear-gradient(180deg, #73ddff, var(--ov-accent-strong)) !important;
+}
 #OvercoatConfigPage .checkboxContainer input[type="checkbox"]:checked::after { left: 20px; background: #fff; }
 #OvercoatConfigPage .checkboxContainer > span { font-size: .92rem; font-weight: 700; }
 #OvercoatConfigPage .ovcSrOnly {
@@ -691,17 +698,25 @@
     width: min(100%, 46rem); min-width: 0; justify-self: start;
     margin: 0 auto 0 0 !important;
 }
-#OvercoatConfigPage .ovcSearchRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .55rem; align-items: stretch; }
+#OvercoatConfigPage .ovcSearchRow {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .55rem; align-items: stretch;
+    width: 100%; min-width: 0; margin: 0 !important;
+}
 #OvercoatConfigPage #OvercoatTitleSearch,
 #OvercoatConfigPage #OvercoatIgnoreSearch {
-    display: block; width: 100%; margin: 0 !important; padding: .62rem .75rem !important;
+    appearance: none !important; -webkit-appearance: none !important;
+    display: block !important; grid-column: 1; justify-self: stretch; box-sizing: border-box;
+    width: 100% !important; min-width: 0 !important; max-width: none !important;
+    margin: 0 !important; padding: .62rem .75rem !important;
     text-align: left !important; text-indent: 0 !important; direction: ltr;
 }
 #OvercoatConfigPage #OvercoatTitleSearch::placeholder,
 #OvercoatConfigPage #OvercoatIgnoreSearch::placeholder { text-align: left !important; opacity: .72; }
 #OvercoatConfigPage .ovcSearchRow button {
-    justify-self: start; width: auto !important; min-width: 5.5rem; max-width: 7rem;
-    margin: 0; padding: .58rem .9rem !important;
+    display: inline-flex !important; align-items: center; justify-content: center; grid-column: 2; justify-self: start;
+    width: auto !important; min-width: 5.5rem !important; max-width: 7rem !important;
+    min-height: 0 !important; margin: 0 !important; padding: .58rem .9rem !important;
+    border-radius: 10px !important;
 }
 #OvercoatConfigPage .ovcTitleResults {
     overflow: hidden; border: 1px solid var(--ov-border-strong); border-radius: 11px;
@@ -768,7 +783,7 @@
     border-radius: 13px; text-align: left;
     background: color-mix(in srgb, var(--ov-warning) 7%, var(--ov-canvas));
 }
-#OvercoatConfigPage .ovcForceRestore input[type="checkbox"] { margin-top: .1rem; }
+#OvercoatConfigPage .ovcForceRestore input[type="checkbox"] { margin-top: .1rem !important; }
 #OvercoatConfigPage .ovcForceRestore > span { display: grid; gap: .28rem; min-width: 0; }
 #OvercoatConfigPage .ovcForceRestore strong { color: var(--ov-text); font-size: .92rem; line-height: 1.35; }
 #OvercoatConfigPage .ovcForceRestore small { color: var(--ov-muted); font-size: .8rem; font-weight: 400; line-height: 1.5; }

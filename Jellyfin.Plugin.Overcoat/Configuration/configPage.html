@@ -645,8 +645,8 @@
                                     <div class="ovcTitleSearch">
                                         <label class="inputLabel" for="OvercoatTitleSearch">Find a movie or series</label>
                                         <div class="ovcSearchRow">
-                                            <input is="emby-input" type="text" id="OvercoatTitleSearch" autocomplete="off" placeholder="Start typing a title…" aria-controls="OvercoatTitleResults" data-ovc-transient />
-                                            <button is="emby-button" type="button" id="OvercoatTitleSearchButton" class="raised"><span>Search</span></button>
+                                            <input type="text" id="OvercoatTitleSearch" autocomplete="off" placeholder="Start typing a title…" aria-controls="OvercoatTitleResults" data-ovc-transient />
+                                            <button type="button" id="OvercoatTitleSearchButton" class="raised"><span>Search</span></button>
                                         </div>
                                         <div class="fieldDescription">Type at least two characters. A TMDB ID is not needed.</div>
                                     </div>
@@ -670,7 +670,7 @@
                                     <button is="emby-button" type="button" id="OvercoatRestore" class="raised"><span>↩ Restore original artwork</span></button>
                                 </div>
                                 <label class="checkboxContainer ovcForceRestore">
-                                    <input is="emby-checkbox" type="checkbox" id="ForceRestore" />
+                                    <input type="checkbox" id="ForceRestore" />
                                     <span>
                                         <strong>Force restore over changed artwork</strong>
                                         <small>Normally, Restore protects artwork changed outside Overcoat. Turn this on only when the vaulted copy should replace it anyway.</small>
@@ -730,8 +730,8 @@
                         <div class="ovcTitleSearch">
                             <label class="inputLabel" for="OvercoatIgnoreSearch">Find a movie or series</label>
                             <div class="ovcSearchRow">
-                                <input is="emby-input" type="text" id="OvercoatIgnoreSearch" autocomplete="off" placeholder="Start typing a title…" aria-controls="OvercoatIgnoreResults" data-ovc-transient />
-                                <button is="emby-button" type="button" id="OvercoatIgnoreSearchButton" class="raised"><span>Search</span></button>
+                                <input type="text" id="OvercoatIgnoreSearch" autocomplete="off" placeholder="Start typing a title…" aria-controls="OvercoatIgnoreResults" data-ovc-transient />
+                                <button type="button" id="OvercoatIgnoreSearchButton" class="raised"><span>Search</span></button>
                             </div>
                             <div class="fieldDescription">Choose the result from Jellyfin; a TMDB ID is not needed.</div>
                         </div>
@@ -1331,15 +1331,15 @@
                 // The rest is static markup (no untrusted data) — safe as HTML.
                 var body = document.createElement('div');
                 body.innerHTML =
-                    '<label class="checkboxContainer ovcLibEnabled"><input is="emby-checkbox" type="checkbox" class="ovcEnabled" /><span>Process library</span></label>' +
+                    '<label class="checkboxContainer ovcLibEnabled"><input type="checkbox" class="ovcEnabled" /><span>Process library</span></label>' +
                     '<div class="ovcLibOpts">' +
                       '<p class="ovcLibSectionLabel">Artwork &amp; signals</p>' +
                       '<div class="ovcLibFeatureGrid">' +
-                        (isTv ? '<label class="checkboxContainer ovcFeatureToggle"><input is="emby-checkbox" type="checkbox" class="ovcStatus" /><span><strong>Status banners</strong><small>NEW, AIRING, RETURNING and more</small></span></label>' : '') +
-                        (isTv ? '<label class="checkboxContainer ovcFeatureToggle"><input is="emby-checkbox" type="checkbox" class="ovcWide" /><span><strong>Series wide cards</strong><small>Overlay existing Thumb artwork</small></span></label>' : '') +
-                        '<label class="checkboxContainer ovcFeatureToggle"><input is="emby-checkbox" type="checkbox" class="ovcWatch" /><span><strong>Watch history</strong><small>Highlight recently watched titles</small></span></label>' +
-                        '<label class="checkboxContainer ovcFeatureToggle"><input is="emby-checkbox" type="checkbox" class="ovcTrend" /><span><strong>Trending</strong><small>Show the current TMDB signal</small></span></label>' +
-                        '<label class="checkboxContainer ovcFeatureToggle"><input is="emby-checkbox" type="checkbox" class="ovcTop250" /><span><strong>IMDb Top 250</strong><small>Mark titles from your configured list</small></span></label>' +
+                        (isTv ? '<label class="checkboxContainer ovcFeatureToggle"><input type="checkbox" class="ovcStatus" /><span><strong>Status banners</strong><small>NEW, AIRING, RETURNING and more</small></span></label>' : '') +
+                        (isTv ? '<label class="checkboxContainer ovcFeatureToggle"><input type="checkbox" class="ovcWide" /><span><strong>Series wide cards</strong><small>Overlay existing Thumb artwork</small></span></label>' : '') +
+                        '<label class="checkboxContainer ovcFeatureToggle"><input type="checkbox" class="ovcWatch" /><span><strong>Watch history</strong><small>Highlight recently watched titles</small></span></label>' +
+                        '<label class="checkboxContainer ovcFeatureToggle"><input type="checkbox" class="ovcTrend" /><span><strong>Trending</strong><small>Show the current TMDB signal</small></span></label>' +
+                        '<label class="checkboxContainer ovcFeatureToggle"><input type="checkbox" class="ovcTop250" /><span><strong>IMDb Top 250</strong><small>Mark titles from your configured list</small></span></label>' +
                       '</div>' +
                       (isTv ? '<p class="ovcLibNote">The all-user choice above controls whether Next Up and Continue Watching display these series wide cards.</p>' : '') +
                     '</div>';

@@ -8,6 +8,23 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.9.0-beta.9] — 2026-07-24
+
+This beta exists because Jellyfin's runtime upgrades of `emby-input` and `emby-checkbox` changed
+control geometry after Overcoat's standalone screenshot harness had rendered the page correctly.
+
+### Fixed
+- **Both catalogue searches stay on the left inside real Jellyfin.** Automation's test-title picker
+  and Libraries' Titles to Ignore picker now use stable native inputs and buttons owned completely by
+  Overcoat, preventing Jellyfin's custom-element upgrade from narrowing or pushing the input right.
+- **Library controls are true toggles without overlapping copy.** Process Library and every
+  per-library feature switch now bypass Jellyfin's square-checkbox upgrade and use Overcoat's fixed
+  42×24 pill geometry.
+- **Force Restore is now the same pill toggle as the rest of the studio.** Its control remains
+  attached to the warning copy at desktop and mobile widths.
+- **The browser harness now reproduces the conflicting Jellyfin control styles.** A regression only
+  passes when the affected controls remain correctly aligned and toggle-shaped despite those styles.
+
 ## [0.9.0-beta.8] — 2026-07-24
 
 This beta exists to publish the completed settings-workspace redesign and, critically, to enforce
