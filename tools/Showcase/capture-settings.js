@@ -207,6 +207,9 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     }
     if (update.FutureSetting !== 'preserve-me') throw new Error('Saving dropped an unknown future configuration field.');
     await page.locator('button[data-tab="design"]').click();
+    const statusTextWidths = await page.evaluate(() => ['LabelNew','LabelAiring','LabelReturning','LabelEnded','LabelCanceled']
+      .map(id=>Math.round(document.querySelector('#'+id).getBoundingClientRect().width)));
+    if (statusTextWidths.some(width=>width < 160)) throw new Error(`Banner-text fields are too narrow (${statusTextWidths.join(', ')}).`);
     const posterPresets = page.locator('[data-panel="design"] .ovcPreset:not([data-wide])');
     const presetWidths = await posterPresets.evaluateAll(buttons => buttons.map(button => Math.round(button.getBoundingClientRect().width)));
     if (Math.max(...presetWidths) > 130 || Math.max(...presetWidths) > Math.min(...presetWidths) * 1.8) {

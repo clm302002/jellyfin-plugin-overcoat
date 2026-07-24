@@ -84,7 +84,7 @@ const requiredPatterns = [
   ['full form serialization exists', /config\.Libraries\s*=\s*collectLibraries\(\)/],
   ['segmented controls expose radio state', /setAttribute\('aria-checked'/],
   ['save dock exposes status feedback', /id="OvercoatSaveState"[^>]*role="status"/],
-  ['status editor exposes labelled columns', /class="ovcStatusHeader"[^>]*>[\s\S]*Display label[\s\S]*Show/],
+  ['status editor exposes clear banner-text fields', /class="ovcStatusHeader"[^>]*>[\s\S]*Banner text[\s\S]*Show[\s\S]*class="ovcStatusText"/],
   ['status visibility switches use one native control shape', /id="ShowNew"[\s\S]*id="ShowAiring"[\s\S]*id="ShowReturning"[\s\S]*id="ShowEnded"[\s\S]*id="ShowCanceled"/],
   ['poster effects explain their controls', /id="BannerIcons"[\s\S]*Draw the ★[\s\S]*id="BannerShadow"[\s\S]*Add a soft shadow/],
   ['preview requests carry a stable poster key', /previewKey=' \+ encodeURIComponent\(previewKey\)/],

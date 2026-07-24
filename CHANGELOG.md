@@ -26,6 +26,9 @@ All notable changes to Overcoat are documented here. Format follows
 - **Live-preview controls no longer hide below the artwork.** Status, badge, Sample, and Random
   controls now sit above the responsive preview image, and the sticky card no longer creates its own
   nested scrollbar. Supporting copy is shorter on both Poster and Wide Card.
+- **Colours & Labels now explains the editable text.** The redundant Status and blank-looking
+  Display label columns are replaced by one wide Banner text field per status, labelled with the
+  status it controls. This keeps custom wording such as “CANCELLED” while making every input obvious.
 
 ## [0.9.0-beta.2] — 2026-07-24
 
