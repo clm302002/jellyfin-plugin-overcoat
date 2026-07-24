@@ -6,7 +6,13 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+- **Overcoat now appears in the dashboard's left sidebar.** Its settings page is linked directly in
+  the admin navigation (with a layers icon), not only buried in the plugin list.
+
+### Changed
+- **Settings page restyle (in progress).** A cleaner, higher-contrast "studio" look for the
+  configuration page — refined cards, pill tabs, toggle switches, and a more prominent live preview.
 
 ## [0.8.0] — 2026-07-24
 
