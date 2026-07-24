@@ -134,6 +134,8 @@ const cssPatterns = [
   ['library artwork buttons use warning colour', /\.ovcWarningAction\s*\{[^}]*background:\s*var\(--ov-warning\)\s*!important/],
   ['force restore control keeps switch beside copy', /\.ovcForceRestore\s*\{[^}]*grid-template-columns:\s*42px\s+minmax\(0,\s*1fr\)/],
   ['catalogue search buttons stay compact', /\.ovcSearchRow button\s*\{[^}]*width:\s*auto\s*!important[^}]*max-width:\s*7rem/],
+  ['catalogue search text stays left aligned', /#OvercoatTitleSearch,[\s\S]*#OvercoatIgnoreSearch\s*\{[^}]*text-align:\s*left\s*!important[^}]*text-indent:\s*0\s*!important/],
+  ['selected-title remove button has fixed geometry', /\.ovcRemoveTitle\s*\{[^}]*width:\s*1\.45rem\s*!important[^}]*height:\s*1\.45rem\s*!important[^}]*overflow:\s*hidden/],
   ['custom schedule fields respect their hidden state', /#ScheduleTimeRow\[hidden\]\s*\{[^}]*display:\s*none\s*!important/],
   ['Quick Look buttons resist Jellyfin full-width button styles', /\.ovcPreset\s*\{[^}]*width:\s*auto\s*!important[^}]*max-width:\s*8rem/],
   ['studio stacks below 1100px', /@media\s*\(max-width:\s*1099px\)/],

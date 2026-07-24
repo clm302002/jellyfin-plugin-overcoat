@@ -121,6 +121,7 @@ Releases are cut by pushing a tag; **pushing to a branch publishes nothing.**
 | `v0.9.0-beta.4` | `0.9.0.4` | beta | action-layout cleanup and typeface calibration |
 | `v0.9.0-beta.5` | `0.9.0.5` | beta | exact Jellyfin-item targeting and action-card refinement |
 | `v0.9.0-beta.6` | `0.9.0.6` | beta | recovery safety-panel and Automation hierarchy polish |
+| `v0.9.0-beta.7` | `0.9.0.7` | beta | catalogue input alignment and selected-title removal fix |
 
 GitHub's "latest" excludes prereleases, so a beta can never appear on the stable URL. The beta channel
 is a **superset** — stable releases are published there too — so subscribing to the beta URL alone is

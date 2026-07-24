@@ -241,6 +241,20 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     if (!/locked to 1 exact title/i.test(await page.locator('#OvercoatTargetScope').textContent())) {
       throw new Error('Targeted-run picker did not confirm its exact Jellyfin selection.');
     }
+    const removeGeometry = await page.locator('#OvercoatSelectedTitles .ovcSelectedTitle').evaluate(chip => {
+      const button = chip.querySelector('.ovcRemoveTitle');
+      const outer = chip.getBoundingClientRect();
+      const inner = button.getBoundingClientRect();
+      return {
+        contained: inner.left >= outer.left && inner.top >= outer.top && inner.right <= outer.right && inner.bottom <= outer.bottom,
+        width: Math.round(inner.width),
+        height: Math.round(inner.height),
+        textAlign: getComputedStyle(document.querySelector('#OvercoatTitleSearch')).textAlign
+      };
+    });
+    if (!removeGeometry.contained || removeGeometry.width > 26 || removeGeometry.height > 26 || removeGeometry.textAlign !== 'left') {
+      throw new Error(`Selected-title remove control or search alignment is wrong (${JSON.stringify(removeGeometry)}).`);
+    }
     await page.locator('button[data-tab="libraries"]').click();
     await page.locator('#OvercoatIgnoreSearch').fill('El Camino');
     await page.locator('#OvercoatIgnoreSearchButton').click();

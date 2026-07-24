@@ -8,6 +8,13 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.9.0-beta.7] — 2026-07-24
+
+### Fixed
+- **Catalogue search text and selected-title removal stay aligned.** Both title pickers explicitly
+  left-align typed text and placeholders, while the × remove control is fully size-reset and
+  centered inside each selected-title pill instead of inheriting Jellyfin button geometry.
+
 ## [0.9.0-beta.6] — 2026-07-24
 
 ### Changed
