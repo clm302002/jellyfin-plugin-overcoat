@@ -196,6 +196,27 @@ const out = path.resolve(process.argv[2] || path.join(root, 'assets'));
     await page.locator('[data-for="BannerShape"] button[data-v="square"]').click();
     const keyAfterEdit = new URL(await page.locator('#PostersPreview').getAttribute('src')).searchParams.get('previewKey');
     await page.locator('[data-panel="design"] button[data-surface="wide"]').click();
+    const widePresets = page.locator('[data-panel="wide"] .ovcPreset[data-wide="true"]');
+    const wideExpectations = [
+      ['Clean', 'solid', 'drop', 'default', '1', false],
+      ['Glass', 'glass', 'pill', 'default', '1', false],
+      ['Neon', 'neon', 'pill', 'default', '1', false],
+      ['Ribbon', 'solid', 'drop', 'sans', '1', true],
+    ];
+    for (const [name, style, shape, font, scale, band] of wideExpectations) {
+      await widePresets.filter({hasText:name}).click();
+      const actual = await page.evaluate(() => ({
+        style: document.querySelector('#WideBannerStyle').value,
+        shape: document.querySelector('#WideBannerShape').value,
+        font: document.querySelector('#WideBannerFont').value,
+        scale: document.querySelector('#WideBannerFontScale').value,
+        band: document.querySelector('#WideBannerFullWidth').checked,
+      }));
+      if (actual.style !== style || actual.shape !== shape || actual.font !== font
+          || actual.scale !== scale || actual.band !== band) {
+        throw new Error(`Wide Card ${name} preset is out of sync (${JSON.stringify(actual)}).`);
+      }
+    }
     const wideKeyBefore = new URL(await page.locator('#WidePreview').getAttribute('src')).searchParams.get('previewKey');
     if (!posterKey || posterKey !== keyAfterEdit) throw new Error('Random poster key changed during an edit.');
     await page.locator('[data-panel="wide"] .ovcWideSourceBtn[data-source="random"]').click();
