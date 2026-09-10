@@ -54,6 +54,10 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
                 CultureInfo.InvariantCulture,
                 "{0}.Configuration.configPage.html",
                 GetType().Namespace),
+
+            // Surface Overcoat directly in the dashboard's left sidebar (not just the plugin list).
+            EnableInMainMenu = true,
+            MenuIcon = "layers",
         };
     }
 }

@@ -1,11 +1,37 @@
 using Jellyfin.Plugin.Overcoat.Services;
 using SkiaSharp;
+using System.Reflection;
 using Xunit;
 
 namespace Jellyfin.Plugin.Overcoat.Tests;
 
 public sealed class OverlayRendererTests
 {
+    [Theory]
+    [InlineData("RETURNING 21d", "RETURNING 21d")]
+    [InlineData("airing 3d", "AIRING 3d")]
+    [InlineData("returning 7/14", "RETURNING 7/14")]
+    public void BannerDisplayText_PreservesLowercaseCountdownUnit(string input, string expected)
+    {
+        var method = typeof(OverlayRenderer).GetMethod("BannerDisplayText", BindingFlags.NonPublic | BindingFlags.Static);
+
+        Assert.NotNull(method);
+        Assert.Equal(expected, method.Invoke(null, new object[] { input }));
+    }
+
+    [Theory]
+    [InlineData("default", 1f)]
+    [InlineData("sans", 0.6f)]
+    [InlineData("serif", 0.6f)]
+    [InlineData("mono", 0.6f)]
+    public void TypefaceScale_NormalizesSystemFontMetrics(string font, float expected)
+    {
+        var method = typeof(OverlayRenderer).GetMethod("TypefaceScale", BindingFlags.NonPublic | BindingFlags.Static);
+
+        Assert.NotNull(method);
+        Assert.Equal(expected, method.Invoke(null, new object?[] { font }));
+    }
+
     [Fact]
     public void WideCardEncoding_DownscalesWithoutUpscaling()
     {

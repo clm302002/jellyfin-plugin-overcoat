@@ -87,7 +87,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool ForceRestore { get; set; }
 
     /// <summary>Gets or sets a value indicating whether the task computes overlays but skips saving (diagnostics).</summary>
-    public bool DryRun { get; set; }
+    public bool DryRun { get; set; } = true;
 
     // --- Status banner appearance ---
 
@@ -111,7 +111,7 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets how the AIRING next-episode is shown: "date" (6/28), "day" (Tue), or "countdown" (3d). Always shown when known (no window).</summary>
     public string AiringDateFormat { get; set; } = "date";
 
-    /// <summary>Gets or sets how the RETURNING date is shown: "date" (7/14), "day" (Mon), or "countdown" (21d).</summary>
+    /// <summary>Gets or sets how the RETURNING date is shown: "date" (7/14) or "countdown" (21d).</summary>
     public string ReturningDateFormat { get; set; } = "date";
 
     /// <summary>Gets or sets the RETURNING date window in days: show the date only when the next episode is within this many days. -1 = never, large = always-when-known.</summary>
@@ -358,11 +358,20 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>Gets or sets show/movie titles to skip entirely.</summary>
     public List<string> IgnoreTitles { get; set; } = new();
 
+    /// <summary>Gets or sets stable Jellyfin item ids to skip entirely.</summary>
+    public List<Guid> IgnoreItemIds { get; set; } = new();
+
     /// <summary>
     /// Gets or sets an allow-list of titles. When non-empty, ONLY these titles are processed
     /// (targeted reprocessing / safe single-show testing). Empty = process everything.
     /// </summary>
     public List<string> LimitToTitles { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the stable Jellyfin item ids selected for a targeted run. These are combined
+    /// with the legacy title allow-list so upgrading cannot silently drop an existing target.
+    /// </summary>
+    public List<Guid> LimitToItemIds { get; set; } = new();
 
     /// <summary>Gets or sets manual title→TMDB id overrides for items that resolve incorrectly.</summary>
     public List<TmdbOverride> TmdbOverrides { get; set; } = new();
@@ -394,6 +403,10 @@ public static class ConfigurationSanitizer
 
         // -1 means "never show the date"; anything beyond a decade is effectively "always".
         c.ReturningDateWindowDays = Math.Clamp(c.ReturningDateWindowDays, -1, 3650);
+        c.AiringDateFormat = c.AiringDateFormat is "date" or "day" or "countdown" ? c.AiringDateFormat : "date";
+        // Returning day-of-week was misleading for between-season dates and is no longer offered.
+        // Normalize old saved "day" values to Date so existing installs migrate predictably.
+        c.ReturningDateFormat = c.ReturningDateFormat is "date" or "countdown" ? c.ReturningDateFormat : "date";
 
         c.WatchHistoryDays = Math.Clamp(c.WatchHistoryDays, 1, 3650);
         c.WatchHistoryMaxScan = Math.Clamp(c.WatchHistoryMaxScan, 500, 1_000_000);

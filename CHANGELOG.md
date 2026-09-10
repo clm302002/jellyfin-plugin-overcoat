@@ -8,6 +8,213 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.9.0] — 2026-07-24
+
+Overcoat 0.9.0 promotes the owner-approved beta.9 build to stable after live Jellyfin testing. This
+release turns the settings experience into a cohesive, responsive studio and hardens the artwork
+write boundary so the interface and safety promises hold on a real server.
+
+### Safety
+- **Overcoat output is forced into Jellyfin's internal metadata storage.** Apply, automatic cleanup,
+  and Restore Originals all use Jellyfin's explicit `saveLocallyWithMedia: false` path regardless of
+  the library's **Save artwork into media folders** preference. The former direct shadow-file
+  deletion workaround is gone.
+- **New libraries remain off until deliberately enabled.** The Libraries page also explains the
+  media-folder guarantee prominently.
+
+### Changed
+- **A complete settings-studio redesign.** Design, Libraries, Data Sources, Automation, and Recovery
+  now share one modern visual system, top navigation, responsive cards, consistent rounded actions,
+  clear hierarchy, and dependable desktop/mobile layouts.
+- **Poster and Wide Card are matching design surfaces.** Both provide Quick Looks, structured banner
+  and badge controls, and a contained real-render preview. Wide Cards can inherit Poster styling or
+  use their own 16:9 appearance.
+- **Libraries is a modern control workspace.** Per-library processing and feature choices use clear
+  pill toggles, all-user home-screen artwork choices are explicit, and exact-title exclusions remain
+  visible and searchable.
+- **Automation supports safe exact-title testing.** Search Jellyfin, select a stable item match, and
+  apply to only that title before processing an entire library. Recovery presents the originals
+  vault and guarded restore controls as a connected workspace.
+
+### Fixed
+- **Controls now retain their intended layout inside Jellyfin itself.** The two catalogue searches,
+  library toggles, and Force Restore bypass Jellyfin custom-element geometry that could shift inputs,
+  produce square checkboxes, or overlap text after the standalone page had rendered correctly.
+- **Saving and applying remain explicit and reliable.** Draft tracking, Apply/Discard feedback,
+  validation, unknown-setting preservation, apply-before-run ordering, and versioned stylesheet
+  loading are all covered by the browser regression harness.
+
+## [0.9.0-beta.9] — 2026-07-24
+
+This beta exists because Jellyfin's runtime upgrades of `emby-input` and `emby-checkbox` changed
+control geometry after Overcoat's standalone screenshot harness had rendered the page correctly.
+
+### Fixed
+- **Both catalogue searches stay on the left inside real Jellyfin.** Automation's test-title picker
+  and Libraries' Titles to Ignore picker now use stable native inputs and buttons owned completely by
+  Overcoat, preventing Jellyfin's custom-element upgrade from narrowing or pushing the input right.
+- **Library controls are true toggles without overlapping copy.** Process Library and every
+  per-library feature switch now bypass Jellyfin's square-checkbox upgrade and use Overcoat's fixed
+  42×24 pill geometry.
+- **Force Restore is now the same pill toggle as the rest of the studio.** Its control remains
+  attached to the warning copy at desktop and mobile widths.
+- **The browser harness now reproduces the conflicting Jellyfin control styles.** A regression only
+  passes when the affected controls remain correctly aligned and toggle-shaped despite those styles.
+
+## [0.9.0-beta.8] — 2026-07-24
+
+This beta exists to publish the completed settings-workspace redesign and, critically, to enforce
+Overcoat's media-folder safety promise in code rather than relying on a Jellyfin library preference.
+
+### Safety
+- **Overcoat now enforces the media-folder boundary at the Jellyfin image API.** Jellyfin's ordinary
+  stream save follows each library's **Save artwork into media folders** option, so relying on that
+  overload could place an Overcoat `poster.png` or `landscape.webp` beside media when the option was
+  enabled. Apply, automatic clean restore, and Restore Originals now all use Jellyfin's explicit
+  `saveLocallyWithMedia: false` override, forcing output into internal metadata storage regardless of
+  the library setting. The old shadow-file deletion workaround is removed entirely.
+- **The Libraries page makes that guarantee visible.** A prominent media-safety card explains that
+  users do not need to change Jellyfin's artwork preference for Overcoat, and that newly discovered
+  movie/TV libraries remain unprocessed until **Process library** is explicitly enabled.
+
+### Changed
+- **Design is now a cohesive modern artwork studio.** Poster and Wide Card share a clear studio
+  introduction, prominent surface switch, focused canvas hero, compact Quick Looks, and a contained
+  rendered-preview workstation. The same hierarchy, spacing, interaction language, and responsive
+  mobile flow now carry across both surfaces while preserving every existing appearance setting.
+- **The entire catalogue picker now sits on the left.** Apply Overcoat uses the requested vertical
+  flow—action first, search directly below—instead of placing the picker in a right-hand column.
+  Both Automation and Titles to ignore pin their complete search row to the left edge.
+- **Libraries is rebuilt as a modern control workspace.** A concise page introduction leads into a
+  dedicated all-user artwork decision card, polished library cards with media icons and compact
+  feature tiles, and a visually connected exact-title exclusion area. The new hierarchy adapts from
+  a balanced desktop grid to a clean single-column mobile layout without changing saved behavior.
+- **Data Sources now matches the modern workspace theme.** TMDB connection is promoted to a clear
+  primary card, while badge, playback, list, and override settings use consistent signal cards and
+  responsive field tiles. Existing credentials and matching behavior are unchanged.
+- **Automation and Recovery now form a matched operations workspace.** Run Now remains the primary
+  Automation action, with behavior and schedule settings presented as compact operational tiles.
+  Recovery pairs its guarded restore action with a modern originals-vault dashboard, responsive
+  health statistics, and a connected read-only refresh control.
+
+## [0.9.0-beta.7] — 2026-07-24
+
+### Fixed
+- **Catalogue search text and selected-title removal stay aligned.** Both title pickers explicitly
+  left-align typed text and placeholders, while the × remove control is fully size-reset and
+  centered inside each selected-title pill instead of inheriting Jellyfin button geometry.
+
+## [0.9.0-beta.6] — 2026-07-24
+
+### Changed
+- **Force Restore is easier to read safely.** Restore Originals now separates the primary recovery
+  action from a compact inset safety panel, keeping the Force Restore switch directly beside its
+  label and explanation at desktop and mobile widths.
+- **Automation reaches the action faster.** Redundant Run Now heading copy is removed, the page
+  introduction is shorter, and both catalogue search rows stay left-aligned with compact buttons.
+
+## [0.9.0-beta.5] — 2026-07-24
+
+### Changed
+- **Targeting now selects exact Jellyfin items.** Run Now and Titles to ignore use guided catalogue
+  search and store stable Jellyfin item IDs instead of relying on hand-typed names. Search results
+  show media type and year, selected items are removable chips, duplicate titles are unambiguous,
+  and older name-based settings remain visible and active until explicitly cleared.
+- **Run Now and Recovery have stronger action layouts.** Apply Overcoat and its optional test scope
+  now share one full-width guided card, while Restore Originals uses centered copy, controls, and
+  restrained line lengths.
+- **Scan follow-up is visibly recommended.** Re-apply after a library scan now carries the same
+  **Recommended on** badge as Skip Cache.
+
+### Fixed
+- **Library artwork actions clearly state their scope.** Both yellow preference buttons once again
+  say **for all users**, making it explicit that these actions change every current user's Jellyfin
+  display preference rather than only the administrator's.
+
+## [0.9.0-beta.4] — 2026-07-24
+
+### Changed
+- **Libraries is flatter and more direct.** The introductory warning banner is removed, explanatory
+  copy is shorter, and the two all-user artwork choices are yellow warning actions. The former
+  Advanced targeting disclosure is now an always-open **Titles to ignore** section at the bottom.
+- **Run Now puts test scope beside the action.** Test specific titles now sits directly beside Apply
+  overlays, while the redundant yellow outer container is gone.
+- **Restore Originals uses the full Recovery width.** The complete restore action card now spans the
+  page instead of occupying only half of the action grid.
+- **Alternate typefaces keep a consistent visual size.** Sans, Serif, and Mono are calibrated to
+  `0.60×` internally so switching away from Display changes the style without making banner text
+  enormous. The visible Text size control remains the user's independent multiplier.
+- **Clean Quick Look now uses the Drop shape.** Clean keeps its solid, restrained treatment but
+  starts with the edge-flush Drop silhouette on both Posters and Wide Cards.
+
+## [0.9.0-beta.3] — 2026-07-24
+
+### Changed
+- **Release notes are now mandatory per revision.** Every beta and stable tag must have its own exact,
+  non-empty changelog section explaining what changed and why the build exists. The release workflow
+  rejects tags that would publish an unexplained Jellyfin Revision History entry.
+- **Ribbon Quick Look now uses a proportional text size.** Applying Ribbon sets banner text to
+  `0.60×` on Posters or Wide Cards, matching the full-width treatment instead of forcing the
+  oversized `1.00×` default. Manually enabling Full-width band on another look does not change its
+  text scale.
+- **Library selection guidance is easier to scan.** “Choose where Overcoat works” is now a compact
+  yellow banner explaining library enablement and per-title targeting without a large introductory
+  text block.
+- **Custom schedule fields stay out of the way until requested.** Hour and minute appear only while
+  “Set a custom run time” is enabled; the default 3:00 AM summary remains visible otherwise.
+- **Skip cache now carries a recommendation.** A compact “Recommended on” badge beside the setting
+  makes the faster normal operating mode clear without adding more helper text.
+- **Recovery Recheck matches the action system.** The vault refresh control now uses the same
+  rounded pill treatment as Apply Overcoat and Restore Originals.
+- **Live-preview controls no longer hide below the artwork.** Status, badge, Sample, and Random
+  controls now sit above the responsive preview image, and the sticky card no longer creates its own
+  nested scrollbar. Supporting copy is shorter on both Poster and Wide Card.
+- **Colours & Labels now explains the editable text.** The redundant Status and blank-looking
+  Display label columns are replaced by one wide Banner text field per status, labelled with the
+  status it controls. This keeps custom wording such as “CANCELLED” while making every input obvious.
+- **Returning countdowns use a legible lowercase unit.** Real overlays now preserve the lowercase
+  `d` in values such as `21d` instead of uppercasing it into a zero-like `D`. Returning format now
+  offers only Date and Countdown; existing Day-of-week settings migrate to Date. Airing retains its
+  useful Day-of-week option.
+
+## [0.9.0-beta.2] — 2026-07-24
+
+### Added
+- **Overcoat now appears in the dashboard's left sidebar.** Its settings page is linked directly in
+  the admin navigation (with a layers icon), not only buried in the plugin list.
+- **Four editable Quick Looks.** Clean, Glass, Neon, and Ribbon presets update only the active
+  Poster or Wide Card appearance and remain fully adjustable before applying.
+- **Recoverable unsaved drafts.** Edits survive an accidental page reload or trip elsewhere in the
+  Jellyfin dashboard until they are applied or explicitly discarded.
+- **New installations start safely in Dry Run.** A yellow notice remains visible while Dry Run is on
+  and disappears immediately when it is turned off. Existing installations keep their saved choice.
+
+### Changed
+- **The settings page is now a purpose-based creative studio.** Design, Libraries, Data Sources,
+  Automation, and Recovery replace the old form-oriented tabs. Poster and Wide Card are surfaces in
+  one preview-first Design workspace, while destructive recovery is isolated from everyday automation.
+- **The responsive shell is rebuilt around top navigation.** Every screen size keeps the five
+  purpose tabs across the top; the Design inspector and persistent artwork stage stack cleanly as the
+  viewport narrows.
+- **Actions use one consistent rounded shape.** Apply Changes, Apply Overcoat, Restore Originals, and
+  both all-user Library artwork actions can no longer fall back to Jellyfin's square button styling.
+- **Quick Looks keep their compact pill sizing.** Jellyfin's global button rules can no longer
+  stretch the Poster or Wide Card Ribbon preset into an oversized control.
+- **Wide Cards controls now match Posters.** Wide-card treatments, shapes, layout choices, typography,
+  effects, badge anchors, and numeric tuning use the same segmented controls and sliders as the Posters
+  tab. Inherited poster settings remain the default and are clearly reflected in the Wide Cards panel.
+- **Poster detail sections are visually consistent.** Effects now uses the same balanced, explanatory
+  layout as Wide Cards. Colours & Labels is a labelled status table with clear colour, name, label, and
+  visibility columns, plus a compact stacked layout on phones.
+- **Applying changes is explicit and resilient.** A counted dirty-state bar offers Apply and Discard,
+  validates numeric and TMDB-override input, preserves unknown future configuration fields, reports
+  failures without losing the draft, and applies pending settings before run/restore actions.
+- **Settings screenshots and capture checks were refreshed.** The README gallery now reflects the current
+  embedded page, and the standalone capture verifies visible segmented controls, responsive previews,
+  random-preview stability, library collapsing, and that edited values reach the plugin configuration update.
+- **Advanced targeting is documented as a safe first-run tool.** The README explains how to limit a
+  run to one exact Jellyfin title and how exclusions take precedence.
+
 ## [0.8.0] — 2026-07-24
 
 ### Changed

@@ -33,3 +33,16 @@ __pycache__/
 
 # Local Playwright install for tools/Showcase/capture-settings.js
 node_modules/
+
+# AI workspace harness scaffolding — local-only, deliberately kept out of this public
+# repository. These are workspace status/handoff documents and harness runtime state, not
+# plugin source. They live on disk in the working copy and are covered by the workspace's
+# dated Unraid backups. `scripts/verify.sh` is the one exception: it is a real project asset
+# and is tracked.
+/PROJECT.md
+/AGENTS.md
+/docs/ARCHITECTURE.md
+/docs/DECISIONS.md
+/docs/GOTCHAS.md
+/docs/handoffs/
+/.ai/

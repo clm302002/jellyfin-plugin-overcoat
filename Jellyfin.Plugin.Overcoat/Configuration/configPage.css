@@ -1,213 +1,926 @@
-/* Overcoat dashboard — deliberately page-scoped so Jellyfin themes remain in control. */
+/* Overcoat settings studio. Everything is scoped so Jellyfin's dashboard theme remains untouched. */
 #OvercoatConfigPage {
-    --ov-accent: #00a4dc;
-    --ov-bg: #14171c;
-    --ov-surface: #1d2128;
-    --ov-surface-2: #252a33;
-    --ov-border: rgba(255,255,255,.14);
-    --ov-text: #f2f4f8;
-    --ov-muted: #b6bdc9;
-    --ov-danger: #e85d68;
-    --ov-warning: #f2b84b;
+    --ov-accent: #39c8f4;
+    --ov-accent-strong: #18b6e8;
+    --ov-accent-ink: #031d27;
+    --ov-accent-soft: rgba(57, 200, 244, .16);
+    --ov-canvas: #090d12;
+    --ov-bg: #0d1117;
+    --ov-surface: #141a22;
+    --ov-surface-2: #1b232d;
+    --ov-raised: #232d39;
+    --ov-border: rgba(224, 235, 247, .11);
+    --ov-border-strong: rgba(224, 235, 247, .19);
+    --ov-hi: rgba(255, 255, 255, .045);
+    --ov-text: #f1f5fa;
+    --ov-muted: #aab6c5;
+    --ov-faint: #8290a1;
+    --ov-warning: #f4bd58;
+    --ov-danger: #ef6c78;
+    --ov-success: #69d49a;
+    --ov-radius: 16px;
+    --ov-rail: 188px;
     color: var(--ov-text);
+    background: var(--ov-bg);
+    font-size: 15px;
     overflow: visible !important;
 }
+
 #OvercoatConfigPage.ovcLight {
-    --ov-bg: #f5f6f8;
-    --ov-surface: #fff;
-    --ov-surface-2: #eef1f5;
-    --ov-border: rgba(20,28,40,.18);
-    --ov-text: #17202c;
-    --ov-muted: #556070;
+    --ov-canvas: #edf1f6;
+    --ov-bg: #f6f8fb;
+    --ov-surface: #ffffff;
+    --ov-surface-2: #f0f4f8;
+    --ov-raised: #e5ebf2;
+    --ov-border: rgba(20, 35, 52, .13);
+    --ov-border-strong: rgba(20, 35, 52, .23);
+    --ov-hi: rgba(255, 255, 255, .88);
+    --ov-text: #152231;
+    --ov-muted: #536274;
+    --ov-faint: #657589;
+    --ov-accent-ink: #05202a;
 }
+
 #OvercoatConfigPage,
 #OvercoatConfigPage [data-role="content"],
 #OvercoatConfigPage .content-primary { overflow: visible !important; }
+
 #OvercoatConfigPage .content-primary {
-    width: min(1600px, calc(100% - 3rem)) !important;
+    width: min(1480px, calc(100% - 3rem)) !important;
     max-width: none !important;
     margin: 0 auto !important;
-    padding: 0 0 7rem !important;
+    padding: 0 0 6rem !important;
 }
+
 #OvercoatConfigPage #OvercoatConfigForm {
     width: 100% !important;
-    max-width: 1600px !important;
+    max-width: none !important;
     min-width: 0;
     margin: 0 auto !important;
+    display: block;
 }
+
 #OvercoatConfigPage *, #OvercoatConfigPage *::before, #OvercoatConfigPage *::after { box-sizing: border-box; }
+
+/* ---------- Product header and navigation ---------- */
 #OvercoatConfigPage .ovcHeader {
-    position: sticky; top: 0; z-index: 1000; margin: 0 0 1.5rem; padding: 1.25rem 0 .7rem;
-    background: color-mix(in srgb, var(--ov-bg) 94%, transparent);
-    border-bottom: 1px solid var(--ov-border); backdrop-filter: blur(18px);
+    grid-column: 1 / -1;
+    margin: 0 0 1.45rem;
+    padding: 1.35rem 0 .8rem;
+    background: linear-gradient(180deg, var(--ov-bg), rgba(13, 17, 23, .86));
+    border-bottom: 1px solid var(--ov-border);
 }
-#OvercoatConfigPage .ovcHeaderTop { display:flex; align-items:flex-start; gap:1rem; justify-content:space-between; }
-#OvercoatConfigPage .ovcTitle { margin:0; font-size:1.8rem; line-height:1.15; }
-#OvercoatConfigPage .ovcSubtitle { margin:.35rem 0 0; color:var(--ov-muted); max-width:70rem; }
-#OvercoatConfigPage .ovcDescriptionToggle { flex:0 0 auto; white-space:nowrap; }
-#OvercoatConfigPage .ovcTabs { display:flex; gap:.35rem; margin-top:1rem; overflow-x:auto; scrollbar-width:thin; }
+#OvercoatConfigPage.ovcLight .ovcHeader { background: linear-gradient(180deg, var(--ov-bg), rgba(246, 248, 251, .9)); }
+#OvercoatConfigPage .ovcHeaderTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+#OvercoatConfigPage .ovcTitle { margin: 0; font-size: 1.9rem; font-weight: 850; letter-spacing: -.035em; line-height: 1.05; }
+#OvercoatConfigPage .ovcSubtitle { max-width: 58rem; margin: .45rem 0 0; color: var(--ov-muted); font-size: .96rem; }
+#OvercoatConfigPage .ovcHeaderStatus {
+    display: inline-flex; align-items: center; gap: .55rem; flex: 0 0 auto; margin-top: .2rem;
+    padding: .55rem .8rem; border: 1px solid var(--ov-border); border-radius: 99px;
+    color: var(--ov-muted); background: var(--ov-surface); font-size: .78rem; font-weight: 750;
+}
+#OvercoatConfigPage .ovcStatusDot { width: .48rem; height: .48rem; border-radius: 50%; background: var(--ov-success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ov-success) 15%, transparent); }
+#OvercoatConfigPage .ovcTabs {
+    position: sticky; top: 0; z-index: 1000;
+    display: flex; flex-direction: row; gap: .35rem; margin: 0 0 1.2rem; padding: .35rem;
+    overflow-x: auto; scrollbar-width: thin;
+    background: color-mix(in srgb, var(--ov-surface) 94%, transparent);
+    border: 1px solid var(--ov-border); border-radius: 14px;
+    box-shadow: 0 12px 32px -24px rgba(0, 0, 0, .9);
+    backdrop-filter: blur(18px);
+}
 #OvercoatConfigPage .ovcTab {
-    display:flex; align-items:center; gap:.45rem; flex:0 0 auto; min-height:2.65rem; padding:.55rem .9rem;
-    border:0; border-bottom:3px solid transparent; background:transparent; color:var(--ov-muted); cursor:pointer;
+    display: flex; align-items: center; justify-content: center; gap: .5rem;
+    flex: 0 0 auto; width: auto; min-height: 2.65rem; padding: .58rem 1rem;
+    border: 1px solid transparent; border-radius: 10px;
+    background: transparent; color: var(--ov-muted); cursor: pointer;
+    font: inherit; font-size: .9rem; font-weight: 700; letter-spacing: .01em;
+    transition: background .16s ease, color .16s ease, border-color .16s ease;
 }
-#OvercoatConfigPage .ovcTab:hover, #OvercoatConfigPage .ovcTab:focus-visible { color:var(--ov-text); background:var(--ov-surface-2); }
-#OvercoatConfigPage .ovcTab.ovcActive { color:var(--ov-text); border-color:var(--ov-accent); }
-#OvercoatConfigPage .ovcIcon { font-family:'Material Icons'; font-size:1.25rem; line-height:1; }
-#OvercoatConfigPage .ovcPanel { display:none; }
-#OvercoatConfigPage .ovcPanel.ovcActive { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:1.25rem; align-items:start; }
-#OvercoatConfigPage [data-panel="posters"].ovcActive,
-#OvercoatConfigPage [data-panel="wide"].ovcActive { display:block; }
-#OvercoatConfigPage .ovcCard, #OvercoatConfigPage details.ovcCard, #OvercoatConfigPage fieldset.ovcCard {
-    min-width:0; margin:0; padding:1.15rem 1.25rem; border:1px solid var(--ov-border); border-radius:.75rem;
-    background:var(--ov-surface); color:var(--ov-text); box-shadow:0 5px 18px rgba(0,0,0,.12);
+#OvercoatConfigPage .ovcTab:hover,
+#OvercoatConfigPage .ovcTab:focus-visible { color: var(--ov-text); background: var(--ov-surface-2); }
+#OvercoatConfigPage .ovcTab.ovcActive {
+    color: var(--ov-text); background: var(--ov-accent-soft);
+    border-color: color-mix(in srgb, var(--ov-accent) 66%, var(--ov-border-strong));
 }
-#OvercoatConfigPage .ovcCard > h3 { margin:0 0 1rem; padding-bottom:.7rem; border-bottom:1px solid var(--ov-border); font-size:1.08rem; }
-#OvercoatConfigPage details.ovcCard { padding:0; overflow:clip; }
-#OvercoatConfigPage details.ovcCard > summary { cursor:pointer; padding:1rem 1.25rem; font-weight:600; list-style:none; }
-#OvercoatConfigPage details.ovcCard > summary::-webkit-details-marker { display:none; }
-#OvercoatConfigPage details.ovcCard > summary::after { content:'expand_more'; float:right; font:1.3rem 'Material Icons'; }
-#OvercoatConfigPage details.ovcCard[open] > summary::after { content:'expand_less'; }
-#OvercoatConfigPage details.ovcCard > .ovcDetailsBody { padding:0 1.25rem 1.2rem; border-top:1px solid var(--ov-border); }
-#OvercoatConfigPage .ovcWide { grid-column:1/-1; }
-#OvercoatConfigPage .ovcNotice { grid-column:1/-1; border-left:4px solid var(--ov-accent); background:color-mix(in srgb,var(--ov-accent) 10%,var(--ov-surface)); }
-#OvercoatConfigPage .ovcCaution { border-left:4px solid var(--ov-warning); background:color-mix(in srgb,var(--ov-warning) 9%,var(--ov-surface)); }
-#OvercoatConfigPage .ovcBannerLayout { display:grid; grid-template-columns:minmax(0,1fr) 360px; grid-template-areas:'notice notice' 'controls preview'; gap:1.25rem; align-items:start; }
-#OvercoatConfigPage .ovcStudioNotice { grid-area:notice; }
-#OvercoatConfigPage .ovcBannerControls { grid-area:controls; min-width:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.25rem; }
-#OvercoatConfigPage .ovcBannerControls > .ovcWide, #OvercoatConfigPage .ovcBannerControls > details { grid-column:1/-1; }
-#OvercoatConfigPage .ovcBannerPreview { grid-area:preview; text-align:center; }
-#OvercoatConfigPage .ovcPreviewRail { position:sticky; top:9.2rem; }
-#OvercoatConfigPage .ovcBannerPreview img { width:100%; max-width:320px; border-radius:.55rem; box-shadow:0 8px 30px rgba(0,0,0,.42); }
-/* Wide-card previews are 16:9, so let them use the full preview rail rather than the portrait cap. */
-#OvercoatConfigPage .ovcWidePreview img { max-width:340px; }
-/* While wide cards inherit poster settings, dim the (disabled) override controls as a visual cue. */
-#OvercoatConfigPage .ovcWideLocked { opacity:.55; }
-#OvercoatConfigPage .ovcDenseCard, #OvercoatConfigPage .ovcFieldGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
-#OvercoatConfigPage .ovcDenseCard > h3, #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column:1/-1; }
-#OvercoatConfigPage .ovcStatusSwitch, #OvercoatConfigPage .ovcRowButtons { display:flex; flex-wrap:wrap; gap:.45rem; justify-content:center; margin:.5rem 0 1rem; }
-#OvercoatConfigPage .ovcChip { border:1px solid var(--ov-border); border-radius:2rem; padding:.4rem .75rem; background:transparent; color:inherit; cursor:pointer; }
-#OvercoatConfigPage .ovcChip.ovcChipActive { background:var(--ov-accent); border-color:var(--ov-accent); color:#fff; }
-#OvercoatConfigPage .ovcColors { display:flex; flex-wrap:wrap; gap:.85rem; }
-#OvercoatConfigPage .ovcColors label { display:grid; justify-items:center; gap:.25rem; }
-#OvercoatConfigPage .ovcColors input { width:3rem; height:2.2rem; }
-#OvercoatConfigPage .ovcStatusRows { display:grid; gap:.6rem; }
-#OvercoatConfigPage .ovcStatusRow { display:grid; grid-template-columns:8.5rem minmax(0,1fr); gap:.75rem; align-items:center; }
-#OvercoatConfigPage .ovcGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:1.25rem; }
-#OvercoatConfigPage .ovcLib { border:1px solid var(--ov-border); border-radius:.6rem; padding:1rem; background:var(--ov-surface-2); }
-#OvercoatConfigPage .ovcLib h4 { margin:0 0 .8rem; }
-#OvercoatConfigPage .ovcLibOpts { display:grid; gap:.55rem; margin:.75rem 0 0 1rem; padding:.8rem 1rem; border-left:3px solid var(--ov-accent); border-radius:0 .5rem .5rem 0; background:color-mix(in srgb,var(--ov-surface) 72%,transparent); }
-#OvercoatConfigPage .ovcLibOpts[hidden] { display:none; }
-#OvercoatConfigPage .ovcFormStack { display:grid; gap:1.15rem; }
-#OvercoatConfigPage .ovcSectionHeading { margin:.5rem 0 -.35rem; padding-bottom:.65rem; border-bottom:1px solid var(--ov-border); }
-#OvercoatConfigPage .ovcSectionHeading h3 { margin:0 0 .2rem; font-size:1.2rem; }
-#OvercoatConfigPage .ovcActionGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
-#OvercoatConfigPage .ovcActionTile { min-width:0; padding:1.1rem; border:1px solid var(--ov-border); border-radius:.65rem; background:var(--ov-surface-2); }
-#OvercoatConfigPage .ovcActionTile h3 { margin:0 0 .4rem; }
-#OvercoatConfigPage .ovcActionTile button { margin:.65rem 0; }
-#OvercoatConfigPage .ovcRestoreTile { border-color:color-mix(in srgb,var(--ov-warning) 60%,var(--ov-border)); }
-#OvercoatConfigPage .ovcMuted, #OvercoatConfigPage .fieldDescription { color:var(--ov-muted); overflow-wrap:anywhere; }
-#OvercoatConfigPage .ovcNoDescriptions .fieldDescription { display:none !important; }
-#OvercoatConfigPage input[type="text"], #OvercoatConfigPage input[type="password"], #OvercoatConfigPage input[type="number"], #OvercoatConfigPage select, #OvercoatConfigPage textarea { width:100%; max-width:100%; }
-#OvercoatConfigPage textarea { min-height:7rem; resize:vertical; }
-#OvercoatConfigPage .ovcSecretRow { display:flex; align-items:flex-end; gap:.7rem; }
-#OvercoatConfigPage .ovcSecretRow .inputContainer { flex:1; min-width:0; }
-#OvercoatConfigPage .ovcWip { display:inline-block; margin-left:.4rem; padding:.15rem .45rem; border-radius:1rem; background:var(--ov-warning); color:#211700; font-size:.7rem; text-transform:uppercase; }
-#OvercoatConfigPage .ovcSaveDock { position:fixed; z-index:1050; left:50%; bottom:1rem; transform:translateX(-50%); display:flex; align-items:center; gap:1rem; width:min(42rem,calc(100% - 2rem)); padding:.75rem; border:1px solid var(--ov-border); border-radius:.75rem; background:color-mix(in srgb,var(--ov-surface) 95%,transparent); box-shadow:0 10px 35px rgba(0,0,0,.35); backdrop-filter:blur(16px); }
-#OvercoatConfigPage .ovcSaveDock button { margin:0; flex:0 0 auto; }
-#OvercoatConfigPage .ovcSaveState { flex:1; color:var(--ov-muted); }
-#OvercoatConfigPage .ovcSaveDock.ovcDirty .ovcSaveState { color:var(--ov-warning); }
-#OvercoatConfigPage .ovcFloatingPreview { display:none; position:fixed; z-index:1040; right:.75rem; bottom:5.5rem; width:112px; padding:.4rem; border:1px solid var(--ov-border); border-radius:.65rem; background:var(--ov-surface); box-shadow:0 8px 25px rgba(0,0,0,.4); text-align:center; pointer-events:none; }
-#OvercoatConfigPage .ovcFloatingPreview img { display:block; width:100%; border-radius:.4rem; }
-@media (max-width:1099px) {
-    #OvercoatConfigPage .ovcBannerLayout { grid-template-columns:1fr; grid-template-areas:'notice' 'preview' 'controls'; }
-    #OvercoatConfigPage .ovcBannerControls { grid-template-columns:1fr; }
-    #OvercoatConfigPage .ovcPreviewRail { position:static; }
-    #OvercoatConfigPage .ovcFloatingPreview.ovcVisible { display:block; }
+#OvercoatConfigPage .ovcTab.ovcActive .ovcIcon { color: var(--ov-accent); }
+#OvercoatConfigPage .ovcIcon { font-family: 'Material Icons'; font-size: 1.15rem; line-height: 1; }
+
+/* ---------- Panels and cards ---------- */
+#OvercoatConfigPage .ovcPanel { display: none; }
+#OvercoatConfigPage .ovcPanel.ovcActive {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.1rem; align-items: start;
 }
-@media (max-width:700px) {
-    #OvercoatConfigPage .content-primary { width:calc(100% - 1rem) !important; }
-    #OvercoatConfigPage .ovcHeader { padding-top:.7rem; }
-    #OvercoatConfigPage .ovcHeaderTop { flex-wrap:wrap; }
-    #OvercoatConfigPage .ovcDescriptionToggle { width:100%; }
-    #OvercoatConfigPage .ovcDenseCard, #OvercoatConfigPage .ovcFieldGrid { grid-template-columns:1fr; }
-    #OvercoatConfigPage .ovcDenseCard > h3, #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column:auto; }
-    #OvercoatConfigPage .ovcStatusRow { grid-template-columns:7rem minmax(0,1fr); }
-    #OvercoatConfigPage .ovcTab { padding:.5rem .65rem; }
-    #OvercoatConfigPage .ovcTabLabel { display:none; }
-    #OvercoatConfigPage .ovcSaveDock { bottom:.5rem; }
-    #OvercoatConfigPage .ovcActionGrid { grid-template-columns:1fr; }
+#OvercoatConfigPage [data-panel="design"].ovcActive,
+#OvercoatConfigPage [data-panel="wide"].ovcActive { display: block; }
+#OvercoatConfigPage [data-panel="sources"] > .ovcCard { grid-column: 1 / -1; width: 100%; }
+#OvercoatConfigPage .ovcCard,
+#OvercoatConfigPage details.ovcCard,
+#OvercoatConfigPage fieldset.ovcCard {
+    min-width: 0; margin: 0; padding: 1.25rem 1.35rem;
+    border: 1px solid var(--ov-border); border-radius: var(--ov-radius);
+    background: linear-gradient(155deg, var(--ov-hi), transparent 42%), var(--ov-surface);
+    color: var(--ov-text); box-shadow: 0 15px 34px -28px rgba(0, 0, 0, .9);
+}
+#OvercoatConfigPage .ovcCard > h3 {
+    display: flex; align-items: center; gap: .55rem;
+    margin: 0 0 1.05rem; padding-bottom: .72rem;
+    border-bottom: 1px solid var(--ov-border);
+    font-size: 1.02rem; font-weight: 800; letter-spacing: -.005em;
+}
+#OvercoatConfigPage .ovcCard > h3::before,
+#OvercoatConfigPage details.ovcCard > summary::before {
+    content: ''; flex: 0 0 auto; width: .27rem; height: 1.05em;
+    border-radius: 1rem; background: var(--ov-accent);
+}
+#OvercoatConfigPage .ovcCard h4 { margin: 1.1rem 0 .55rem; color: var(--ov-muted); font-size: .9rem; }
+#OvercoatConfigPage .ovcWide { grid-column: 1 / -1; }
+#OvercoatConfigPage .ovcNotice {
+    border-color: color-mix(in srgb, var(--ov-accent) 42%, var(--ov-border));
+    background: linear-gradient(145deg, color-mix(in srgb, var(--ov-accent) 11%, var(--ov-surface)), var(--ov-surface));
+}
+#OvercoatConfigPage .ovcNotice strong { font-size: 1rem; }
+#OvercoatConfigPage .ovcCaution {
+    border-color: color-mix(in srgb, var(--ov-warning) 56%, var(--ov-border));
+    background: linear-gradient(145deg, color-mix(in srgb, var(--ov-warning) 9%, var(--ov-surface)), var(--ov-surface));
+}
+#OvercoatConfigPage details.ovcCard { padding: 0; overflow: clip; }
+#OvercoatConfigPage details.ovcCard > summary {
+    display: flex; align-items: center; gap: .55rem; min-height: 3.25rem;
+    padding: .95rem 1.35rem; cursor: pointer; list-style: none;
+    font-size: .98rem; font-weight: 800;
+}
+#OvercoatConfigPage details.ovcCard > summary::-webkit-details-marker { display: none; }
+#OvercoatConfigPage details.ovcCard > summary::after {
+    content: ''; width: .55rem; height: .55rem; margin-left: auto;
+    border-right: 2px solid var(--ov-faint); border-bottom: 2px solid var(--ov-faint);
+    transform: rotate(45deg); transition: transform .16s ease;
+}
+#OvercoatConfigPage details.ovcCard[open] > summary::after { transform: rotate(-135deg); }
+#OvercoatConfigPage details.ovcCard > .ovcDetailsBody { padding: .1rem 1.35rem 1.25rem; }
+
+/* ---------- Design workbench ---------- */
+#OvercoatConfigPage .ovcBannerLayout {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(390px, 44%);
+    grid-template-areas: 'surface surface' 'notice notice' 'controls preview'; gap: 1.1rem; align-items: start;
+}
+#OvercoatConfigPage .ovcSurfaceBar {
+    grid-area: surface; display: inline-flex; width: max-content; padding: .3rem; gap: .25rem;
+    border: 1px solid var(--ov-border); border-radius: 13px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage .ovcSurface {
+    display: inline-flex; align-items: center; gap: .45rem; min-height: 2.4rem; padding: .5rem .9rem;
+    border: 0; border-radius: 9px; color: var(--ov-muted); background: transparent; cursor: pointer; font-weight: 800;
+}
+#OvercoatConfigPage .ovcSurface.ovcActive { color: var(--ov-text); background: var(--ov-raised); box-shadow: inset 0 0 0 1px var(--ov-border-strong); }
+#OvercoatConfigPage .ovcStudioNotice { grid-area: notice; }
+#OvercoatConfigPage .ovcBannerControls {
+    grid-area: controls; min-width: 0; display: grid;
+    grid-template-columns: 1fr; gap: 1.1rem;
+}
+#OvercoatConfigPage .ovcBannerControls > .ovcWide,
+#OvercoatConfigPage .ovcBannerControls > details,
+#OvercoatConfigPage .ovcBannerControls > .ovcSectionHeading { grid-column: 1 / -1; }
+#OvercoatConfigPage .ovcSectionHeading {
+    margin: .45rem 0 -.1rem; padding: .1rem 0 .6rem;
+    border-bottom: 1px solid var(--ov-border);
+}
+#OvercoatConfigPage .ovcSectionHeading h3 {
+    display: flex; align-items: center; gap: .6rem; margin: 0;
+    font-size: 1.08rem; font-weight: 850; letter-spacing: .045em; text-transform: uppercase;
+}
+#OvercoatConfigPage .ovcSectionHeading h3::before { content: ''; width: .3rem; height: 1.05em; border-radius: 1rem; background: var(--ov-accent); }
+#OvercoatConfigPage .ovcBannerPreview {
+    grid-area: preview; position: sticky; top: 4.5rem; z-index: 2;
+    display: flex; flex-direction: column; align-items: stretch; gap: .35rem;
+    min-height: 560px; padding: 1.2rem; text-align: center;
+    background: linear-gradient(155deg, var(--ov-surface-2), var(--ov-surface));
+    border-color: var(--ov-border-strong); border-radius: 18px;
+    box-shadow: 0 25px 65px -38px rgba(0, 0, 0, .95);
+}
+#OvercoatConfigPage .ovcBannerPreview > h3 { order: 0; justify-content: flex-start; }
+#OvercoatConfigPage .ovcBannerPreview img {
+    order: 2; display: block; width: auto; max-width: 100%; max-height: min(52vh, 540px);
+    margin: .5rem auto .8rem; border-radius: 14px; object-fit: contain;
+    box-shadow: 0 28px 60px -28px rgba(0, 0, 0, .98);
+}
+#OvercoatConfigPage .ovcWidePreview { min-height: 460px; }
+#OvercoatConfigPage .ovcWidePreview img { width: 100%; max-width: 440px; max-height: min(42vh, 440px); }
+#OvercoatConfigPage .ovcBannerPreview .ovcStatusSwitch,
+#OvercoatConfigPage .ovcBannerPreview > .fieldDescription { order: 1; }
+#OvercoatConfigPage .ovcBannerPreview .ovcStatusSwitch { order: 1; }
+#OvercoatConfigPage .ovcBannerPreview > .ovcMuted { order: 3; }
+#OvercoatConfigPage .ovcBannerPreview .ovcStatusSwitch { margin: .2rem 0; }
+#OvercoatConfigPage .ovcWideLocked { opacity: .58; filter: saturate(.7); }
+#OvercoatConfigPage .ovcPreviewHint { margin: .2rem 0 .45rem; color: var(--ov-faint); font-size: .72rem; text-transform: uppercase; letter-spacing: .09em; }
+#OvercoatConfigPage .ovcPresetBar {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.1rem;
+    border: 1px solid var(--ov-border); border-radius: 14px;
+    background: linear-gradient(120deg, color-mix(in srgb, var(--ov-accent) 7%, var(--ov-surface)), var(--ov-surface));
+}
+#OvercoatConfigPage .ovcPresetBar strong { display: block; margin-top: .18rem; font-size: .94rem; }
+#OvercoatConfigPage .ovcEyebrow { display: block; color: var(--ov-accent); font-size: .66rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+#OvercoatConfigPage .ovcPresetActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .4rem; }
+#OvercoatConfigPage .ovcPreset {
+    display: inline-flex !important; flex: 0 0 auto !important; align-items: center; justify-content: center;
+    width: auto !important; min-width: 0 !important; max-width: 8rem; min-height: 2.3rem; margin: 0 !important;
+    padding: .45rem .8rem !important; border: 1px solid var(--ov-border-strong); border-radius: 99px !important;
+    color: var(--ov-muted); background: var(--ov-canvas); cursor: pointer; font-weight: 800;
+}
+#OvercoatConfigPage .ovcPreset:hover { color: var(--ov-text); border-color: var(--ov-accent); }
+#OvercoatConfigPage .ovcPageIntro { padding: .3rem 0 .5rem; }
+#OvercoatConfigPage .ovcPageIntro h2 { margin: .25rem 0 .35rem; font-size: clamp(1.45rem, 2.2vw, 2.15rem); letter-spacing: -.035em; }
+#OvercoatConfigPage .ovcPageIntro p { max-width: 46rem; margin: 0; color: var(--ov-muted); }
+#OvercoatConfigPage .ovcPurposeGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem; }
+#OvercoatConfigPage .ovcPurposeGrid > .ovcWide,
+#OvercoatConfigPage .ovcPurposeGrid > details { grid-column: 1 / -1; }
+#OvercoatConfigPage .ovcAdvanced { margin-top: .2rem; }
+
+/* Modern Design studio — shared by Poster and Wide Card. */
+#OvercoatConfigPage .ovcBannerLayout {
+    grid-template-areas: 'intro surface' 'notice notice' 'controls preview';
+    align-items: start;
+}
+#OvercoatConfigPage .ovcDesignIntro { grid-area: intro; padding: .25rem 0 .65rem; }
+#OvercoatConfigPage .ovcDesignIntro h2 { font-size: clamp(1.65rem, 2.5vw, 2.35rem); }
+#OvercoatConfigPage .ovcSurfaceBar {
+    justify-self: end; align-self: end; padding: .35rem; gap: .3rem; border-radius: 15px;
+    background: linear-gradient(155deg, var(--ov-hi), transparent 55%), var(--ov-surface);
+    box-shadow: 0 16px 34px -28px rgba(0,0,0,.95);
+}
+#OvercoatConfigPage .ovcSurface {
+    justify-content: center; min-width: 7.4rem; min-height: 2.65rem; padding: .55rem 1rem;
+    border: 1px solid transparent; border-radius: 11px;
+}
+#OvercoatConfigPage .ovcSurface:hover { color: var(--ov-text); background: var(--ov-surface-2); }
+#OvercoatConfigPage .ovcSurface.ovcActive {
+    color: var(--ov-text); border-color: color-mix(in srgb, var(--ov-accent) 54%, var(--ov-border));
+    background: linear-gradient(145deg, color-mix(in srgb, var(--ov-accent) 20%, var(--ov-raised)), var(--ov-raised));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 8px 20px -16px var(--ov-accent);
+}
+#OvercoatConfigPage .ovcSurface.ovcActive .ovcIcon { color: var(--ov-accent); }
+#OvercoatConfigPage .ovcDesignHero {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1rem;
+    padding: 1.25rem 1.4rem;
+    border-color: color-mix(in srgb, var(--ov-accent) 32%, var(--ov-border));
+    background:
+        radial-gradient(circle at 0 0, color-mix(in srgb, var(--ov-accent) 14%, transparent), transparent 32%),
+        linear-gradient(145deg, color-mix(in srgb, var(--ov-accent) 7%, var(--ov-surface)), var(--ov-surface));
+}
+#OvercoatConfigPage .ovcDesignHeroIcon {
+    display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 14px;
+    color: var(--ov-accent-ink); background: linear-gradient(145deg, #73ddff, var(--ov-accent-strong));
+    box-shadow: 0 12px 30px -16px var(--ov-accent);
+}
+#OvercoatConfigPage .ovcDesignHero strong { display: block; margin: .18rem 0 .28rem; font-size: 1.15rem; letter-spacing: -.01em; }
+#OvercoatConfigPage .ovcDesignHero .fieldDescription { max-width: 58rem; margin: 0; }
+#OvercoatConfigPage .ovcWideModeHero { align-items: start; }
+#OvercoatConfigPage .ovcWideModeCopy { min-width: 0; }
+#OvercoatConfigPage .ovcWideModeCopy .ovcChoiceToggle { margin: .18rem 0 .3rem; }
+#OvercoatConfigPage .ovcWideModeCopy .ovcChoiceToggle > span { font-size: 1.05rem; }
+#OvercoatConfigPage .ovcBannerControls { align-self: start; }
+#OvercoatConfigPage .ovcSectionHeading { margin-top: .65rem; padding-inline: .15rem; }
+#OvercoatConfigPage .ovcSectionHeading h3 { font-size: 1.02rem; letter-spacing: .075em; }
+#OvercoatConfigPage .ovcBannerPreview {
+    gap: .65rem; overflow: hidden; border-radius: 20px;
+    border-color: color-mix(in srgb, var(--ov-accent) 22%, var(--ov-border-strong));
+    background:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+        radial-gradient(circle at 50% 22%, color-mix(in srgb, var(--ov-accent) 9%, transparent), transparent 38%),
+        linear-gradient(155deg, var(--ov-surface-2), var(--ov-surface));
+    background-size: 28px 28px, 28px 28px, auto, auto;
+    box-shadow: 0 30px 75px -42px rgba(0,0,0,.98);
+}
+#OvercoatConfigPage .ovcPreviewHeading {
+    order: 0; padding: .1rem .2rem .85rem; border-bottom: 1px solid var(--ov-border); text-align: left;
+}
+#OvercoatConfigPage .ovcPreviewHeading h3 { margin: .18rem 0 .2rem; font-size: 1.2rem; letter-spacing: -.015em; }
+#OvercoatConfigPage .ovcPreviewHeading p { margin: 0; color: var(--ov-faint); font-size: .78rem; line-height: 1.45; }
+#OvercoatConfigPage .ovcPreviewToolbar {
+    order: 1; display: grid; gap: .25rem; margin: 0 -.1rem; padding: .55rem .65rem;
+    border: 1px solid var(--ov-border); border-radius: 14px;
+    background: color-mix(in srgb, var(--ov-canvas) 88%, transparent); backdrop-filter: blur(12px);
+}
+#OvercoatConfigPage .ovcBannerPreview img {
+    margin: .45rem auto .4rem; border: 1px solid rgba(255,255,255,.1); border-radius: 16px;
+    box-shadow: 0 30px 70px -26px rgba(0,0,0,1);
+}
+#OvercoatConfigPage .ovcPresetBar {
+    border-radius: 16px;
+    background:
+        radial-gradient(circle at 100% 0, color-mix(in srgb, var(--ov-accent) 8%, transparent), transparent 36%),
+        linear-gradient(120deg, var(--ov-surface-2), var(--ov-surface));
+}
+#OvercoatConfigPage .ovcPreset {
+    padding: .5rem .9rem !important; border-radius: 10px !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+#OvercoatConfigPage .ovcPreset:hover { background: var(--ov-surface-2); transform: translateY(-1px); }
+#OvercoatConfigPage .ovcBannerControls > .ovcCard,
+#OvercoatConfigPage .ovcBannerControls > details.ovcCard {
+    border-color: color-mix(in srgb, var(--ov-accent) 12%, var(--ov-border));
 }
 
-/* Recovery panel — vault health readout. Figures first, label under, so the numbers scan. */
-#OvercoatConfigPage .ovcVaultStats {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  gap: 0.75rem;
-  margin: 0.75rem 0 1rem;
+/* ---------- Form controls ---------- */
+#OvercoatConfigPage .ovcDenseCard,
+#OvercoatConfigPage .ovcFieldGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.1rem; }
+#OvercoatConfigPage .ovcDenseCard > h3,
+#OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column: 1 / -1; }
+#OvercoatConfigPage .ovcSubGroup {
+    display: grid; grid-column: 1 / -1; gap: .8rem; padding: .9rem 1rem;
+    border: 1px dashed var(--ov-border-strong); border-radius: 11px; background: var(--ov-canvas);
 }
-
-#OvercoatConfigPage .ovcStat {
-  flex: 1 1 8.5rem;
-  min-width: 8.5rem;
-  padding: 0.65rem 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 0.55rem;
-  background: rgba(255, 255, 255, 0.03);
+#OvercoatConfigPage .ovcFormStack { display: grid; gap: 1.05rem; }
+#OvercoatConfigPage .ovcField { display: flex; flex-direction: column; gap: .48rem; min-width: 0; }
+#OvercoatConfigPage .ovcHiddenInput { display: none !important; }
+#OvercoatConfigPage .selectLabel,
+#OvercoatConfigPage .inputLabel {
+    display: block; margin-bottom: .28rem; color: var(--ov-muted);
+    font-size: .71rem; font-weight: 800; letter-spacing: .095em; text-transform: uppercase;
 }
-
-#OvercoatConfigPage .ovcStatValue {
-  display: block;
-  font-size: 1.45rem;
-  font-weight: 600;
-  line-height: 1.15;
+#OvercoatConfigPage input[type="text"],
+#OvercoatConfigPage input[type="password"],
+#OvercoatConfigPage input[type="number"],
+#OvercoatConfigPage select,
+#OvercoatConfigPage textarea {
+    width: 100%; max-width: 100%; padding: .66rem .75rem;
+    border: 1px solid var(--ov-border-strong); border-radius: 9px;
+    color: var(--ov-text); background: var(--ov-canvas); font: inherit; font-size: .92rem;
 }
-
-#OvercoatConfigPage .ovcStatLabel {
-  display: block;
-  margin-top: 0.15rem;
-  font-size: 0.78rem;
-  opacity: 0.75;
+#OvercoatConfigPage textarea { min-height: 7rem; resize: vertical; }
+#OvercoatConfigPage input:focus-visible,
+#OvercoatConfigPage select:focus-visible,
+#OvercoatConfigPage textarea:focus-visible,
+#OvercoatConfigPage button:focus-visible,
+#OvercoatConfigPage summary:focus-visible {
+    outline: 2px solid var(--ov-accent); outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--ov-accent-soft);
 }
-
-/* Only the two states that carry meaning get colour: restorable, and at-risk. */
-#OvercoatConfigPage .ovcStatGood {
-  border-color: rgba(94, 189, 62, 0.5);
-  background: rgba(94, 189, 62, 0.08);
+#OvercoatConfigPage button { font: inherit; }
+#OvercoatConfigPage .checkboxContainer { display: flex; align-items: center; gap: .65rem; min-height: 2.1rem; margin: 0; cursor: pointer; }
+#OvercoatConfigPage .checkboxContainer input[type="checkbox"] {
+    appearance: none !important; -webkit-appearance: none !important;
+    display: inline-block !important; flex: 0 0 42px; position: relative;
+    width: 42px !important; min-width: 42px !important; max-width: 42px !important;
+    height: 24px !important; min-height: 24px !important; margin: 0 !important; padding: 0 !important;
+    border: 1px solid var(--ov-border-strong) !important; border-radius: 99px !important;
+    background: var(--ov-raised) !important; background-image: none !important; cursor: pointer;
+    transition: background .16s ease, border-color .16s ease;
 }
-
-#OvercoatConfigPage .ovcStatWarn {
-  border-color: rgba(211, 47, 47, 0.55);
-  background: rgba(211, 47, 47, 0.1);
+#OvercoatConfigPage .checkboxContainer input[type="checkbox"]::after {
+    content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+    border-radius: 50%; background: #d0d9e4; box-shadow: 0 2px 5px rgba(0,0,0,.3); transition: left .16s ease;
 }
-
-#OvercoatConfigPage .ovcRecoveryHelp {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+#OvercoatConfigPage .checkboxContainer input[type="checkbox"]:checked {
+    border-color: transparent !important;
+    background: linear-gradient(180deg, #73ddff, var(--ov-accent-strong)) !important;
 }
-
-#OvercoatConfigPage .ovcRecoveryHelp summary {
-  cursor: pointer;
-  opacity: 0.85;
+#OvercoatConfigPage .checkboxContainer input[type="checkbox"]:checked::after { left: 20px; background: #fff; }
+#OvercoatConfigPage .checkboxContainer > span { font-size: .92rem; font-weight: 700; }
+#OvercoatConfigPage .ovcSrOnly {
+    position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important;
+    margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important;
 }
+#OvercoatConfigPage .ovcRow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+#OvercoatConfigPage #ScheduleTimeRow[hidden] { display: none !important; }
 
-#OvercoatConfigPage .ovcRecoveryHelp ul {
-  margin: 0.6rem 0 0;
-  padding-left: 1.2rem;
-  line-height: 1.55;
+/* Segmented controls and sliders */
+#OvercoatConfigPage .ovcSeg { display: flex; gap: .22rem; padding: .24rem; background: var(--ov-canvas); border: 1px solid var(--ov-border-strong); border-radius: 11px; }
+#OvercoatConfigPage .ovcSeg button {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem;
+    min-height: 2.55rem; min-width: 0; padding: .42rem .3rem;
+    border: 0; border-radius: 8px; background: transparent; color: var(--ov-muted); cursor: pointer;
+    font-size: .81rem; font-weight: 750; transition: background .14s ease, color .14s ease, box-shadow .14s ease;
 }
+#OvercoatConfigPage .ovcSeg.ovcSegRow button { flex-direction: row; }
+#OvercoatConfigPage .ovcSeg button:hover { color: var(--ov-text); background: var(--ov-surface-2); }
+#OvercoatConfigPage .ovcSeg button.ovcSegOn { color: var(--ov-text); background: var(--ov-raised); box-shadow: inset 0 0 0 1px var(--ov-border-strong), 0 4px 13px -9px rgba(0,0,0,.9); }
+#OvercoatConfigPage .ovcSeg button:disabled { opacity: .45; cursor: not-allowed; }
+#OvercoatConfigPage .ovcSegSw { width: 100%; height: 13px; border-radius: 5px; }
+#OvercoatConfigPage .ovcSwSolid { background: #a582ff; }
+#OvercoatConfigPage .ovcSwGlass { background: rgba(165, 130, 255, .38); box-shadow: inset 0 0 0 1px rgba(255,255,255,.32); }
+#OvercoatConfigPage .ovcSwNeon { background: #0d1117; box-shadow: 0 0 9px #a582ff, inset 0 0 0 1px #a582ff; }
+#OvercoatConfigPage .ovcSwPill { background: var(--ov-raised); border: 1.5px solid var(--ov-muted); border-radius: 20px; }
+#OvercoatConfigPage .ovcSwSquare { background: var(--ov-raised); border: 1.5px solid var(--ov-muted); border-radius: 3px; }
+#OvercoatConfigPage .ovcSwDrop { background: var(--ov-raised); border: 1.5px solid var(--ov-muted); border-radius: 0 0 6px 6px; }
+#OvercoatConfigPage .ovcSliderRow { display: flex; align-items: center; justify-content: space-between; gap: .7rem; margin-bottom: .28rem; }
+#OvercoatConfigPage .ovcSliderRow .inputLabel { margin: 0; }
+#OvercoatConfigPage .ovcSliderVal { color: var(--ov-accent); font-size: .8rem; font-weight: 850; font-variant-numeric: tabular-nums; }
+#OvercoatConfigPage input[type="range"] { appearance: none; width: 100%; height: 7px; border-radius: 8px; cursor: pointer; background: linear-gradient(90deg, var(--ov-accent) var(--ovp, 50%), var(--ov-raised) var(--ovp, 50%)); }
+#OvercoatConfigPage input[type="range"]::-webkit-slider-thumb { appearance: none; width: 19px; height: 19px; border: 3px solid var(--ov-accent); border-radius: 50%; background: #fff; box-shadow: 0 2px 7px rgba(0,0,0,.45); }
+#OvercoatConfigPage input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 3px solid var(--ov-accent); border-radius: 50%; background: #fff; }
 
-#OvercoatConfigPage .ovcRecoveryHelp li + li {
-  margin-top: 0.45rem;
+/* ---------- Preview chips, libraries, actions, copy ---------- */
+#OvercoatConfigPage .ovcStatusSwitch,
+#OvercoatConfigPage .ovcRowButtons { display: flex; flex-wrap: wrap; justify-content: center; gap: .42rem; margin: .45rem 0 .75rem; }
+#OvercoatConfigPage .ovcChip {
+    min-height: 2.15rem; padding: .4rem .78rem; border: 1px solid var(--ov-border-strong); border-radius: 99px;
+    background: transparent; color: var(--ov-muted); cursor: pointer; font-size: .78rem; font-weight: 750;
+    transition: background .14s ease, color .14s ease, border-color .14s ease;
 }
-
-/* Recovery: the sentence answers the question; the tiles below are supporting detail. */
-#OvercoatConfigPage .ovcVaultVerdict {
-  width: 100%;
-  margin: 0 0 0.15rem;
-  font-size: 0.98rem;
+#OvercoatConfigPage .ovcChip:hover { color: var(--ov-text); background: var(--ov-surface-2); }
+#OvercoatConfigPage .ovcChip.ovcChipActive { border-color: transparent; background: var(--ov-accent); color: var(--ov-accent-ink); }
+#OvercoatConfigPage .ovcColors { display: flex; flex-wrap: wrap; gap: .9rem; }
+#OvercoatConfigPage .ovcColors label { display: grid; justify-items: center; gap: .3rem; color: var(--ov-muted); font-size: .72rem; }
+#OvercoatConfigPage .ovcColors input,
+#OvercoatConfigPage .ovcStatusRow2 input[type="color"] { width: 2.6rem; height: 2.1rem; padding: 2px; border: 1px solid var(--ov-border-strong); border-radius: 8px; background: none; cursor: pointer; }
+#OvercoatConfigPage .ovcStatusList {
+    display: grid; gap: 0; margin-top: .9rem; overflow: hidden;
+    border: 1px solid var(--ov-border); border-radius: 12px; background: var(--ov-canvas);
 }
+#OvercoatConfigPage .ovcStatusHeader,
+#OvercoatConfigPage .ovcStatusRow2 {
+    display: grid; grid-template-columns: 3.2rem minmax(0,1fr) 3.5rem;
+    align-items: center; gap: .75rem;
+}
+#OvercoatConfigPage .ovcStatusHeader {
+    padding: .62rem .8rem; border-bottom: 1px solid var(--ov-border-strong);
+    color: var(--ov-faint); background: var(--ov-surface-2);
+    font-size: .66rem; font-weight: 850; letter-spacing: .085em; text-transform: uppercase;
+}
+#OvercoatConfigPage .ovcStatusHeader span:last-child { text-align: center; }
+#OvercoatConfigPage .ovcStatusRow2 { min-height: 3.8rem; padding: .55rem .8rem; }
+#OvercoatConfigPage .ovcStatusRow2 + .ovcStatusRow2 { border-top: 1px solid var(--ov-border); }
+#OvercoatConfigPage .ovcStatusRow2:hover { background: color-mix(in srgb, var(--ov-accent) 4%, transparent); }
+#OvercoatConfigPage .ovcStatusRow2 input[type="color"] { width: 2.55rem; height: 2.25rem; border-radius: 9px; }
+#OvercoatConfigPage .ovcStatusRow2 input[type="text"] { min-width: 0; }
+#OvercoatConfigPage .ovcStatusText { display: grid; min-width: 0; gap: .3rem; }
+#OvercoatConfigPage .ovcStatusText label { color: var(--ov-muted); font-size: .72rem; font-weight: 800; }
+#OvercoatConfigPage .ovcStToggle { justify-self: end; }
+#OvercoatConfigPage .ovcSplit { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.15fr); gap: 1.35rem; align-items: start; }
+#OvercoatConfigPage .ovcSplit .ovcCardLead { margin: 0; }
+#OvercoatConfigPage .ovcGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 1.1rem; }
+#OvercoatConfigPage .ovcLibraryHero {
+    display: grid; grid-template-columns: minmax(15rem, .8fr) minmax(24rem, 1.2fr);
+    align-items: center; gap: clamp(1.5rem, 4vw, 3.5rem); padding: clamp(1.4rem, 3vw, 2rem);
+    border-color: color-mix(in srgb, var(--ov-warning) 26%, var(--ov-border));
+    background:
+        radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--ov-warning) 8%, transparent), transparent 36%),
+        linear-gradient(155deg, var(--ov-hi), transparent 44%), var(--ov-surface);
+}
+#OvercoatConfigPage .ovcLibraryHeroCopy h3 { margin: .25rem 0 .45rem; font-size: clamp(1.25rem, 2vw, 1.65rem); }
+#OvercoatConfigPage .ovcMediaSafety {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    border-color: rgba(246, 195, 68, .72);
+    background:
+        radial-gradient(circle at 0 0, rgba(246, 195, 68, .15), transparent 38%),
+        var(--ovc-card);
+    box-shadow: inset .28rem 0 0 #f6c344, var(--ovc-shadow);
+}
+#OvercoatConfigPage .ovcMediaSafetyIcon {
+    display: grid;
+    place-items: center;
+    width: 2.7rem;
+    height: 2.7rem;
+    border-radius: .85rem;
+    color: #1d1706;
+    background: #f6c344;
+    box-shadow: 0 .4rem 1.2rem rgba(246, 195, 68, .2);
+}
+#OvercoatConfigPage .ovcMediaSafety h3 { margin: .2rem 0 .4rem; }
+#OvercoatConfigPage .ovcMediaSafety p { margin: 0 0 .45rem; line-height: 1.55; }
+#OvercoatConfigPage .ovcMediaSafety small { display: block; color: var(--ovc-muted); line-height: 1.45; }
+#OvercoatConfigPage .ovcArtworkDecision { display: grid; gap: .85rem; min-width: 0; }
+#OvercoatConfigPage .ovcArtworkActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+#OvercoatConfigPage .ovcArtworkActions button {
+    width: 100% !important; min-height: 3rem; margin: 0 !important; padding: .7rem 1rem !important;
+    border-radius: 12px !important; white-space: normal; line-height: 1.25;
+}
+#OvercoatConfigPage .ovcArtworkStatus {
+    padding: .78rem .9rem; border: 1px solid var(--ov-border); border-radius: 11px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage .ovcArtworkStatus p { margin: 0; color: var(--ov-text); font-size: .86rem; font-weight: 750; }
+#OvercoatConfigPage .ovcArtworkStatus small { display: block; margin-top: .22rem; color: var(--ov-muted); font-size: .76rem; line-height: 1.45; }
+#OvercoatConfigPage .ovcLibrariesWorkspace { padding: 0; overflow: hidden; }
+#OvercoatConfigPage .ovcWorkspaceHeading {
+    display: flex; align-items: end; justify-content: space-between; gap: 1rem;
+    padding: 1.25rem 1.35rem; border-bottom: 1px solid var(--ov-border);
+}
+#OvercoatConfigPage .ovcWorkspaceHeading h3 { margin: .2rem 0 0; font-size: 1.25rem; }
+#OvercoatConfigPage .ovcWorkspaceHeading p { max-width: 38rem; margin: 0; color: var(--ov-muted); font-size: .84rem; line-height: 1.5; text-align: right; }
+#OvercoatConfigPage #OvercoatLibraries { padding: 1.1rem; }
+#OvercoatConfigPage .ovcLib {
+    min-width: 0; overflow: hidden; border: 1px solid var(--ov-border);
+    border-radius: 14px; background: var(--ov-canvas);
+    transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+#OvercoatConfigPage .ovcLib:hover { border-color: var(--ov-border-strong); box-shadow: 0 18px 34px -30px rgba(0,0,0,.95); }
+#OvercoatConfigPage .ovcLibHeader {
+    display: flex; align-items: center; justify-content: space-between; gap: .9rem;
+    padding: 1rem 1.05rem; background: linear-gradient(155deg, var(--ov-hi), transparent 60%), var(--ov-surface-2);
+}
+#OvercoatConfigPage .ovcLibTitle { display: flex; align-items: center; gap: .75rem; min-width: 0; }
+#OvercoatConfigPage .ovcLibTitle > .ovcIcon {
+    display: grid; place-items: center; flex: 0 0 2.25rem; width: 2.25rem; height: 2.25rem;
+    border: 1px solid color-mix(in srgb, var(--ov-accent) 38%, var(--ov-border));
+    border-radius: 10px; color: var(--ov-accent); background: var(--ov-accent-soft);
+}
+#OvercoatConfigPage .ovcLib h4 { margin: 0; overflow: hidden; font-size: 1rem; text-overflow: ellipsis; white-space: nowrap; }
+#OvercoatConfigPage .ovcLibType {
+    display: inline-block; margin-top: .18rem; color: var(--ov-faint);
+    font-size: .66rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+}
+#OvercoatConfigPage .ovcLibEnabled { flex: 0 0 auto; }
+#OvercoatConfigPage .ovcLibEnabled > span { white-space: nowrap; }
+#OvercoatConfigPage .ovcLibOpts { display: grid; gap: .75rem; padding: .9rem 1rem 1rem; border-top: 1px solid var(--ov-border); }
+#OvercoatConfigPage .ovcLibOpts[hidden] { display: none; }
+#OvercoatConfigPage .ovcLibSectionLabel {
+    margin: 0; color: var(--ov-faint); font-size: .65rem; font-weight: 850;
+    letter-spacing: .09em; text-transform: uppercase;
+}
+#OvercoatConfigPage .ovcLibFeatureGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+#OvercoatConfigPage .ovcFeatureToggle {
+    align-items: flex-start; min-height: 4rem; padding: .65rem .7rem;
+    border: 1px solid var(--ov-border); border-radius: 11px; background: var(--ov-surface);
+}
+#OvercoatConfigPage .ovcFeatureToggle input { margin-top: .08rem !important; }
+#OvercoatConfigPage .ovcFeatureToggle > span { display: grid; gap: .16rem; min-width: 0; }
+#OvercoatConfigPage .ovcFeatureToggle strong { color: var(--ov-text); font-size: .82rem; line-height: 1.3; }
+#OvercoatConfigPage .ovcFeatureToggle small { color: var(--ov-faint); font-size: .7rem; font-weight: 400; line-height: 1.35; }
+#OvercoatConfigPage .ovcLibNote {
+    margin: 0; padding: .6rem .7rem; border-left: 2px solid var(--ov-accent);
+    color: var(--ov-muted); background: var(--ov-surface); font-size: .73rem; line-height: 1.45;
+}
+#OvercoatConfigPage .ovcSourceHero {
+    display: grid; grid-template-columns: minmax(14rem, .65fr) minmax(26rem, 1.35fr);
+    align-items: center; gap: clamp(1.5rem, 4vw, 3.5rem); padding: clamp(1.4rem, 3vw, 2rem);
+    border-color: color-mix(in srgb, var(--ov-accent) 30%, var(--ov-border));
+    background:
+        radial-gradient(circle at 5% 0%, color-mix(in srgb, var(--ov-accent) 11%, transparent), transparent 38%),
+        linear-gradient(155deg, var(--ov-hi), transparent 44%), var(--ov-surface);
+}
+#OvercoatConfigPage .ovcSourceHeroCopy h3 { margin: .22rem 0 .4rem; font-size: clamp(1.4rem, 2vw, 1.8rem); }
+#OvercoatConfigPage .ovcSourceHero .ovcSecretRow {
+    padding: .9rem; border: 1px solid var(--ov-border); border-radius: 12px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage .ovcSourceHero .ovcSecretToggle {
+    flex: 0 0 auto; width: auto !important; min-width: 6rem; margin: 0 !important;
+    padding: .64rem .95rem !important; border-radius: 999px !important;
+}
+#OvercoatConfigPage #OvercoatDataSourcesBody { align-items: stretch; }
+#OvercoatConfigPage #OvercoatBadgeSourcesCard,
+#OvercoatConfigPage #OvercoatWatchHistoryCard,
+#OvercoatConfigPage #OvercoatOverridesCard,
+#OvercoatConfigPage #OvercoatImdbListsCard {
+    overflow: hidden; border-color: color-mix(in srgb, var(--ov-accent) 16%, var(--ov-border));
+    background: linear-gradient(155deg, var(--ov-hi), transparent 48%), var(--ov-surface);
+}
+#OvercoatConfigPage #OvercoatBadgeSourcesCard,
+#OvercoatConfigPage #OvercoatWatchHistoryCard { min-height: 100%; }
+#OvercoatConfigPage #OvercoatBadgeSourcesCard > h3,
+#OvercoatConfigPage #OvercoatWatchHistoryCard > h3,
+#OvercoatConfigPage #OvercoatOverridesCard > h3 {
+    margin: .2rem 0 1rem; padding-bottom: .72rem;
+}
+#OvercoatConfigPage #OvercoatBadgeSourcesCard .ovcCheck,
+#OvercoatConfigPage #OvercoatBadgeSourcesCard .ovcField {
+    padding: .78rem .85rem; border: 1px solid var(--ov-border); border-radius: 11px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage #OvercoatBadgeSourcesCard .ovcField { margin-top: .7rem; }
+#OvercoatConfigPage #OvercoatWatchHistoryCard .ovcFormStack {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem;
+}
+#OvercoatConfigPage #OvercoatWatchHistoryCard .ovcFormStack > * {
+    min-width: 0; margin: 0; padding: .72rem .8rem;
+    border: 1px solid var(--ov-border); border-radius: 11px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage #OvercoatWatchHistoryCard .ovcFormStack > .ovcCheck { align-content: center; }
+#OvercoatConfigPage #OvercoatImdbListsCard,
+#OvercoatConfigPage #OvercoatOverridesCard { grid-column: 1 / -1; width: 100%; }
+#OvercoatConfigPage #OvercoatImdbListsCard summary {
+    padding: .15rem 0 .85rem; color: var(--ov-text); font-size: 1rem; font-weight: 800;
+}
+#OvercoatConfigPage #OvercoatImdbListsCard .ovcDetailsBody {
+    padding-top: 1rem; border-top: 1px solid var(--ov-border);
+}
+#OvercoatConfigPage #OvercoatImdbListsCard .inputContainer {
+    padding: .8rem; border: 1px solid var(--ov-border); border-radius: 11px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage #OvercoatOverridesCard textarea { min-height: 6rem; }
+#OvercoatConfigPage .ovcAutomationCard {
+    display: grid; align-content: start; gap: .72rem;
+    border-color: color-mix(in srgb, var(--ov-accent) 17%, var(--ov-border));
+    background: linear-gradient(155deg, var(--ov-hi), transparent 48%), var(--ov-surface);
+}
+#OvercoatConfigPage .ovcAutomationCard > h3 {
+    margin: .2rem 0 .25rem; padding-bottom: .72rem;
+}
+#OvercoatConfigPage .ovcAutomationCard > .ovcCheck {
+    margin: 0; padding: .78rem .85rem; border: 1px solid var(--ov-border);
+    border-radius: 11px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage #OvercoatBehaviorCard .ovcDryRunBanner { margin-top: 0; }
+#OvercoatConfigPage #OvercoatScheduleCard > .fieldDescription { margin: 0 0 .15rem; }
+#OvercoatConfigPage #ScheduleTimeRow {
+    margin: 0; padding: .78rem .85rem; border: 1px solid var(--ov-border);
+    border-radius: 11px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage #ScheduleSummary {
+    margin: 0; padding: .55rem .7rem; border-left: 2px solid var(--ov-accent);
+    border-radius: 0 8px 8px 0; background: var(--ov-canvas);
+}
+#OvercoatConfigPage #OvercoatRecoveryCard {
+    overflow: hidden; padding: clamp(1.35rem, 3vw, 1.8rem);
+    border-color: color-mix(in srgb, var(--ov-accent) 22%, var(--ov-border));
+    background:
+        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--ov-accent) 7%, transparent), transparent 34%),
+        linear-gradient(155deg, var(--ov-hi), transparent 46%), var(--ov-surface);
+}
+#OvercoatConfigPage #OvercoatRecoveryCard > h3 { margin: .2rem 0 .5rem; font-size: 1.3rem; }
+#OvercoatConfigPage #OvercoatRecoveryCard > .fieldDescription { max-width: 62rem; }
+#OvercoatConfigPage #OvercoatRecoveryCard .ovcVaultStats {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .7rem; margin: 1rem 0;
+}
+#OvercoatConfigPage #OvercoatRecoveryCard .ovcVaultVerdict {
+    grid-column: 1 / -1; margin: 0; padding: .78rem .9rem;
+    border: 1px solid var(--ov-border); border-radius: 11px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage #OvercoatRecoveryCard .ovcStat {
+    min-width: 0; padding: .85rem; border-radius: 11px;
+}
+#OvercoatConfigPage .ovcVaultRefreshRow {
+    display: flex; align-items: center; gap: 1rem; margin-top: .2rem; padding: .75rem .85rem;
+    border: 1px solid var(--ov-border); border-radius: 11px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage .ovcVaultRefreshRow #OvercoatVaultRefresh {
+    flex: 0 0 auto; margin: 0; border-radius: 999px !important;
+}
+#OvercoatConfigPage .ovcVaultRefreshRow .fieldDescription { margin: 0; }
+#OvercoatConfigPage #OvercoatRecoveryCard .ovcRecoveryHelp {
+    margin-top: .85rem; padding: .75rem .85rem; border: 1px solid var(--ov-border);
+    border-radius: 11px; background: var(--ov-canvas);
+}
+#OvercoatConfigPage .ovcActionGrid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+#OvercoatConfigPage .ovcActionGrid.ovcSingleAction { grid-template-columns: 1fr; }
+#OvercoatConfigPage .ovcActionTile { min-width: 0; padding: 1.15rem; border: 1px solid var(--ov-border); border-radius: 13px; background: linear-gradient(155deg, var(--ov-hi), transparent 44%), var(--ov-surface); }
+#OvercoatConfigPage .ovcActionTile h3 { margin: 0 0 .35rem; }
+#OvercoatConfigPage .ovcActionTile button {
+    margin: .7rem 0; padding: .68rem 1.15rem !important; border-radius: 999px !important;
+}
+#OvercoatConfigPage #OvercoatRunNow,
+#OvercoatConfigPage #OvercoatRestore,
+#OvercoatConfigPage #OvercoatVaultRefresh { border-radius: 999px !important; padding-inline: 1.15rem !important; }
+#OvercoatConfigPage #OvercoatUseWideCardsAll,
+#OvercoatConfigPage #OvercoatUseEpisodeStillsAll { border-radius: 999px !important; padding-inline: 1.15rem !important; }
+#OvercoatConfigPage .ovcWarningAction {
+    border-color: color-mix(in srgb, var(--ov-warning) 76%, #fff) !important;
+    color: #251900 !important; background: var(--ov-warning) !important;
+    box-shadow: 0 8px 20px -14px color-mix(in srgb, var(--ov-warning) 80%, transparent) !important;
+}
+#OvercoatConfigPage .ovcWarningAction:hover { filter: brightness(1.08); }
+#OvercoatConfigPage #OvercoatRunRestoreCard { background: transparent; border: 0; box-shadow: none; }
+#OvercoatConfigPage #OvercoatApplyTile {
+    display: grid; grid-template-columns: minmax(0, 1fr);
+    gap: 1.35rem; width: 100%; padding: clamp(1.35rem, 3vw, 2rem);
+    border-color: color-mix(in srgb, var(--ov-accent) 25%, var(--ov-border));
+    background:
+        radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--ov-accent) 10%, transparent), transparent 34%),
+        linear-gradient(155deg, var(--ov-hi), transparent 44%), var(--ov-surface);
+}
+#OvercoatConfigPage .ovcRunLead { align-self: start; text-align: left; }
+#OvercoatConfigPage .ovcRunLead h3 { margin: .2rem 0 .45rem; font-size: clamp(1.35rem, 2vw, 1.8rem); }
+#OvercoatConfigPage .ovcRunLead #OvercoatRunNow { margin-top: 1rem; }
+#OvercoatConfigPage .ovcTargetPicker {
+    display: grid; gap: .85rem; min-width: 0; padding-top: 1.15rem;
+    border-top: 1px solid var(--ov-border); border-left: 0;
+}
+#OvercoatConfigPage .ovcTargetPicker h4 { margin: 0; font-size: 1rem; }
+#OvercoatConfigPage .ovcOptional {
+    display: inline-flex; margin-left: .35rem; padding: .12rem .45rem; border: 1px solid var(--ov-border);
+    border-radius: 99px; color: var(--ov-faint); font-size: .62rem; letter-spacing: .06em; text-transform: uppercase;
+}
+#OvercoatConfigPage .ovcTitleSearch {
+    width: min(100%, 46rem); min-width: 0; justify-self: start;
+    margin: 0 auto 0 0 !important;
+}
+#OvercoatConfigPage .ovcSearchRow {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .55rem; align-items: stretch;
+    width: 100%; min-width: 0; margin: 0 !important;
+}
+#OvercoatConfigPage #OvercoatTitleSearch,
+#OvercoatConfigPage #OvercoatIgnoreSearch {
+    appearance: none !important; -webkit-appearance: none !important;
+    display: block !important; grid-column: 1; justify-self: stretch; box-sizing: border-box;
+    width: 100% !important; min-width: 0 !important; max-width: none !important;
+    margin: 0 !important; padding: .62rem .75rem !important;
+    text-align: left !important; text-indent: 0 !important; direction: ltr;
+}
+#OvercoatConfigPage #OvercoatTitleSearch::placeholder,
+#OvercoatConfigPage #OvercoatIgnoreSearch::placeholder { text-align: left !important; opacity: .72; }
+#OvercoatConfigPage .ovcSearchRow button {
+    display: inline-flex !important; align-items: center; justify-content: center; grid-column: 2; justify-self: start;
+    width: auto !important; min-width: 5.5rem !important; max-width: 7rem !important;
+    min-height: 0 !important; margin: 0 !important; padding: .58rem .9rem !important;
+    border-radius: 10px !important;
+}
+#OvercoatConfigPage .ovcTitleResults {
+    overflow: hidden; border: 1px solid var(--ov-border-strong); border-radius: 11px;
+    background: var(--ov-canvas); box-shadow: 0 18px 36px -28px rgba(0,0,0,.9);
+}
+#OvercoatConfigPage .ovcTitleResults[hidden] { display: none !important; }
+#OvercoatConfigPage .ovcTitleResult {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    width: 100%; margin: 0; padding: .72rem .85rem !important; border: 0; border-radius: 0 !important;
+    color: var(--ov-text); background: transparent; text-align: left; cursor: pointer;
+}
+#OvercoatConfigPage .ovcTitleResult + .ovcTitleResult { border-top: 1px solid var(--ov-border); }
+#OvercoatConfigPage .ovcTitleResult:hover,
+#OvercoatConfigPage .ovcTitleResult:focus-visible { background: var(--ov-accent-soft); }
+#OvercoatConfigPage .ovcTitleResult span { flex: 0 0 auto; color: var(--ov-muted); font-size: .78rem; }
+#OvercoatConfigPage .ovcSearchEmpty { margin: 0; padding: .8rem; color: var(--ov-muted); font-size: .84rem; }
+#OvercoatConfigPage .ovcSelectedTitles { display: flex; flex-wrap: wrap; gap: .5rem; }
+#OvercoatConfigPage .ovcSelectedTitle {
+    display: inline-flex; align-items: center; gap: .55rem; min-width: 0; padding: .4rem .42rem .4rem .7rem;
+    border: 1px solid color-mix(in srgb, var(--ov-accent) 45%, var(--ov-border));
+    border-radius: 99px; color: var(--ov-text); background: var(--ov-accent-soft); font-size: .8rem; font-weight: 700;
+}
+#OvercoatConfigPage .ovcSelectedTitle button.ovcRemoveTitle {
+    appearance: none !important; display: inline-flex !important; align-items: center; justify-content: center;
+    flex: 0 0 1.45rem; position: static !important; inset: auto !important; transform: none !important;
+    width: 1.45rem !important; min-width: 1.45rem !important; max-width: 1.45rem !important;
+    height: 1.45rem !important; min-height: 1.45rem !important; max-height: 1.45rem !important;
+    margin: 0 !important; padding: 0 0 .08rem !important; overflow: hidden;
+    border: 0 !important; border-radius: 50% !important; color: var(--ov-muted);
+    background: var(--ov-surface-2) !important; box-shadow: none !important;
+    font: 700 1.05rem/1 Arial, sans-serif !important; text-align: center; cursor: pointer;
+}
+#OvercoatConfigPage .ovcTargetScope {
+    margin: 0; padding: .7rem .8rem; border-left: 3px solid var(--ov-accent); border-radius: 0 9px 9px 0;
+    color: var(--ov-muted); background: var(--ov-canvas); font-size: .82rem;
+}
+#OvercoatConfigPage .ovcLegacyTargets {
+    padding: .8rem; border: 1px solid color-mix(in srgb, var(--ov-warning) 45%, var(--ov-border));
+    border-radius: 10px; background: color-mix(in srgb, var(--ov-warning) 7%, var(--ov-canvas)); font-size: .82rem;
+}
+#OvercoatConfigPage .ovcLegacyTargets[hidden] { display: none !important; }
+#OvercoatConfigPage .ovcLegacyTargets button { margin: .65rem 0 0; }
+#OvercoatConfigPage .ovcLegacyChip { display: inline-flex; margin: .35rem .35rem 0 0; padding: .28rem .5rem; border-radius: 7px; background: var(--ov-surface-2); }
+#OvercoatConfigPage #OvercoatIgnoreCard {
+    display: grid; gap: .8rem; padding: clamp(1.25rem, 3vw, 1.7rem);
+    border-color: color-mix(in srgb, var(--ov-accent) 22%, var(--ov-border));
+    background:
+        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--ov-accent) 7%, transparent), transparent 32%),
+        linear-gradient(155deg, var(--ov-hi), transparent 42%), var(--ov-surface);
+}
+#OvercoatConfigPage #OvercoatIgnoreCard > h3 { margin-bottom: 0; font-size: 1.2rem; }
+#OvercoatConfigPage #OvercoatIgnoreCard > .fieldDescription { max-width: 58rem; }
+#OvercoatConfigPage #OvercoatIgnoreCard .ovcTargetScope { max-width: none; }
+#OvercoatConfigPage .ovcRestoreTile {
+    display: grid; grid-template-columns: minmax(14rem, .72fr) minmax(22rem, 1.28fr);
+    align-items: center; gap: clamp(1.4rem, 4vw, 3.5rem); padding: clamp(1.5rem, 4vw, 2.4rem);
+}
+#OvercoatConfigPage .ovcRestoreHero { text-align: center; }
+#OvercoatConfigPage .ovcRestoreHero h3 { margin: .2rem 0 .35rem; font-size: clamp(1.3rem, 2vw, 1.65rem); }
+#OvercoatConfigPage .ovcRestoreHero .fieldDescription { max-width: 32rem; margin: .35rem auto; }
+#OvercoatConfigPage .ovcForceRestore {
+    display: grid; grid-template-columns: 42px minmax(0, 1fr); align-items: start; gap: .85rem;
+    min-height: 0; padding: 1rem 1.05rem; border: 1px solid color-mix(in srgb, var(--ov-warning) 38%, var(--ov-border));
+    border-radius: 13px; text-align: left;
+    background: color-mix(in srgb, var(--ov-warning) 7%, var(--ov-canvas));
+}
+#OvercoatConfigPage .ovcForceRestore input[type="checkbox"] { margin-top: .1rem !important; }
+#OvercoatConfigPage .ovcForceRestore > span { display: grid; gap: .28rem; min-width: 0; }
+#OvercoatConfigPage .ovcForceRestore strong { color: var(--ov-text); font-size: .92rem; line-height: 1.35; }
+#OvercoatConfigPage .ovcForceRestore small { color: var(--ov-muted); font-size: .8rem; font-weight: 400; line-height: 1.5; }
+#OvercoatConfigPage .ovcDryRunBanner {
+    display: flex; align-items: flex-start; gap: .75rem; grid-column: 1 / -1;
+    margin-top: .9rem; padding: .85rem 1rem; border: 1px solid color-mix(in srgb, var(--ov-warning) 68%, var(--ov-border));
+    border-radius: 12px; color: color-mix(in srgb, var(--ov-warning) 88%, var(--ov-text));
+    background: color-mix(in srgb, var(--ov-warning) 12%, var(--ov-canvas));
+}
+#OvercoatConfigPage .ovcDryRunBanner[hidden] { display: none !important; }
+#OvercoatConfigPage .ovcDryRunBanner .ovcIcon { margin-top: .08rem; color: var(--ov-warning); }
+#OvercoatConfigPage .ovcDryRunBanner strong,
+#OvercoatConfigPage .ovcDryRunBanner span:not(.ovcIcon) { display: block; }
+#OvercoatConfigPage .ovcDryRunBanner span:not(.ovcIcon) { margin-top: .18rem; color: var(--ov-muted); font-size: .82rem; line-height: 1.45; }
+#OvercoatConfigPage .ovcRestoreTile { border-color: color-mix(in srgb, var(--ov-warning) 55%, var(--ov-border)); }
+#OvercoatConfigPage .ovcMuted,
+#OvercoatConfigPage .fieldDescription { color: var(--ov-faint); overflow-wrap: anywhere; font-size: .84rem; line-height: 1.52; }
+#OvercoatConfigPage .fieldDescription { margin-top: .32rem; }
+#OvercoatConfigPage .ovcInlineError { margin-top: .5rem; color: var(--ov-danger); font-size: .82rem; font-weight: 750; }
+#OvercoatConfigPage .ovcNoDescriptions .fieldDescription { display: none !important; }
+#OvercoatConfigPage .ovcSecretRow { display: flex; align-items: flex-end; gap: .7rem; }
+#OvercoatConfigPage .ovcSecretRow .inputContainer { flex: 1; min-width: 0; }
+#OvercoatConfigPage .ovcWip { display: inline-block; margin-left: .35rem; padding: .14rem .5rem; border-radius: 99px; background: var(--ov-warning); color: #281c00; font-size: .64rem; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
+#OvercoatConfigPage .ovcRecommended {
+    display: inline-flex; align-items: center; margin-left: .38rem; padding: .12rem .46rem;
+    border: 1px solid color-mix(in srgb, var(--ov-success) 42%, var(--ov-border)); border-radius: 99px;
+    color: var(--ov-success); background: color-mix(in srgb, var(--ov-success) 9%, transparent);
+    font-size: .62rem; font-weight: 850; letter-spacing: .045em; line-height: 1.2; text-transform: uppercase;
+}
+#OvercoatConfigPage .ovcRecoveryHelp { margin-top: .5rem; font-size: .9rem; }
+#OvercoatConfigPage .ovcRecoveryHelp summary { cursor: pointer; color: var(--ov-muted); }
+#OvercoatConfigPage .ovcRecoveryHelp ul { margin: .6rem 0 0; padding-left: 1.2rem; line-height: 1.55; }
+#OvercoatConfigPage .ovcRecoveryHelp li + li { margin-top: .45rem; }
+#OvercoatConfigPage .ovcVaultStats { display: flex; flex-wrap: wrap; align-items: stretch; gap: .75rem; margin: .75rem 0 1rem; }
+#OvercoatConfigPage .ovcStat { flex: 1 1 8.5rem; min-width: 8.5rem; padding: .7rem .85rem; border: 1px solid var(--ov-border); border-radius: 11px; background: var(--ov-canvas); }
+#OvercoatConfigPage .ovcStatValue { display: block; font-size: 1.5rem; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+#OvercoatConfigPage .ovcStatLabel { display: block; margin-top: .15rem; color: var(--ov-muted); font-size: .76rem; }
+#OvercoatConfigPage .ovcStatGood { border-color: rgba(105, 212, 154, .55); background: rgba(105, 212, 154, .1); }
+#OvercoatConfigPage .ovcStatWarn { border-color: rgba(239, 108, 120, .6); background: rgba(239, 108, 120, .1); }
 
-#OvercoatConfigPage .ovcVaultVerdictWarn {
-  color: #ff8a80;
+/* ---------- Save and mobile preview ---------- */
+#OvercoatConfigPage .ovcSaveDock {
+    position: fixed; z-index: 1050; left: 50%; bottom: 1rem; transform: translate(-50%, 1rem);
+    display: flex; align-items: center; gap: 1rem; width: min(38rem, calc(100% - 2rem));
+    padding: .7rem .8rem .7rem 1rem; border: 1px solid var(--ov-border-strong); border-radius: 14px;
+    background: color-mix(in srgb, var(--ov-surface) 95%, transparent); box-shadow: 0 18px 45px -18px rgba(0,0,0,.8);
+    opacity: 0; pointer-events: none; transition: opacity .16s ease, transform .16s ease; backdrop-filter: blur(18px);
+}
+#OvercoatConfigPage .ovcSaveDock.ovcVisible { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+#OvercoatConfigPage .ovcSaveDock button { flex: 0 0 auto; margin: 0; }
+#OvercoatConfigPage .ovcSaveDock button,
+#OvercoatConfigPage .ovcSaveDock .button-submit { border-radius: 999px !important; padding-inline: 1.15rem !important; }
+#OvercoatConfigPage .ovcSaveDock .ovcDiscard { color: var(--ov-muted); background: transparent; border: 1px solid var(--ov-border); }
+#OvercoatConfigPage .ovcSaveDock .ovcDiscard:hover { color: var(--ov-text); }
+#OvercoatConfigPage .ovcSaveState { flex: 1; color: var(--ov-muted); font-size: .9rem; }
+#OvercoatConfigPage .ovcSaveDock.ovcDirty .ovcSaveState { color: var(--ov-warning); }
+#OvercoatConfigPage .ovcSaveDock.ovcError .ovcSaveState { color: var(--ov-danger); }
+#OvercoatConfigPage .ovcFloatingPreview { display: none; position: fixed; z-index: 1040; right: .75rem; bottom: 5.5rem; width: 112px; padding: .4rem; border: 1px solid var(--ov-border-strong); border-radius: 12px; background: var(--ov-surface); box-shadow: 0 8px 25px rgba(0,0,0,.5); text-align: center; pointer-events: none; }
+#OvercoatConfigPage .ovcFloatingPreview.ovcVisible { display: block; }
+#OvercoatConfigPage .ovcFloatingPreview img { display: block; width: 100%; border-radius: 8px; }
+
+@media (max-width: 1199px) {
+    #OvercoatConfigPage #OvercoatConfigForm { display: block; }
+    #OvercoatConfigPage .ovcTabs {
+        position: sticky; top: 0; display: flex; flex-direction: row; gap: .3rem;
+        margin: 0 0 1.15rem; overflow-x: auto; border-radius: 14px;
+    }
+    #OvercoatConfigPage .ovcTab { width: auto; justify-content: center; padding-inline: .9rem; }
+}
+@media (max-width: 1099px) {
+    #OvercoatConfigPage .ovcLibraryHero { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcSourceHero { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcRestoreTile { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcForceRestore { width: min(100%, 42rem); margin: 0 auto; }
+    #OvercoatConfigPage .ovcBannerLayout { grid-template-columns: 1fr; grid-template-areas: 'intro' 'surface' 'notice' 'preview' 'controls'; }
+    #OvercoatConfigPage .ovcSurfaceBar { justify-self: start; }
+    #OvercoatConfigPage .ovcBannerPreview { position: static; max-height: none; overflow: visible; }
+    #OvercoatConfigPage .ovcBannerControls { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcBannerControls > .ovcWide,
+    #OvercoatConfigPage .ovcBannerControls > details,
+    #OvercoatConfigPage .ovcBannerControls > .ovcSectionHeading { grid-column: auto; }
+}
+@media (max-width: 700px) {
+    #OvercoatConfigPage .content-primary { width: calc(100% - 1rem) !important; }
+    #OvercoatConfigPage .ovcPanel.ovcActive { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcHeader { padding-top: .8rem; }
+    #OvercoatConfigPage .ovcHeaderTop { flex-wrap: wrap; }
+    #OvercoatConfigPage .ovcDescriptionToggle { width: 100%; }
+    #OvercoatConfigPage .ovcDenseCard,
+    #OvercoatConfigPage .ovcFieldGrid,
+    #OvercoatConfigPage .ovcSplit,
+    #OvercoatConfigPage .ovcActionGrid,
+    #OvercoatConfigPage .ovcRow,
+    #OvercoatConfigPage .ovcPurposeGrid { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcDenseCard > h3,
+    #OvercoatConfigPage .ovcDenseCard > .ovcCardLead { grid-column: auto; }
+    #OvercoatConfigPage .ovcStatusHeader,
+    #OvercoatConfigPage .ovcStatusRow2 { grid-template-columns: 3rem minmax(0,1fr) 3.25rem; gap: .5rem; }
+    #OvercoatConfigPage .ovcTab { min-width: 7rem; padding-inline: .75rem; }
+    #OvercoatConfigPage .content-primary { padding-bottom: 7rem !important; }
+    #OvercoatConfigPage .ovcTabs {
+        position: sticky; z-index: 1045; top: 0; right: auto; bottom: auto; left: auto;
+        display: flex; margin: 0 0 1rem; overflow-x: auto;
+    }
+    #OvercoatConfigPage .ovcTab { flex-direction: row; gap: .35rem; min-width: max-content; min-height: 2.65rem; padding: .5rem .75rem; font-size: .76rem; }
+    #OvercoatConfigPage .ovcSaveDock { bottom: .5rem; width: calc(100% - 1rem); }
+    #OvercoatConfigPage .ovcSurfaceBar { width: 100%; }
+    #OvercoatConfigPage .ovcSurface { flex: 1; min-width: 0; }
+    #OvercoatConfigPage .ovcDesignHero { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcDesignHeroIcon { display: none; }
+    #OvercoatConfigPage .ovcPresetBar { align-items: flex-start; flex-direction: column; }
+    #OvercoatConfigPage .ovcPresetActions { width: 100%; justify-content: flex-start; }
+    #OvercoatConfigPage .ovcFloatingPreview { right: .55rem; bottom: 5rem; }
+    #OvercoatConfigPage .ovcPresetBar { align-items: flex-start; flex-direction: column; }
+    #OvercoatConfigPage .ovcPresetActions { justify-content: flex-start; }
+    #OvercoatConfigPage .ovcBannerPreview { min-height: 0; }
+    #OvercoatConfigPage .ovcBannerPreview img { max-width: 235px; }
+    #OvercoatConfigPage .ovcWidePreview img { max-width: 100%; }
+    #OvercoatConfigPage .ovcSearchRow { grid-template-columns: 1fr auto; }
+    #OvercoatConfigPage .ovcTitleResult { align-items: flex-start; flex-direction: column; gap: .2rem; }
+    #OvercoatConfigPage .ovcArtworkActions { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcWorkspaceHeading { align-items: flex-start; flex-direction: column; }
+    #OvercoatConfigPage .ovcWorkspaceHeading p { text-align: left; }
+    #OvercoatConfigPage .ovcLibFeatureGrid { grid-template-columns: 1fr; }
+    #OvercoatConfigPage #OvercoatWatchHistoryCard .ovcFormStack { grid-template-columns: 1fr; }
+    #OvercoatConfigPage #OvercoatRecoveryCard .ovcVaultStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+    #OvercoatConfigPage .ovcSourceHero .ovcSecretRow { align-items: stretch; flex-direction: column; }
+    #OvercoatConfigPage .ovcSourceHero .ovcSecretToggle { align-self: flex-start; }
+    #OvercoatConfigPage .ovcLibHeader { align-items: flex-start; flex-direction: column; }
+    #OvercoatConfigPage .ovcLibEnabled { width: 100%; padding-top: .65rem; border-top: 1px solid var(--ov-border); }
+    #OvercoatConfigPage #OvercoatRecoveryCard .ovcVaultStats { grid-template-columns: 1fr; }
+    #OvercoatConfigPage .ovcVaultRefreshRow { align-items: flex-start; flex-direction: column; }
+    #OvercoatConfigPage .ovcStatusHeader { display: none; }
+    #OvercoatConfigPage .ovcStatusRow2 { grid-template-columns: 2.8rem minmax(0,1fr) auto; gap: .55rem; padding: .7rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #OvercoatConfigPage *, #OvercoatConfigPage *::before, #OvercoatConfigPage *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }

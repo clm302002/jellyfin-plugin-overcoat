@@ -205,9 +205,10 @@ public sealed class OverlayRenderer : IDisposable
 
         float fontScale = options.FontScale <= 0 ? 1f : (float)options.FontScale;
         bool landscape = posterWidth > posterHeight;
-        float dynamicFontSize = (int)((landscape ? posterWidth : posterHeight) * FontHeightFraction * SizeMultiplier * fontScale);
+        float dynamicFontSize = (int)((landscape ? posterWidth : posterHeight) * FontHeightFraction
+            * SizeMultiplier * fontScale * TypefaceScale(options.Font));
 
-        var spaced = string.Join(" ", text.ToUpperInvariant().ToCharArray());
+        var spaced = string.Join(" ", BannerDisplayText(text).ToCharArray());
         var pillHex = options.ColorOverride ?? GetBannerColor(text);
         var (r, g, b) = HexToRgb(pillHex);
         var statusColor = new SKColor(r, g, b);
@@ -455,6 +456,31 @@ public sealed class OverlayRenderer : IDisposable
         canvas.DrawText(spaced, penX, baselineY, textPaint);
         canvas.Flush();
     }
+
+    /// <summary>
+    /// Keeps the established uppercase banner treatment while preserving the lowercase unit in a
+    /// countdown suffix. In the bundled display font an uppercase D resembles a zero.
+    /// </summary>
+    private static string BannerDisplayText(string text)
+    {
+        var display = text.ToUpperInvariant();
+        return text.Length >= 2
+            && text[^1] == 'd'
+            && char.IsDigit(text[^2])
+                ? display[..^1] + "d"
+                : display;
+    }
+
+    /// <summary>
+    /// The host sans/serif/mono faces have much larger visual metrics than the bundled display face
+    /// at the same Skia text size. Normalize them so Typeface changes style, not apparent size.
+    /// </summary>
+    private static float TypefaceScale(string? font)
+        => string.Equals(font, "sans", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(font, "serif", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(font, "mono", StringComparison.OrdinalIgnoreCase)
+                ? 0.6f
+                : 1f;
 
     /// <summary>Maps banner text to a status keyword used to pick the icon (empty = no icon).</summary>
     private static string StatusKeyword(string text)

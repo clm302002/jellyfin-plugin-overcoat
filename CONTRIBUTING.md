@@ -82,7 +82,18 @@ again after creating them.
   vault, atomic writes and recovery, image-format detection and config clamping. Run it before
   changing `ProcessingState` or `OverlayTask`; that state machine is where every overlay-loss bug in
   this project has lived.
-- **Settings page:** `node scripts/check_config_page.js` — nothing else compiles that file.
+- **Settings page:** `node scripts/check_config_page.js` — nothing else compiles that hand-edited file.
+  It checks JavaScript parsing, referenced/unique IDs, masked credentials, preview and recovery hooks,
+  configuration serialization, responsive CSS hooks, and the supported tab structure.
+- **Settings capture:** with Playwright/Chromium installed, run
+  `SHOWCASE_CAPTURE_ALL=1 SHOWCASE_VERIFY_SCROLL=1 node tools/Showcase/capture-settings.js /tmp/overcoat-settings`
+  to exercise the real embedded page in a mocked, credential-free shell. The verification covers tab
+  navigation, Design surfaces and presets, sticky/floating previews, library option collapsing,
+  API-key reveal, unknown-field preservation, Apply/Discard, reload-safe drafts, and that an edited
+  value is sent to `updatePluginConfiguration`. Set
+  `SHOWCASE_VIEWPORT_WIDTH=390 SHOWCASE_VIEWPORT_HEIGHT=844` for the mobile pass; use
+  `SHOWCASE_THEME=light` to inspect the light-theme tokens and `SHOWCASE_CAPTURE_DETAILS=1` for
+  focused Design-section captures.
 - **End-to-end:** install the built DLL on a test Jellyfin, run the **Apply Overcoat Overlays** task
   on a small/limited library, and confirm posters update. For wide cards, also enable the library's
   Series Thumb option, exercise both all-user artwork buttons, verify Next Up/Continue Watching,
@@ -104,7 +115,16 @@ Releases are cut by pushing a tag; **pushing to a branch publishes nothing.**
 | `v0.7.0` | `0.7.0.500` | stable | `releases/latest/download/manifest.json` |
 | `v0.8.0-beta.1` | `0.8.0.1` | beta | next line starts over |
 | `v0.8.0-beta.2` | `0.8.0.2` | beta | wide-card test build |
-| `v0.8.0-beta.3` | `0.8.0.3` | beta | current wide-card test build |
+| `v0.9.0-beta.1` | `0.9.0.1` | beta | purpose-based creative studio rebuild |
+| `v0.9.0-beta.2` | `0.9.0.2` | beta | studio rendering and interaction fixes |
+| `v0.9.0-beta.3` | `0.9.0.3` | beta | follow-up studio polish and Returning-date fixes |
+| `v0.9.0-beta.4` | `0.9.0.4` | beta | action-layout cleanup and typeface calibration |
+| `v0.9.0-beta.5` | `0.9.0.5` | beta | exact Jellyfin-item targeting and action-card refinement |
+| `v0.9.0-beta.6` | `0.9.0.6` | beta | recovery safety-panel and Automation hierarchy polish |
+| `v0.9.0-beta.7` | `0.9.0.7` | beta | catalogue input alignment and selected-title removal fix |
+| `v0.9.0-beta.8` | `0.9.0.8` | beta | complete workspace redesign and hard media-folder write boundary |
+| `v0.9.0-beta.9` | `0.9.0.9` | beta | real-Jellyfin catalogue-input and native-toggle corrections |
+| `v0.9.0` | `0.9.0.500` | stable | owner-approved beta.9 promoted unchanged after live-server testing |
 
 GitHub's "latest" excludes prereleases, so a beta can never appear on the stable URL. The beta channel
 is a **superset** — stable releases are published there too — so subscribing to the beta URL alone is
@@ -122,10 +142,20 @@ reaching a version number the release won't have, they're numbered wrong.
 
 Cutting a release:
 
-1. Land the work on `dev`, with `CHANGELOG.md` updated under `## [Unreleased]`.
-2. Test it — beta tag from `dev` if you want it on a real server first.
-3. Move the `Unreleased` entries under a `## [x.y.z] — date` heading, bump `<Version>` in the csproj,
-   merge to `main`, tag, push the tag.
+> [!IMPORTANT]
+> **Every published revision must explain why it exists.** Before pushing any tag, move that build's
+> user-facing changes from `## [Unreleased]` into an exact section for the tag:
+> `## [0.9.0-beta.3] — 2026-07-24` for a beta or `## [0.9.0] — 2026-07-24` for stable. A beta section
+> must describe what changed since the previous beta and why someone should install it. Generic text
+> such as “beta update,” a commit title alone, or notes copied unchanged from the previous revision
+> do not satisfy this rule. These notes become Jellyfin's **Revision History** and the GitHub release
+> body. The release workflow rejects a tag whose exact section is absent or empty.
+
+1. Land the work on `dev`, recording user-visible changes under `CHANGELOG.md` → `## [Unreleased]`.
+2. Before a beta tag, move only that beta's changes into its exact `## [x.y.z-beta.N] — date`
+   section, test, then tag from `dev`.
+3. Before stable, move the complete release notes into `## [x.y.z] — date`, bump `<Version>` in the
+   csproj, merge to `main`, tag, and push the tag.
 
 The release notes on GitHub and the changelog text shown *inside Jellyfin's plugin catalogue* are
 both extracted from that `## [x.y.z]` section automatically — so write it for users, not for you.
@@ -140,6 +170,8 @@ The page's CSS lives in `Configuration/configPage.css`, embedded in the assembly
 - `node scripts/check_config_page.js` validates the page — the inline script parses, every element id
   the script references exists and is unique, and a set of layout/security hooks are present. Nothing
   else compiles that file, so run it.
+- The README settings images are generated from the same embedded HTML by `tools/Showcase/capture-settings.js`.
+  Regenerate them after visual changes and inspect both dark and light captures before updating the gallery.
 
 ## Pull requests
 

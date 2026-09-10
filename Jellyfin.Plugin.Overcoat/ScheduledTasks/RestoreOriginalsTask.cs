@@ -130,10 +130,14 @@ public class RestoreOriginalsTask : IScheduledTask
 
                 if (bytes is not null && item is not null)
                 {
-                    using var ms = new MemoryStream(bytes);
-                    await _providerManager
-                        .SaveImage(item, ms, ProcessingState.DetectMimeType(bytes), imageType, null, cancellationToken)
-                        .ConfigureAwait(false);
+                    await InternalImageWriter.SaveAsync(
+                        _providerManager,
+                        item,
+                        bytes,
+                        ProcessingState.DetectMimeType(bytes),
+                        imageType,
+                        Path.Combine(Plugin.Instance!.DataFolderPath, "image-staging"),
+                        cancellationToken).ConfigureAwait(false);
                     await item.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
                     restored++;
                     _logger.LogInformation("Overcoat: restored '{Name}'.", item.Name);
