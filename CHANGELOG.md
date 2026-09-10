@@ -6,14 +6,29 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [0.9.1-beta.1] — 2026-09-10
+
+First build after 0.9.0. It exists to make the logs tell the truth about which artwork Overcoat is
+acting on — nothing about processing, state, or the vault changes.
+
 ### Fixed
-- **Wide-card events are no longer reported as poster events in the logs.** Both scheduled tasks run
-  one code path for the Primary and Thumb channels, but the messages on it said "poster" literally.
-  A wide-card reversion was therefore indistinguishable from a poster reversion, and a title that
-  moved on both channels appeared twice with identical text. Messages on a channel-specific path now
-  name the channel ("poster" or "wide card"), messages that abort work for the whole item say
-  "artwork", and run totals that span both channels count "image(s)". No behavior other than the log
-  text changed.
+- **Wide-card events are no longer reported as poster events.** Both scheduled tasks run one code
+  path for the poster (Primary) and wide-card (Thumb) channels, but every message on that path said
+  "poster" literally. A wide-card reversion was indistinguishable from a poster reversion, and a
+  title that moved on both channels appeared twice with identical text — which made it impossible to
+  tell from the log which channel was responsible for a large re-application pass.
+- Messages on a channel-specific path now name the channel: "poster" or "wide card".
+- Messages for a failure that stops work on the whole item — a TMDB lookup or parse failure — now say
+  "artwork", because they affect both channels rather than the poster alone.
+- Restore Originals' run totals now count "image(s)". They span both channels, so reporting them as
+  "poster(s) restored" undercounted what the task had actually put back.
+
+### Notes for testers
+This is a logging change only. If you compare `Overcoat_<date>.log` against 0.9.0 you should see the
+same events in the same order, with wide-card lines now identifiable as such. Overlays, badges,
+vaulted originals, and the restore task behave exactly as they did in 0.9.0.
 
 ## [0.9.0] — 2026-07-24
 
