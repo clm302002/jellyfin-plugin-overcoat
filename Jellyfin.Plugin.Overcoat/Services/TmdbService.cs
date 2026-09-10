@@ -214,7 +214,7 @@ public sealed class TmdbService
             // Parsing blew up on a response we did get. Still "unknown", not "no status" — never let
             // this collapse into the caller's revert path.
             FailedRequests++;
-            _logger.LogWarning(ex, "TMDB /tv/{Id} could not be parsed; leaving this item's poster untouched.", tmdbId);
+            _logger.LogWarning(ex, "TMDB /tv/{Id} could not be parsed; leaving this item's artwork untouched.", tmdbId);
             return new TvStatusResult(null, FetchOutcome.Failed);
         }
     }

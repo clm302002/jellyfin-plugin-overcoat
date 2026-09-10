@@ -6,7 +6,14 @@ All notable changes to Overcoat are documented here. Format follows
 
 ## [Unreleased]
 
-_Nothing yet._
+### Fixed
+- **Wide-card events are no longer reported as poster events in the logs.** Both scheduled tasks run
+  one code path for the Primary and Thumb channels, but the messages on it said "poster" literally.
+  A wide-card reversion was therefore indistinguishable from a poster reversion, and a title that
+  moved on both channels appeared twice with identical text. Messages on a channel-specific path now
+  name the channel ("poster" or "wide card"), messages that abort work for the whole item say
+  "artwork", and run totals that span both channels count "image(s)". No behavior other than the log
+  text changed.
 
 ## [0.9.0] — 2026-07-24
 

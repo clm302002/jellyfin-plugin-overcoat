@@ -83,6 +83,7 @@ public class RestoreOriginalsTask : IScheduledTask
             var id = entry.Id;
             var channelState = entry.State;
             var imageType = channelState.ImageType;
+            var imageLabel = ProcessingState.ImageLabel(imageType);
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
@@ -110,9 +111,9 @@ public class RestoreOriginalsTask : IScheduledTask
                         {
                             conflicts++;
                             _logger.LogWarning(
-                                "Overcoat: could not read the current poster for '{Name}'; not restoring over it. State and vault kept.",
-                                item.Name ?? "?");
-                            file.Error("Skipped " + (item.Name ?? id) + " — current poster unreadable; nothing overwritten");
+                                "Overcoat: could not read the current {ImageLabel} for '{Name}'; not restoring over it. State and vault kept.",
+                                imageLabel, item.Name ?? "?");
+                            file.Error("Skipped " + (item.Name ?? id) + " — current " + imageLabel + " unreadable; nothing overwritten");
                             continue;
                         }
 
@@ -122,7 +123,7 @@ public class RestoreOriginalsTask : IScheduledTask
                             _logger.LogWarning(
                                 "Overcoat: '{Name}' has artwork Overcoat did not produce — leaving it alone. Enable \"Force restore\" to overwrite it with the vaulted original.",
                                 item.Name ?? "?");
-                            file.Info((item.Name ?? "?") + " → skipped; poster was replaced outside Overcoat (use Force restore to override)");
+                            file.Info((item.Name ?? "?") + " → skipped; " + imageLabel + " was replaced outside Overcoat (use Force restore to override)");
                             continue;
                         }
                     }
@@ -189,7 +190,7 @@ public class RestoreOriginalsTask : IScheduledTask
         state.Flush();
         thumbState.Flush();
         _logger.LogInformation(
-            "Overcoat: restore done. {Restored}/{Count} poster(s) restored ({Orphaned} removed item(s) dropped, {Conflicts} skipped as externally changed, {Failed} failed and kept for retry).",
+            "Overcoat: restore done. {Restored}/{Count} image(s) restored ({Orphaned} removed item(s) dropped, {Conflicts} skipped as externally changed, {Failed} failed and kept for retry).",
             restored,
             work.Count,
             orphaned,
@@ -198,11 +199,11 @@ public class RestoreOriginalsTask : IScheduledTask
         file.Info($"Restore done — {restored}/{work.Count} image(s) restored; {orphaned} removed item(s) dropped; {conflicts} skipped (art changed outside Overcoat); {failed} failed and kept for retry.");
         if (conflicts > 0)
         {
-            file.Info($"{conflicts} poster(s) were left alone because their art was replaced outside Overcoat. Their vaulted originals are kept — enable \"Force restore\" on the settings page if you want Overcoat's originals put back regardless.");
+            file.Info($"{conflicts} image(s) were left alone because their art was replaced outside Overcoat. Their vaulted originals are kept — enable \"Force restore\" on the settings page if you want Overcoat's originals put back regardless.");
         }
         if (failed > 0)
         {
-            file.Error($"{failed} poster(s) could not be restored. Their clean originals are still vaulted — re-run this task to retry.");
+            file.Error($"{failed} image(s) could not be restored. Their clean originals are still vaulted — re-run this task to retry.");
         }
     }
 

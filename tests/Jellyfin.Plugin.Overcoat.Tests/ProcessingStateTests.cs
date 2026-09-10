@@ -243,6 +243,20 @@ public sealed class ProcessingStateTests : IDisposable
     }
 
     [Fact]
+    public void ImageLabel_NamesTheChannelTheLogLineIsActuallyAbout()
+    {
+        // Both scheduled tasks run one code path for both channels. Every log line on that path
+        // takes its noun from here; hardcoding "poster" made a wide-card event unreadable as one and
+        // misdirected a real investigation on 2026-09-10.
+        var poster = new ProcessingState(_dir, NullLogger.Instance);
+        var thumb = new ProcessingState(_dir, NullLogger.Instance, ProcessingState.ArtworkChannel.Thumb);
+
+        Assert.Equal("poster", ProcessingState.ImageLabel(poster.ImageType));
+        Assert.Equal("wide card", ProcessingState.ImageLabel(thumb.ImageType));
+        Assert.NotEqual(ProcessingState.ImageLabel(poster.ImageType), ProcessingState.ImageLabel(thumb.ImageType));
+    }
+
+    [Fact]
     public void Remove_DropsBothTheEntryAndTheVaultedOriginal()
     {
         var s = New();
