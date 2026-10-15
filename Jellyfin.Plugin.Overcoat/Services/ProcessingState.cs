@@ -57,6 +57,20 @@ public sealed class ProcessingState
     public ArtworkChannel Channel { get; }
     public ImageType ImageType => Channel == ArtworkChannel.Thumb ? ImageType.Thumb : ImageType.Primary;
 
+    /// <summary>
+    /// What to call the artwork this channel writes, in a log line or the run log.
+    /// </summary>
+    /// <remarks>
+    /// Every message on a channel-agnostic code path must use this rather than saying "poster"
+    /// literally. Both tasks run the same code for Primary and Thumb, so a hardcoded "poster" makes
+    /// a wide-card event indistinguishable from a poster event — and a title that moved on both
+    /// channels appears twice with identical text. That is not cosmetic: on 2026-09-10 it sent an
+    /// investigation into ~730 nightly re-applications looking at the poster channel, when the cause
+    /// was almost entirely wide cards.
+    /// </remarks>
+    public static string ImageLabel(ImageType imageType) =>
+        imageType == ImageType.Thumb ? "wide card" : "poster";
+
     public ProcessingState(string dataFolder, ILogger logger, ArtworkChannel channel = ArtworkChannel.Primary)
     {
         Channel = channel;

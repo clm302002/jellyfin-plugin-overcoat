@@ -114,10 +114,20 @@ public sealed class ScanFollowUp : IHostedService, IDisposable
         if (kind is "Movie" or "Series")
         {
             // Record which library this item lives in, so the follow-up can re-overlay only that one.
-            var libraryId = e.Item?.GetTopParent()?.Id;
-            if (libraryId is { } id && id != Guid.Empty)
+            // Use the collection folder (the vf.ItemId OverlayTask matches on). GetTopParent() is the
+            // library's physical folder instead, which never matched, so every per-library follow-up
+            // re-applied nothing.
+            var libraryIds = e.Item is null
+                ? new List<Guid>()
+                : _libraryManager.GetCollectionFolders(e.Item).Select(f => f.Id).ToList();
+            if (libraryIds.Count == 0 && e.Item?.GetTopParent()?.Id is { } top)
             {
-                lock (_gate)
+                libraryIds.Add(top);
+            }
+
+            lock (_gate)
+            {
+                foreach (var id in libraryIds.Where(g => g != Guid.Empty))
                 {
                     _affectedLibraries.Add(id);
                 }

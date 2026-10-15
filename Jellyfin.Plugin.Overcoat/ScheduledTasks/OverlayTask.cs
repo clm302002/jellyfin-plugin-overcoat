@@ -176,6 +176,7 @@ public class OverlayTask : IScheduledTask
 
         // Resolve the enabled libraries to process (TV or movie).
         var plans = new List<(LibraryConfig Lib, Guid ParentId, string Type)>();
+        var outOfScope = new List<(LibraryConfig Lib, Guid ParentId, string Type)>();
         foreach (var lib in config.Libraries.Where(l => l.Enabled))
         {
             var vf = _libraryManager.GetVirtualFolders()
@@ -194,12 +195,24 @@ public class OverlayTask : IScheduledTask
             }
 
             var parentId = Guid.Parse(vf.ItemId);
-            if (scope is not null && !scope.Contains(parentId))
+            if (scope is not null && !InScope(scope, parentId))
             {
-                continue; // scoped run — this library wasn't the one scanned
+                outOfScope.Add((lib, parentId, type)); // scoped run — this library wasn't the one scanned
+                continue;
             }
 
             plans.Add((lib, parentId, type));
+        }
+
+        // A scope that matches none of the enabled libraries is an id we failed to map, not a scan
+        // of nothing — every per-library follow-up on a Jellyfin 12.1 server logged "no items to
+        // process" this way while the scan had just stripped its overlays. Cover everything instead;
+        // the cache keeps it cheap.
+        if (scope is not null && plans.Count == 0 && outOfScope.Count > 0)
+        {
+            _logger.LogWarning("Overcoat: the scanned library didn't match any enabled library; re-applying across all of them.");
+            file.Info("Scoped run matched no enabled library — covering all libraries instead.");
+            plans.AddRange(outOfScope);
         }
 
         // Fetch the badge data sets once, only those some enabled library actually needs.
@@ -290,7 +303,7 @@ public class OverlayTask : IScheduledTask
                   $"trendingMovie={N(trendingMovieR)}, top250Movie={N(top250MovieR)}, watchedMovies={W(watchedMoviesR)}.");
         if (badgeDataIncomplete)
         {
-            file.Error("Badge data incomplete (" + string.Join(", ", failedSets) + ") — posters that would lose all overlays are being left untouched.");
+            file.Error("Badge data incomplete (" + string.Join(", ", failedSets) + ") — artwork that would lose all overlays is being left untouched.");
         }
 
         int done = 0;
@@ -394,7 +407,7 @@ public class OverlayTask : IScheduledTask
                 "Overcoat: {Failed} TMDB request(s) failed this run — affected items were left untouched. "
                 + "Check your TMDB API key and the server's connectivity to api.themoviedb.org.",
                 tmdb.FailedRequests);
-            file.Error($"{tmdb.FailedRequests} TMDB request(s) failed this run — affected posters left untouched. Check the TMDB API key / network.");
+            file.Error($"{tmdb.FailedRequests} TMDB request(s) failed this run — affected artwork left untouched. Check the TMDB API key / network.");
         }
     }
 
@@ -454,9 +467,9 @@ public class OverlayTask : IScheduledTask
             if (status.Failed)
             {
                 _logger.LogWarning(
-                    "Overcoat: TMDB lookup failed for '{Name}' — leaving its poster untouched this run.",
+                    "Overcoat: TMDB lookup failed for '{Name}' — leaving its artwork untouched this run.",
                     item.Name ?? "?");
-                file.Info((item.Name ?? "?") + " → TMDB unavailable; poster left untouched (will retry next run)");
+                file.Info((item.Name ?? "?") + " → TMDB unavailable; artwork left untouched (will retry next run)");
                 return false;
             }
 
@@ -522,7 +535,7 @@ public class OverlayTask : IScheduledTask
         }
 
         var imageType = state.ImageType;
-        var imageLabel = imageType == ImageType.Thumb ? "wide card" : "poster";
+        var imageLabel = ProcessingState.ImageLabel(imageType);
         var id = item.Id.ToString("N");
         var currentSig = state.ImageSignature(item);
 
@@ -585,13 +598,13 @@ public class OverlayTask : IScheduledTask
                 {
                     // We could not read the file, so we do NOT know whether it is still ours. Treating
                     // this as a replacement would abandon the vaulted original on the strength of an
-                    // I/O error. Preserve everything and surface it — a poster we cannot read is a
+                    // I/O error. Preserve everything and surface it — artwork we cannot read is a
                     // condition the user can act on.
                     art = ArtState.Unknown;
                     _logger.LogWarning(
-                        "Overcoat: could not read the current poster for '{Name}' — leaving its state and vaulted original untouched. Check file permissions or disk health.",
-                        item.Name ?? "?");
-                    file.Error((item.Name ?? "?") + " — current poster unreadable; state and vaulted original preserved");
+                        "Overcoat: could not read the current {ImageLabel} for '{Name}' — leaving its state and vaulted original untouched. Check file permissions or disk health.",
+                        imageLabel, item.Name ?? "?");
+                    file.Error((item.Name ?? "?") + " — current " + imageLabel + " unreadable; state and vaulted original preserved");
                 }
                 else if (string.Equals(ProcessingState.HashBytes(currentBytes), knownHash, StringComparison.Ordinal))
                 {
@@ -623,9 +636,9 @@ public class OverlayTask : IScheduledTask
             if (badgeDataIncomplete)
             {
                 _logger.LogWarning(
-                    "Overcoat: '{Name}' would lose all overlays, but badge data is incomplete this run — leaving its poster untouched.",
-                    item.Name ?? "?");
-                file.Info((item.Name ?? "?") + " → badge data incomplete; poster left untouched (will retry next run)");
+                    "Overcoat: '{Name}' would lose all overlays, but badge data is incomplete this run — leaving its {ImageLabel} untouched.",
+                    item.Name ?? "?", imageLabel);
+                file.Info((item.Name ?? "?") + " → badge data incomplete; " + imageLabel + " left untouched (will retry next run)");
                 return false;
             }
 
@@ -678,8 +691,9 @@ public class OverlayTask : IScheduledTask
         var forceReacquire = art == ArtState.Replaced;
         if (art == ArtState.Replaced)
         {
-            _logger.LogInformation("Overcoat: '{Name}' poster changed externally — re-baselining.", item.Name);
-            file.Info((item.Name ?? "?") + " — poster changed externally, re-baselining");
+            _logger.LogInformation(
+                "Overcoat: '{Name}' {ImageLabel} changed externally — re-baselining.", item.Name, imageLabel);
+            file.Info((item.Name ?? "?") + " — " + imageLabel + " changed externally, re-baselining");
         }
 
         // Fingerprint the banner appearance so changing any banner setting forces every banner'd item
@@ -764,7 +778,8 @@ public class OverlayTask : IScheduledTask
         using var bmp = OverlayRenderer.Decode(original);
         if (bmp is null)
         {
-            _logger.LogWarning("Overcoat: could not decode poster for '{Name}'.", item.Name);
+            _logger.LogWarning(
+                "Overcoat: could not decode the {ImageLabel} for '{Name}'.", imageLabel, item.Name);
             return false;
         }
 
@@ -937,6 +952,8 @@ public class OverlayTask : IScheduledTask
         if (allowProviderFallback && type == "tv")
         {
             // Poster fallback only — a failure here just means no TMDB poster to fall back to.
+            // The literal "poster" in the message below is correct and must stay literal: the thumb
+            // channel passes allowProviderFallback: false, so this branch only ever runs for Primary.
             info ??= (await tmdb.GetTvStatusAsync(tmdbId, ct).ConfigureAwait(false)).Info;
             if (info?.PosterPath is { Length: > 0 } posterPath
                 && await tmdb.DownloadPosterAsync(posterPath, ct).ConfigureAwait(false) is { } fetched)
@@ -1050,5 +1067,21 @@ public class OverlayTask : IScheduledTask
             "movies" => "movie",
             _ => "unknown",
         };
+    }
+
+    /// <summary>
+    /// Whether a library (its collection-folder id) is in the scanned scope. Also accepts the ids of
+    /// the library's physical folders: an item's top parent is the physical folder under the
+    /// aggregate root, not the collection folder, so that is what older follow-ups recorded.
+    /// </summary>
+    private bool InScope(HashSet<Guid> scope, Guid libraryId)
+    {
+        if (scope.Contains(libraryId))
+        {
+            return true;
+        }
+
+        return _libraryManager.GetItemById(libraryId) is CollectionFolder folder
+            && folder.PhysicalFolderIds.Any(scope.Contains);
     }
 }

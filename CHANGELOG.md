@@ -8,6 +8,46 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.9.1] — 2026-10-14
+
+Stable release of the 0.9.1 line. It fixes the post-scan re-apply, which on Jellyfin 12.1 never
+re-applied anything after a per-library scan, and includes the 0.9.1-beta.1 logging fixes.
+
+### Fixed
+- **Overlays come back after a library scan again.** When a scan re-adopts media-folder art
+  (`poster.jpg` beside the media), Overcoat is meant to re-apply within about a minute. The
+  follow-up recorded the scanned library by the item's top parent, which is the library's physical
+  folder rather than the library itself, so it never matched an enabled library and every run
+  logged "no items to process". Posters then stayed plain until the next daily run. The follow-up
+  now records the library itself, accepts the older id as well, and if a scoped run still matches
+  no enabled library it covers all of them instead of doing nothing.
+- Includes everything in 0.9.1-beta.1: log lines name the channel ("poster" or "wide card").
+
+### Notes for upgraders
+Nothing to change. Overlays, badges, saved originals and settings carry over as they are.
+
+## [0.9.1-beta.1] — 2026-09-10
+
+First build after 0.9.0. It exists to make the logs tell the truth about which artwork Overcoat is
+acting on — nothing about processing, state, or the vault changes.
+
+### Fixed
+- **Wide-card events are no longer reported as poster events.** Both scheduled tasks run one code
+  path for the poster (Primary) and wide-card (Thumb) channels, but every message on that path said
+  "poster" literally. A wide-card reversion was indistinguishable from a poster reversion, and a
+  title that moved on both channels appeared twice with identical text — which made it impossible to
+  tell from the log which channel was responsible for a large re-application pass.
+- Messages on a channel-specific path now name the channel: "poster" or "wide card".
+- Messages for a failure that stops work on the whole item — a TMDB lookup or parse failure — now say
+  "artwork", because they affect both channels rather than the poster alone.
+- Restore Originals' run totals now count "image(s)". They span both channels, so reporting them as
+  "poster(s) restored" undercounted what the task had actually put back.
+
+### Notes for testers
+This is a logging change only. If you compare `Overcoat_<date>.log` against 0.9.0 you should see the
+same events in the same order, with wide-card lines now identifiable as such. Overlays, badges,
+vaulted originals, and the restore task behave exactly as they did in 0.9.0.
+
 ## [0.9.0] — 2026-07-24
 
 Overcoat 0.9.0 promotes the owner-approved beta.9 build to stable after live Jellyfin testing. This
