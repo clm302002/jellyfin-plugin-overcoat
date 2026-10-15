@@ -125,6 +125,8 @@ Releases are cut by pushing a tag; **pushing to a branch publishes nothing.**
 | `v0.9.0-beta.8` | `0.9.0.8` | beta | complete workspace redesign and hard media-folder write boundary |
 | `v0.9.0-beta.9` | `0.9.0.9` | beta | real-Jellyfin catalogue-input and native-toggle corrections |
 | `v0.9.0` | `0.9.0.500` | stable | owner-approved beta.9 promoted unchanged after live-server testing |
+| `v0.9.1-beta.1` | `0.9.1.1` | beta | log lines name the artwork channel |
+| `v0.9.1` | `0.9.1.500` | stable | post-scan re-apply fix; shipped without a beta soak |
 
 GitHub's "latest" excludes prereleases, so a beta can never appear on the stable URL. The beta channel
 is a **superset** — stable releases are published there too — so subscribing to the beta URL alone is
