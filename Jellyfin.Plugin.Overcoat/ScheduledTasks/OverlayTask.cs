@@ -176,6 +176,7 @@ public class OverlayTask : IScheduledTask
 
         // Resolve the enabled libraries to process (TV or movie).
         var plans = new List<(LibraryConfig Lib, Guid ParentId, string Type)>();
+        var outOfScope = new List<(LibraryConfig Lib, Guid ParentId, string Type)>();
         foreach (var lib in config.Libraries.Where(l => l.Enabled))
         {
             var vf = _libraryManager.GetVirtualFolders()
@@ -194,12 +195,24 @@ public class OverlayTask : IScheduledTask
             }
 
             var parentId = Guid.Parse(vf.ItemId);
-            if (scope is not null && !scope.Contains(parentId))
+            if (scope is not null && !InScope(scope, parentId))
             {
-                continue; // scoped run — this library wasn't the one scanned
+                outOfScope.Add((lib, parentId, type)); // scoped run — this library wasn't the one scanned
+                continue;
             }
 
             plans.Add((lib, parentId, type));
+        }
+
+        // A scope that matches none of the enabled libraries is an id we failed to map, not a scan
+        // of nothing — every per-library follow-up on a Jellyfin 12.1 server logged "no items to
+        // process" this way while the scan had just stripped its overlays. Cover everything instead;
+        // the cache keeps it cheap.
+        if (scope is not null && plans.Count == 0 && outOfScope.Count > 0)
+        {
+            _logger.LogWarning("Overcoat: the scanned library didn't match any enabled library; re-applying across all of them.");
+            file.Info("Scoped run matched no enabled library — covering all libraries instead.");
+            plans.AddRange(outOfScope);
         }
 
         // Fetch the badge data sets once, only those some enabled library actually needs.
@@ -1054,5 +1067,21 @@ public class OverlayTask : IScheduledTask
             "movies" => "movie",
             _ => "unknown",
         };
+    }
+
+    /// <summary>
+    /// Whether a library (its collection-folder id) is in the scanned scope. Also accepts the ids of
+    /// the library's physical folders: an item's top parent is the physical folder under the
+    /// aggregate root, not the collection folder, so that is what older follow-ups recorded.
+    /// </summary>
+    private bool InScope(HashSet<Guid> scope, Guid libraryId)
+    {
+        if (scope.Contains(libraryId))
+        {
+            return true;
+        }
+
+        return _libraryManager.GetItemById(libraryId) is CollectionFolder folder
+            && folder.PhysicalFolderIds.Any(scope.Contains);
     }
 }

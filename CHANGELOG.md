@@ -8,6 +8,24 @@ All notable changes to Overcoat are documented here. Format follows
 
 _Nothing yet._
 
+## [0.9.1] — 2026-10-14
+
+Stable release of the 0.9.1 line. It fixes the post-scan re-apply, which on Jellyfin 12.1 never
+re-applied anything after a per-library scan, and includes the 0.9.1-beta.1 logging fixes.
+
+### Fixed
+- **Overlays come back after a library scan again.** When a scan re-adopts media-folder art
+  (`poster.jpg` beside the media), Overcoat is meant to re-apply within about a minute. The
+  follow-up recorded the scanned library by the item's top parent, which is the library's physical
+  folder rather than the library itself, so it never matched an enabled library and every run
+  logged "no items to process". Posters then stayed plain until the next daily run. The follow-up
+  now records the library itself, accepts the older id as well, and if a scoped run still matches
+  no enabled library it covers all of them instead of doing nothing.
+- Includes everything in 0.9.1-beta.1: log lines name the channel ("poster" or "wide card").
+
+### Notes for upgraders
+Nothing to change. Overlays, badges, saved originals and settings carry over as they are.
+
 ## [0.9.1-beta.1] — 2026-09-10
 
 First build after 0.9.0. It exists to make the logs tell the truth about which artwork Overcoat is
